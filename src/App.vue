@@ -8,6 +8,7 @@
       </Transition>
     </router-view>
     <ElectionNarrativeModal />
+    <ElectionBroadcastModal />
     <ToastNotification />
   </div>
 </template>
@@ -16,10 +17,11 @@
 import AppHeader from './components/AppHeader.vue'
 import AppNav from './components/AppNav.vue'
 import ElectionNarrativeModal from './components/elections/ElectionNarrativeModal.vue'
+import ElectionBroadcastModal from './components/elections/ElectionBroadcastModal.vue'
 import ToastNotification from './components/ToastNotification.vue'
 
 export default {
   name: 'App',
-  components: { AppHeader, AppNav, ElectionNarrativeModal, ToastNotification },
+  components: { AppHeader, AppNav, ElectionNarrativeModal, ElectionBroadcastModal, ToastNotification },
 }
 </script>

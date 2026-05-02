@@ -49,6 +49,37 @@
   color: var(--text-secondary);
 }
 
+.overview-hero-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+}
+
+.btn-broadcast-start {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: #111827;
+  border: 1px solid #2dd4bf;
+  border-radius: var(--radius-md);
+  color: #2dd4bf;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-broadcast-start:hover {
+  background: rgba(45, 212, 191, 0.1);
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-broadcast-start:active {
+  transform: translateY(0);
+}
+
 .overview-hero-call {
   display: grid;
   align-content: center;

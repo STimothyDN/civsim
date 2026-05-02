@@ -1,8 +1,9 @@
 import { DEFAULT_VOLATILITY } from './constants/apportionmentRules'
+import { PARTY_META } from './constants/parties'
 import { RANDOM_TREND_TEMPLATES, generateTrendPackageFromSelections } from './trends/randomizeTrends'
 
 const DEFAULT_ENDPOINT = 'http://localhost:1234/v1/chat/completions'
-const DEFAULT_MODEL = 'google/gemma-4-e4b'
+const DEFAULT_MODEL = 'qwen/qwen3.5-9b'
 const MAX_TEMPLATE_DESCRIPTION = 220
 const MAX_SCENARIO_NAME = 72
 const MAX_SCENARIO_DESCRIPTION = 260
@@ -54,15 +55,9 @@ function trendSummaries(trends = []) {
 }
 
 function provinceSummaries(data) {
-  return (data?.provinces || []).slice(0, 40).map((province) => ({
+  return (data?.provinces || []).slice(0, 15).map((province) => ({
     name: province.name || 'Unnamed province',
     group: province.group || 'Unassigned',
-    isNationalCapital: !!province.is_national_capital,
-    isRegionalCapital: !!province.is_regional_capital,
-    isConquered: !!province.is_conquered,
-    loyalty: province.loyalty ?? null,
-    population: province.population ?? null,
-    countyCount: Array.isArray(province.counties) ? province.counties.length : 0,
   }))
 }
 
@@ -71,8 +66,7 @@ function appContext(data) {
     countryName: data?.country?.basic_info?.name || 'Untitled Civilization',
     stateReligion: data?.country?.state_religion || null,
     provinceGroups: data?.province_groups || [],
-    globalReligions: data?.global_religions || [],
-    provinces: provinceSummaries(data),
+    majorProvinces: provinceSummaries(data),
   }
 }
 
@@ -88,7 +82,8 @@ function plannerSystemPrompt() {
   return [
     'You are an election narrative planner for a fictional Civilization-style simulator.',
     'Pick existing trend templates that best express the user narrative.',
-    'Return JSON only. Do not use markdown.',
+    'Return ONLY the final JSON object. Do not use markdown, no preamble, and no conversational filler.',
+    'CRITICAL: Do not prompt the user for more information or ask for confirmation. Make all final decisions based on the context provided.',
     'Use 3 to 7 trend selections. Include at least one simple trend and at least one compound or storyline trend when possible.',
     'Use intensity from 0.15 to 1.0, where 0.5 is normal strength.',
     'Tune volatility only when the narrative implies chaos, stability, landslide, or local uncertainty.',
@@ -128,12 +123,125 @@ function plannerUserPrompt(narrative, data) {
 function climateSummarySystemPrompt() {
   return [
     'You are naming an election climate for a fictional Civilization-style simulator.',
+    'Return ONLY the final JSON object. No markdown, no preamble, and no conversational filler.',
+    'CRITICAL: Provide the final scenario name and description immediately. Do not ask for more context or details.',
     'The application has already randomized the trend templates; do not add, remove, or alter trends.',
-    'Return JSON only. Do not use markdown or explanatory text.',
-    'Do not think out loud. Start immediately with { and end with }.',
     'Write a short scenario name and a concise description that explains the combined political climate.',
     'Use grounded language based only on the supplied randomized trends and world context.',
   ].join(' ')
+}
+
+function broadcastSystemPrompt(scope = 'national', targetName = null) {
+  const scopeMap = {
+    national: 'Imperial News Network',
+    regional: `${targetName || 'Regional'} Voice`,
+    provincial: `${targetName || 'Provincial'} Gazette`,
+  }
+  const stationName = scopeMap[scope] || 'Khmer State Television'
+
+  return [
+    `You are a legendary news anchor for ${stationName}.`,
+    'The setting is a high-stakes, alternate-history Khmer Empire at the turn of the century.',
+    'TASK: Deliver a 5-paragraph election broadcast that is as distinct and cinematic as it is data-driven.',
+    'STRICT RULE: Do not use a generic structure. Every broadcast should feel unique.',
+    'NARRATIVE ANGLE: Pick a primary "Angle of the Night" based on the data (e.g., "The End of an Era," "A Rising Tide," "The Silent Majority Speaks," "Chaos in the Provinces").',
+    'VIVID IMAGERY: Use sensory details to set the scene (e.g., the roar of the crowds, the flicker of telegraph machines, the tension in the Imperial Court).',
+    'DATA INTEGRATION: Weave the seat counts, control shifts, and popular vote swings into the story. The numbers should feel like the pulse of the nation, not a list.',
+    scope === 'national' ? 'Focus on the grand struggle for the heart of the Empire and the shifting mandate of the people.' : '',
+    scope === 'regional' ? `Focus on the distinct political identity of ${targetName} and how it is asserting its power within the Empire.` : '',
+    scope === 'provincial' ? `Focus on the local legends, specific county rivalries, and the immediate impact on the lives of citizens in ${targetName}.` : '',
+    'Paragraph 1: The Scene. Establish the mood and the primary headline.',
+    'Paragraph 2: The Mandate. Describe the hard numbers and who now holds the levers of power.',
+    'Paragraph 3-4: The Analysis. Dive into a specific "surprise" or "swing" from the data. Why did this happen? What does it mean?',
+    'Paragraph 5: The Future. A closing thought on what this result means for the dawn of the new term.',
+    'Return ONLY the script. No markdown. No conversational filler.',
+  ].filter(Boolean).join(' ')
+}
+
+function getSwings(current, baseline) {
+  if (!current || !baseline) return {}
+  return Object.fromEntries(
+    Object.entries(current).map(([party, share]) => {
+      const diff = share - (baseline[party] || 0)
+      return [party, Number(diff.toFixed(4))]
+    })
+  )
+}
+
+function broadcastUserPrompt(results, baselineResults, scope = 'national', targetName = null) {
+  const trends = trendSummaries(results.config?.trends || [])
+  const parties = Object.values(PARTY_META).map(m => `${m.name} (${m.ideology})`).join('\n')
+  
+  const nationalSummary = `
+    NATIONAL RESULTS:
+    - Assembly Control: ${results.national.assembly.control.label} (${results.national.assembly.control.detail})
+    - Council Control: ${results.national.prelates.control.label} (${results.national.prelates.control.detail})
+    - National Population: ${results.national.population}
+  `.trim()
+
+  let localContext = ''
+
+  if (scope === 'national') {
+    const regionHighlights = Object.entries(results.regions).map(([name, r]) => {
+      const swing = getSwings(r.assembly.vote_shares, baselineResults?.regions?.[name]?.assembly?.vote_shares)
+      const topSwing = Object.entries(swing).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0]
+      return `- ${name}: Assembly ${r.assembly.control.label}. Major swing: ${topSwing ? `${topSwing[0]} ${topSwing[1] > 0 ? '+' : ''}${(topSwing[1] * 100).toFixed(2)}%` : 'None'}`
+    }).join('\n')
+    
+    localContext = `REGIONAL OVERVIEW:\n${regionHighlights}`
+  } else if (scope === 'regional') {
+    const region = results.regions[targetName] || {}
+    const baselineRegion = baselineResults?.regions?.[targetName] || {}
+    const provinces = results.provinces
+      .filter(p => p.group === targetName)
+      .sort((a, b) => b.provincial_population - a.provincial_population)
+      .map(p => `- ${p.name}: ${p.assembly.control.label}.`)
+      .join('\n')
+
+    localContext = `
+      REGIONAL FOCUS: ${targetName}
+      - Assembly: ${region.assembly.control.label}
+      - Council: ${region.prelates.control.label}
+      - Population: ${region.population}
+      - Province Breakdown:
+      ${provinces}
+    `.trim()
+  } else if (scope === 'provincial') {
+    const province = results.provinces.find(p => p.name === targetName) || {}
+    const counties = (province.counties || [])
+      .sort((a, b) => b.county_population - a.county_population)
+      .slice(0, 10)
+      .map(c => `- ${c.name}: Top party is ${PARTY_META[Object.entries(c.vote_shares).sort((a, b) => b[1] - a[1])[0][0]].name}`)
+      .join('\n')
+
+    localContext = `
+      PROVINCIAL FOCUS: ${targetName}
+      - Assembly: ${province.assembly.control.label}
+      - Council: ${province.prelates.control.label}
+      - Population: ${province.provincial_population}
+      - Major County Results:
+      ${counties}
+    `.trim()
+  }
+
+  return `
+    ELECTION NEWSROOM DATA
+    =======================
+    SCOPE: ${(scope || 'national').toString().toUpperCase()}
+    TARGET: ${targetName || 'NATIONAL'}
+
+    PARTY PLATFORMS:
+    ${parties}
+
+    ACTIVE TRENDS/CLIMATE:
+    ${trends.length ? trends.join('\n') : 'No major trends reported.'}
+
+    ${nationalSummary}
+
+    ${localContext}
+
+    TASK: Write a 5-paragraph captivating news broadcast script based on the data above.
+  `.trim()
 }
 
 function climateSummaryUserPrompt({ trends, seed, data }) {
@@ -168,13 +276,38 @@ function extractJsonObject(rawText) {
   const text = chatContentToText(rawText).trim()
   if (!text) throw new ModelOutputError('The model returned an empty response.', 'empty')
 
+  // Try parsing directly first
   try {
     return JSON.parse(text)
-  } catch (error) {
+  } catch (e) {
+    // Attempt to extract the JSON block
     const start = text.indexOf('{')
     const end = text.lastIndexOf('}')
-    if (start < 0 || end <= start) throw error
-    return JSON.parse(text.slice(start, end + 1))
+    
+    if (start >= 0 && end > start) {
+      let jsonCandidate = text.slice(start, end + 1)
+        .replace(/\/\/.*$/gm, '') // Remove single-line comments
+        .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
+        .replace(/,\s*([\]}])/g, '$1') // Remove trailing commas
+      
+      try {
+        return JSON.parse(jsonCandidate)
+      } catch (innerError) {
+        // More aggressive repair: handle unescaped quotes in summary/reason fields
+        // This is a common failure point for small models
+        try {
+          // Replace single quotes with double quotes for keys (crude)
+          const repaired = jsonCandidate
+            .replace(/([{,]\s*)'([^']+)':/g, '$1"$2":') // keys
+            .replace(/:\s*'([^']*)'/g, ': "$1"') // values
+          return JSON.parse(repaired)
+        } catch (repairError) {
+          throw new ModelOutputError(`JSON Parse Error: ${innerError.message}. Content near: ${jsonCandidate.slice(0, 100)}...`, 'invalid-json')
+        }
+      }
+    }
+    
+    throw new ModelOutputError(`Could not find a valid JSON object in model output.`, 'no-json')
   }
 }
 
@@ -262,19 +395,25 @@ async function requestChatCompletion({
   max_tokens,
   messages,
 }) {
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      temperature,
-      max_tokens,
-      messages,
-    }),
-  })
+  let response
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        temperature,
+        max_tokens,
+        messages,
+      }),
+    })
+  } catch (netError) {
+    throw new Error(`Could not connect to LM Studio at ${endpoint}. Ensure the server is running and "Enable CORS" is on.`)
+  }
 
   if (!response.ok) {
-    throw new Error(`LM Studio request failed with ${response.status} ${response.statusText}`)
+    const errorBody = await response.text().catch(() => 'No error body')
+    throw new Error(`LM Studio error (${response.status}): ${errorBody}`)
   }
 
   const payload = await response.json()
@@ -283,7 +422,7 @@ async function requestChatCompletion({
 
   if (!content.trim()) {
     if (choice.finish_reason === 'length') {
-      throw new ModelOutputError('LM Studio used its output budget before returning scenario JSON.', 'length')
+      throw new ModelOutputError('LM Studio used its output budget before returning response.', 'length')
     }
     throw new ModelOutputError('The model returned an empty response.', 'empty')
   }
@@ -361,4 +500,26 @@ export async function requestElectionClimateSummary({
   }
 
   throw lastError || new Error('Election climate scenario could not be generated.')
+}
+
+export async function requestElectionBroadcast({
+  results,
+  baselineResults,
+  scope = 'national',
+  targetName = null,
+  endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
+  model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
+} = {}) {
+  const content = await requestChatCompletion({
+    endpoint,
+    model,
+    temperature: 0.8,
+    max_tokens: 3000,
+    messages: [
+      { role: 'system', content: broadcastSystemPrompt(scope, targetName) },
+      { role: 'user', content: broadcastUserPrompt(results, baselineResults, scope, targetName) },
+    ],
+  })
+
+  return content
 }

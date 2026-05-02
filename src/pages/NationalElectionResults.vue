@@ -20,6 +20,12 @@
             <p class="eyebrow">National Elections</p>
             <h2>National Decision Desk</h2>
             <p>{{ countryName }} · {{ formatCompactNumber(results.national.population) }} people · {{ regionRows.length }} regions</p>
+            <div class="overview-hero-actions">
+              <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('national')">
+                <Radio :size="16" />
+                Start National Broadcast
+              </button>
+            </div>
           </div>
         </div>
         <div class="overview-hero-calls">
@@ -132,13 +138,14 @@
 
 <script>
 import { computed } from 'vue'
-import { FilePlus2, TriangleAlert, Vote } from 'lucide-vue-next'
+import { FilePlus2, Radio, TriangleAlert, Vote } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
+import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
 import { PARTIES, PARTY_META, formatShare, lowerHouseName, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
@@ -146,8 +153,9 @@ import { popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHe
 
 export default {
   name: 'NationalElectionResults',
-  components: { ChamberComposition, ElectionScenarioControls, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, TriangleAlert, Vote },
+  components: { ChamberComposition, ElectionScenarioControls, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio, TriangleAlert, Vote },
   setup() {
+    const uiStore = useUiStore()
     const { baselineResults, hasData, results, store } = useElectionResults()
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
     const nationalLowerHouseName = lowerHouseName('national')
@@ -233,6 +241,7 @@ export default {
       store,
       summaryCards,
       warnings,
+      uiStore,
     }
   },
 }

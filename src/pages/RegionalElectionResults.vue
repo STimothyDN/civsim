@@ -20,6 +20,12 @@
             <p class="eyebrow">Regional Elections</p>
             <h2>Regional Decision Desk</h2>
             <p>{{ formatCompactNumber(totalRegionalPopulation) }} people · {{ regionRows.length }} regions · {{ formatNumber(totalRegionalAssemblySeats) }} assemblypersons</p>
+            <div v-if="selectedRegion" class="overview-hero-actions">
+              <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('regional', selectedRegionName)">
+                <Radio :size="16" />
+                Start Regional Broadcast
+              </button>
+            </div>
           </div>
         </div>
         <div v-if="selectedRegion" class="overview-hero-calls">
@@ -247,13 +253,14 @@
 
 <script>
 import { computed, ref, watch } from 'vue'
-import { FilePlus2, Map } from 'lucide-vue-next'
+import { FilePlus2, Map, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
+import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
 import { lowerHouseName, PARTIES, PARTY_META, formatShare, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
@@ -261,8 +268,9 @@ import { partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domai
 
 export default {
   name: 'RegionalElectionResults',
-  components: { ChamberComposition, ElectionScenarioControls, FilePlus2, Map, PartyBadge, PopularVoteBoard, ProvinceChart },
+  components: { ChamberComposition, ElectionScenarioControls, FilePlus2, Map, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
+    const uiStore = useUiStore()
     const selectedRegionName = ref('')
     const { baselineResults, hasData, results, store } = useElectionResults()
     const regionRows = computed(() => Object.values(results.value.regions).sort((a, b) => b.population - a.population))
@@ -346,6 +354,7 @@ export default {
       sumSeats,
       totalRegionalAssemblySeats,
       totalRegionalPopulation,
+      uiStore,
     }
   },
 }

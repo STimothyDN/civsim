@@ -5,6 +5,9 @@ export const useUiStore = defineStore('ui', {
     toast: null,
     _toastId: 0,
     electionNarrativeModalOpen: false,
+    electionBroadcastModalOpen: false,
+    broadcastScope: 'national',
+    broadcastTargetName: null,
   }),
   actions: {
     showToast(message, type = 'info') {
@@ -16,6 +19,14 @@ export const useUiStore = defineStore('ui', {
     },
     closeElectionNarrativeModal() {
       this.electionNarrativeModalOpen = false
+    },
+    openElectionBroadcastModal(scope = 'national', targetName = null) {
+      this.broadcastScope = scope
+      this.broadcastTargetName = targetName
+      this.electionBroadcastModalOpen = true
+    },
+    closeElectionBroadcastModal() {
+      this.electionBroadcastModalOpen = false
     },
   },
 })

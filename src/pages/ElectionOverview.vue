@@ -18,6 +18,12 @@
           <p class="eyebrow">Election Overview</p>
           <h2>{{ countryName }} Election Board</h2>
           <p>{{ formatCompactNumber(results.national.population) }} people · {{ results.provinces.length }} provinces · {{ regionRows.length }} regions · simulated live returns</p>
+          <div class="overview-hero-actions">
+            <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal">
+              <Radio :size="16" />
+              Start Election Broadcast
+            </button>
+          </div>
         </div>
         <div class="overview-hero-calls">
           <div class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.assembly.control)">
@@ -196,12 +202,13 @@
 
 <script>
 import { computed } from 'vue'
-import { FilePlus2, LayoutDashboard } from 'lucide-vue-next'
-import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
+import { FilePlus2, LayoutDashboard, Radio } from 'lucide-vue-next'
+import ProvinceChart from '../components/ProvinceChart.vue'
 import { useElectionResults } from '../composables/useElectionResults'
+import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
 import { PARTIES, PARTY_META, formatShare, lowerHouseName, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
@@ -228,8 +235,9 @@ function countControlLeaders(units, chamber) {
 
 export default {
   name: 'ElectionOverview',
-  components: { ChamberComposition, ElectionScenarioControls, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart },
+  components: { ChamberComposition, ElectionScenarioControls, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
   setup() {
+    const uiStore = useUiStore()
     const { baselineResults, hasData, results, store } = useElectionResults()
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
     const popularVoteLeader = computed(() => leaderFromShares(results.value.national.assembly.vote_shares))
@@ -346,6 +354,7 @@ export default {
       store,
       topProvinceRows,
       topRegionRows,
+      uiStore,
       upperHouseNameFor,
     }
   },

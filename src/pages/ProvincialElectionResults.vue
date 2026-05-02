@@ -20,6 +20,12 @@
             <p class="eyebrow">Provincial Elections</p>
             <h2>Provincial Decision Desk</h2>
             <p>{{ selectedProvince?.name }} · {{ selectedProvince?.group }} · {{ formatCompactNumber(selectedProvince?.provincial_population) }} people</p>
+            <div v-if="selectedProvince" class="overview-hero-actions">
+              <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('provincial', selectedProvince.name)">
+                <Radio :size="16" />
+                Start Provincial Broadcast
+              </button>
+            </div>
           </div>
         </div>
         <div v-if="selectedProvince" class="overview-hero-calls">
@@ -240,7 +246,9 @@ import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
+import { Radio } from 'lucide-vue-next'
 import { useElectionResults } from '../composables/useElectionResults'
+import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
 import { lowerHouseName, PARTIES, PARTY_META, formatShare, trendHasMatchingEffect, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { provinceFeatureRadarOption } from '../domain/elections/charts/electionChartOptions'
@@ -248,8 +256,9 @@ import { partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domai
 
 export default {
   name: 'ProvincialElectionResults',
-  components: { Building2, ChamberComposition, ElectionScenarioControls, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart },
+  components: { Building2, ChamberComposition, ElectionScenarioControls, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
+    const uiStore = useUiStore()
     const selectedIndex = ref(0)
     const { baselineResults, electionStore, hasData, results, store } = useElectionResults()
     const provinceOptions = computed(() => results.value.provinces)
@@ -337,6 +346,7 @@ export default {
       store,
       sumSeats,
       topParty,
+      uiStore,
     }
   },
 }
