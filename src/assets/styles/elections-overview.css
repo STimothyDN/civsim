@@ -1,0 +1,434 @@
+.election-overview-page {
+  display: grid;
+  gap: 16px;
+}
+
+.overview-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+  gap: 18px;
+  align-items: stretch;
+  padding: 22px;
+  background:
+    linear-gradient(135deg, rgba(212, 168, 67, 0.16), transparent 42%),
+    var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.election-decision-hero {
+  margin-bottom: 16px;
+}
+
+.election-decision-hero-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+
+.election-decision-hero .election-page-icon-wrap {
+  margin: 0;
+}
+
+.overview-hero-calls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overview-hero h2 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.5rem, 4vw, 2.7rem);
+}
+
+.overview-hero p:not(.eyebrow) {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
+.overview-hero-call {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, var(--winner-bg, rgba(212, 168, 67, 0.12)), transparent 66%),
+    var(--bg-input);
+  border: 1px solid var(--winner-border, rgba(212, 168, 67, 0.22));
+  border-radius: var(--radius-md);
+}
+
+.overview-hero-call span,
+.overview-call-card span,
+.overview-province-card small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.overview-hero-call strong {
+  color: var(--winner-color, var(--accent));
+  font-size: 1.35rem;
+}
+
+.overview-hero-call small {
+  color: var(--text-secondary);
+}
+
+.overview-call-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overview-metric-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.overview-metric-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 13px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.overview-metric-card span,
+.overview-control-panel-header .eyebrow {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.overview-metric-card strong {
+  font-size: 1.28rem;
+}
+
+.overview-metric-card small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-call-card,
+.overview-board-panel,
+.overview-province-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.overview-call-card {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 15px;
+}
+
+.overview-call-card--lead {
+  background:
+    linear-gradient(135deg, var(--winner-bg, rgba(212, 168, 67, 0.1)), transparent 68%),
+    var(--bg-surface);
+  border-color: var(--winner-border, rgba(212, 168, 67, 0.3));
+}
+
+.overview-call-card--lead strong {
+  color: var(--winner-color, var(--text-primary));
+}
+
+.overview-call-card strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.12rem;
+}
+
+.overview-call-card small {
+  color: var(--text-secondary);
+}
+
+.overview-board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 16px;
+}
+
+.overview-control-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overview-board-panel {
+  min-width: 0;
+  padding: 16px;
+}
+
+.overview-control-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.overview-control-panel-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.overview-control-panel-header h3 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.98rem;
+}
+
+.overview-control-panel-header strong {
+  color: var(--accent);
+  font-size: 1.35rem;
+}
+
+.overview-control-list {
+  display: grid;
+  gap: 7px;
+}
+
+.overview-control-row {
+  display: grid;
+  grid-template-columns: minmax(94px, 0.9fr) minmax(86px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px;
+  background:
+    linear-gradient(90deg, var(--winner-bg, transparent), transparent 82%),
+    var(--bg-input);
+  border: 1px solid var(--winner-border, var(--border-subtle));
+  border-radius: var(--radius-sm);
+}
+
+.overview-control-track {
+  height: 8px;
+  overflow: hidden;
+  background: var(--bg-surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+}
+
+.overview-control-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.overview-control-row > strong {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.overview-party-board,
+.overview-call-list {
+  display: grid;
+  gap: 10px;
+}
+
+.overview-party-row {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.95fr) minmax(160px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.overview-party-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.overview-party-label span {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.overview-party-track {
+  height: 12px;
+  overflow: hidden;
+  background: var(--bg-surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+}
+
+.overview-party-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.overview-party-row strong {
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.overview-call-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 0.8fr);
+  gap: 12px;
+  align-items: center;
+  padding: 11px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.overview-call-row > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.overview-call-row strong,
+.overview-call-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-call-row span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.overview-province-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overview-province-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 13px;
+}
+
+.overview-province-card > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.overview-province-card strong,
+.overview-province-card span,
+.overview-province-card b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-province-card span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.overview-province-card b {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
+.election-summary-card.winner-control-card,
+.election-call-card.winner-control-card,
+.overview-hero-call.winner-control-card,
+.overview-call-card.winner-control-card,
+.overview-call-row.winner-control-card,
+.overview-province-card.winner-control-card {
+  background:
+    linear-gradient(135deg, var(--winner-bg, rgba(212, 168, 67, 0.1)), transparent 68%),
+    var(--bg-surface);
+  border-color: var(--winner-border, rgba(212, 168, 67, 0.28));
+}
+
+.election-summary-card.winner-control-card strong,
+.election-call-card.winner-control-card strong,
+.overview-hero-call.winner-control-card strong,
+.overview-call-card.winner-control-card strong,
+.overview-call-row.winner-control-card strong,
+.overview-province-card.winner-control-card strong,
+.overview-province-card.winner-control-card b {
+  color: var(--winner-color, var(--text-primary));
+}
+
+@media (max-width: 1120px) {
+  .election-summary-grid,
+  .overview-metric-strip,
+  .overview-call-grid,
+  .overview-control-grid,
+  .overview-province-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .overview-board-grid,
+  .overview-hero,
+  .overview-hero-calls {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .election-dashboard-grid,
+  .election-summary-grid,
+  .overview-metric-strip,
+  .overview-call-grid,
+  .overview-control-grid,
+  .overview-province-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-party-row,
+  .overview-call-row,
+  .overview-control-row,
+  .popular-vote-bar-row,
+  .election-call-card-chambers {
+    grid-template-columns: 1fr;
+  }
+
+  .election-decision-hero-main {
+    grid-template-columns: 1fr;
+  }
+
+  .popular-vote-board-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .popular-vote-total,
+  .popular-vote-bar-row > strong {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .chamber-legend {
+    grid-template-columns: 1fr;
+  }
+}
+

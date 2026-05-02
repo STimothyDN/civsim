@@ -1,0 +1,190 @@
+/* ===== Design Tokens ===== */
+:root {
+  --bg-base: #0f1117;
+  --bg-surface: #181a24;
+  --bg-surface-raised: #1e2130;
+  --bg-surface-overlay: #252839;
+  --bg-input: #141620;
+
+  --accent: #d4a843;
+  --accent-dim: #a07e2e;
+  --accent-glow: rgba(212, 168, 67, 0.25);
+  --accent-gradient: linear-gradient(135deg, #d4a843 0%, #c5953a 50%, #b8862f 100%);
+
+  --danger: #e54545;
+  --danger-bg: rgba(229, 69, 69, 0.12);
+  --danger-border: rgba(229, 69, 69, 0.3);
+  --success: #34d399;
+  --info: #60a5fa;
+
+  --text-primary: #e8e6e1;
+  --text-secondary: #9b9a97;
+  --text-muted: #5c5b58;
+  --text-accent: #d4a843;
+
+  --border: #2a2d3a;
+  --border-subtle: #22242f;
+  --border-focus: var(--accent);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+
+  color-scheme: dark;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ===== App Shell ===== */
+.app-shell {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+/* ===== Header ===== */
+.app-header {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-header-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-header p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  padding-left: 54px;
+}
+
+/* ===== Toolbar ===== */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+  padding: 14px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ===== Buttons ===== */
+button, .file-input span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+button:hover, .file-input span:hover {
+  background: var(--bg-surface-raised);
+  border-color: var(--text-muted);
+}
+
+button:active { transform: scale(0.97); }
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Primary button */
+.btn-primary {
+  background: var(--accent-gradient);
+  border-color: var(--accent-dim);
+  color: #1a1400;
+  font-weight: 600;
+}
+.btn-primary:hover {
+  filter: brightness(1.1);
+  border-color: var(--accent);
+}
+
+/* Danger button */
+.btn-danger {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: #f87171;
+}
+.btn-danger:hover {
+  background: rgba(229,69,69,0.2);
+  border-color: #e54545;
+}
+
+/* Ghost button */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.btn-ghost:hover { background: var(--bg-surface); }
+
+.file-input {
+  display: inline-flex;
+  align-items: center;
+}
+.file-input input { display: none; }
+
+.toolbar button, .toolbar .file-input span {
+  padding: 8px 14px;
+}
+

@@ -1,0 +1,6432 @@
+{
+  "country": {
+    "basic_info": {
+      "name": "Khmer Empire",
+      "leader": "Jayavarman VII"
+    },
+    "total_population": "845",
+    "state_religion": "Zoroastrianism",
+    "economy": {
+      "gold_per_turn": "3472.1",
+      "faith_per_turn": "1566.5",
+      "culture_per_turn": "1330.4",
+      "science_per_turn": "1034.7"
+    }
+  },
+  "provinces": [
+    {
+      "name": "Angkor Thom",
+      "city_id": 1,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "30",
+      "loyalty": "34",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": "26",
+        "food": "79",
+        "production": "106.6",
+        "gold": "180.8",
+        "culture": "113.3",
+        "science": "63.5",
+        "faith": "47.5"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "28"
+        }
+      ],
+      "housing": "44.5",
+      "net_amenities": "11",
+      "net_food": "35",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Capital Region",
+      "notes": "",
+      "is_national_capital": true,
+      "is_regional_capital": false,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 21507207,
+      "assemblypeople": 30,
+      "prelates": 7,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Yasodharapura",
+      "city_id": 2,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "33",
+      "loyalty": "42",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": "25",
+        "food": "75",
+        "production": "98.5",
+        "gold": "195.7",
+        "culture": "127.4",
+        "science": "72.5",
+        "faith": "73.1"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "31"
+        }
+      ],
+      "housing": "53",
+      "net_amenities": "8",
+      "net_food": "21.9",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "City Center",
+            "buildings": {
+              "Monument": true,
+              "Granary": true,
+              "Ancient Walls": true,
+              "Water Mill": true,
+              "Sewer": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "City Center",
+          "distance_from_center": "0"
+        },
+        {
+          "name": "Riverside District",
+          "tile_id": "tile_2",
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "0",
+          "river": "Bassac River",
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "1"
+        },
+        {
+          "name": "East Riverside",
+          "tile_id": "tile_3",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Bananas": true
+          },
+          "improvement": {
+            "name": "Plantation",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Bananas",
+          "citizens_working": "1",
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "1",
+            "gold": "4",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "1"
+        },
+        {
+          "name": "Forbidden City District",
+          "tile_id": "tile_4",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Forbidden City",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "5",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "1"
+        },
+        {
+          "name": "Center Plains",
+          "tile_id": "tile_5",
+          "terrain": "Plains",
+          "features": {
+            "Wheat": true
+          },
+          "improvement": {
+            "name": "Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Wheat",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "1",
+          "yields": {
+            "amenities": null,
+            "food": "6",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "1"
+        },
+        {
+          "name": "Aqueduct District",
+          "tile_id": "tile_6",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Aqueduct",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Bassac River",
+          "has_railroad": false,
+          "appeal": "1",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "1"
+        },
+        {
+          "name": "West Riverside",
+          "tile_id": "tile_7",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Cocoa": true
+          },
+          "improvement": {
+            "name": "Plantation",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cocoa",
+          "citizens_working": "1",
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "1",
+            "gold": "7",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "1"
+        },
+        {
+          "name": "Park West Entrance",
+          "tile_id": "tile_8",
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true,
+            "Yasodharapura National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Central Rainforest",
+          "tile_id": "tile_9",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Bananas": true
+          },
+          "improvement": {
+            "name": "Plantation",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Bananas",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "1",
+            "gold": "4",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Yasodhara Woods",
+          "tile_id": "tile_10",
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Holy Site District",
+          "tile_id": "tile_11",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Holy Site",
+            "buildings": {
+              "Shrine": true,
+              "Gurdwara": true,
+              "Prasat": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": "11",
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "South Rainforest",
+          "tile_id": "tile_12",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Cocoa": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cocoa",
+          "citizens_working": "1",
+          "river": "Bassac River",
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": "3",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Southside District",
+          "tile_id": "tile_13",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {
+              "Food Market": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Aerodrome District",
+          "tile_id": "tile_14",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Aerodrome",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Encampment District",
+          "tile_id": "tile_15",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Encampment",
+            "buildings": {
+              "Barracks": true,
+              "Armory": true,
+              "Military Academy": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": "6",
+            "gold": "6",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Industrial Zone District",
+          "tile_id": "tile_16",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Industrial Zone",
+            "buildings": {
+              "Workshop": true,
+              "Factory": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "2",
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": "9",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Commercial Hub District",
+          "tile_id": "tile_17",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Commercial Hub",
+            "buildings": {
+              "Market": true,
+              "Bank": true,
+              "Stock Exchange": true
+            },
+            "great_works": {
+              "Fuligin Dark Chocolate Bars": true,
+              "Whizzo's Choco-Mix": true,
+              "Island Dream Cocoa Butter Lotion": true
+            }
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": "24",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Orszaghaz District",
+          "tile_id": "tile_18",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Orsaghaz",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "4",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Cocoa District",
+          "tile_id": "tile_19",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Cocoa": true
+          },
+          "improvement": {
+            "name": "Corporation",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cocoa",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "7",
+            "production": "12",
+            "gold": "6",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "2"
+        },
+        {
+          "name": "Park 3 District",
+          "tile_id": "tile_20",
+          "terrain": "Grassland",
+          "features": {
+            "Yasodharapura National Park": true,
+            "Maize": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Maize",
+          "citizens_working": "1",
+          "river": "Tonle Sap River",
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": null,
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Park 5 District",
+          "tile_id": "tile_21",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Yasodharapura National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Park East Entrance",
+          "tile_id": "tile_22",
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true,
+            "Yasodharapura National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "West Mine District",
+          "tile_id": "tile_23",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Diamonds": true
+          },
+          "improvement": {
+            "name": "Mine",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Diamonds",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "5",
+            "gold": "3",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Marshlands",
+          "tile_id": "tile_24",
+          "terrain": "Grassland",
+          "features": {
+            "Marsh": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": "3",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Theater Square District",
+          "tile_id": "tile_25",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Theater Square",
+            "buildings": {
+              "Ampitheater": true,
+              "Art Museum": true,
+              "Broadcast Center": true
+            },
+            "great_works": {
+              "This Side of Paradise": true,
+              "The Beautiful and Damned": true,
+              "The Kiss": true,
+              "Avenue in the Park of Schloss Kammer": true,
+              "Farm Garden with Sunflowers": true,
+              "Prelude for Choir": true
+            }
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "15",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Entertainment Complex District",
+          "tile_id": "tile_26",
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Entertainment Complex",
+            "buildings": {
+              "Arena": true,
+              "Zoo": true,
+              "Stadium": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": "14",
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Yasodharapura Institute of Technology",
+          "tile_id": "tile_27",
+          "terrain": "Plains (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Campus",
+            "buildings": {
+              "Library": true,
+              "University": true,
+              "Research Lab": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": "Bassac River",
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": "12",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Preserve District",
+          "tile_id": "tile_28",
+          "terrain": "Plains (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Preserve",
+            "buildings": {
+              "Grove": true,
+              "Sanctuary": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Wind Farm District",
+          "tile_id": "tile_29",
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Wind Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Park 2 District",
+          "tile_id": "tile_30",
+          "terrain": "Grassland (Mountain)",
+          "features": {
+            "Yasodharapura National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "3"
+        },
+        {
+          "name": "Tonle Sap Hills",
+          "tile_id": "tile_31",
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Tonle Sap River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "4"
+        },
+        {
+          "name": "Park 4 District",
+          "tile_id": "tile_32",
+          "terrain": "Grassland",
+          "features": {
+            "Marsh": true,
+            "Yasodharapura National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": "3",
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": "4"
+        },
+        {
+          "name": "Park 6 District",
+          "tile_id": "tile_33",
+          "distance_from_center": "4",
+          "terrain": "Grassland",
+          "features": {
+            "Yasodharapura National Park": true,
+            "Rice": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Rice",
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Hills",
+          "tile_id": "tile_34",
+          "distance_from_center": "4",
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Grasslands",
+          "tile_id": "tile_35",
+          "distance_from_center": "4",
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "1",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Mine District",
+          "tile_id": "tile_36",
+          "distance_from_center": "4",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Diamonds": true
+          },
+          "improvement": {
+            "name": "Mine",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Diamonds",
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "5",
+            "gold": "3",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "South Rainforest",
+          "tile_id": "tile_37",
+          "distance_from_center": "4",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "South Paddies",
+          "tile_id": "tile_38",
+          "distance_from_center": "4",
+          "terrain": "Grassland",
+          "features": {
+            "Rice": true
+          },
+          "improvement": {
+            "name": "Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Rice",
+          "citizens_working": null,
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "6",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Paddies",
+          "tile_id": "tile_39",
+          "distance_from_center": "4",
+          "terrain": "Grassland",
+          "features": {
+            "Marsh": true,
+            "Rice": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Rice",
+          "citizens_working": null,
+          "river": "Bassac River",
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "7",
+            "production": "3",
+            "gold": "2",
+            "culture": "2",
+            "science": "5",
+            "faith": "2",
+            "tourism": null
+          }
+        },
+        {
+          "name": "Mount Westbank",
+          "tile_id": "tile_40",
+          "distance_from_center": "4",
+          "terrain": "Grassland (Mountain)",
+          "features": {
+            "Kravanh Mountains": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Bassac River",
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Mount Eastbank",
+          "tile_id": "tile_41",
+          "distance_from_center": "4",
+          "terrain": "Grassland (Mountain)",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Woodlands",
+          "tile_id": "tile_42",
+          "distance_from_center": "4",
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Park 1 District",
+          "tile_id": "tile_43",
+          "distance_from_center": "4",
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Yasodharapura National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Tonle Sap River",
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Tonle Brook Woods",
+          "tile_id": "tile_44",
+          "distance_from_center": "5",
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Tonle Sap River",
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Confluence Point",
+          "tile_id": "tile_45",
+          "distance_from_center": "5",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Cocoa": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cocoa",
+          "citizens_working": null,
+          "river": "Tonle Sap River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": "3",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Mekong Rainforest",
+          "tile_id": "tile_46",
+          "distance_from_center": "5",
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Mekong River",
+          "has_railroad": false,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Rainforest",
+          "tile_id": "tile_47",
+          "distance_from_center": "5",
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Journeyman Plains",
+          "tile_id": "tile_48",
+          "distance_from_center": "5",
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Rainforest",
+          "tile_id": "tile_49",
+          "distance_from_center": "5",
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "0",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Gargoyle Hills",
+          "tile_id": "tile_50",
+          "distance_from_center": "5",
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Stone": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Stone",
+          "citizens_working": "0",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "0",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Woodlands",
+          "tile_id": "tile_51",
+          "distance_from_center": "5",
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "0",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "0",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        }
+      ],
+      "group": "Capital Region",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "closest_provinces": [
+        {
+          "province_name": "Arretium",
+          "distance": 5
+        },
+        {
+          "province_name": "Ostia",
+          "distance": 5
+        },
+        {
+          "province_name": "Rome",
+          "distance": 7
+        },
+        {
+          "province_name": "Angkor Thom",
+          "distance": 8
+        },
+        {
+          "province_name": "Preah Vihear",
+          "distance": 8
+        }
+      ],
+      "provincial_population": 31389707,
+      "assemblypeople": 33,
+      "prelates": 9,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Hariharalaya",
+      "city_id": 3,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "25",
+      "loyalty": "24",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": "15",
+        "food": "70",
+        "production": "85.7",
+        "gold": "222.2",
+        "culture": "39",
+        "science": "55.7",
+        "faith": "40.5"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "24"
+        },
+        {
+          "name": "Protestantism",
+          "followers": "1"
+        }
+      ],
+      "housing": "29",
+      "net_amenities": "2",
+      "net_food": "24.9",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Roraima Land",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 19912471,
+      "assemblypeople": 25,
+      "prelates": 7,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Mahendraparvata",
+      "city_id": 4,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "29",
+      "loyalty": "38",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": "21",
+        "food": "83",
+        "production": "103.1",
+        "gold": "321.2",
+        "culture": "102.8",
+        "science": "63",
+        "faith": "34.7"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "29"
+        },
+        {
+          "name": "Protestantism",
+          "followers": "0"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "0"
+        }
+      ],
+      "housing": "37",
+      "net_amenities": "6",
+      "net_food": "36.1",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Roraima Land",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 24540134,
+      "assemblypeople": 29,
+      "prelates": 8,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Preah Vihear",
+      "city_id": 5,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "27",
+      "loyalty": "31",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": "17",
+        "food": "81",
+        "production": "103.7",
+        "gold": "140",
+        "culture": "70.7",
+        "science": "42.3",
+        "faith": "29.6"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "26"
+        },
+        {
+          "name": "Taoism",
+          "followers": "0"
+        }
+      ],
+      "housing": "36",
+      "net_amenities": "3",
+      "net_food": "36.3",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Capital Region",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 16371958,
+      "assemblypeople": 27,
+      "prelates": 7,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Vyadhapura",
+      "city_id": 6,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "21",
+      "loyalty": "24",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": "13",
+        "food": "68",
+        "production": "54",
+        "gold": "52.8",
+        "culture": "30.8",
+        "science": "24.5",
+        "faith": "30"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "21"
+        }
+      ],
+      "housing": "28.5",
+      "net_amenities": "2",
+      "net_food": "32.4",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Capital Region",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 13184217,
+      "assemblypeople": 21,
+      "prelates": 6,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Serei Saophoan",
+      "city_id": 7,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "9",
+      "loyalty": "24",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": "7",
+        "food": "29",
+        "production": "57.5",
+        "gold": "81.6",
+        "culture": "12.3",
+        "science": "5.5",
+        "faith": "0"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "8"
+        }
+      ],
+      "housing": "14",
+      "net_amenities": "2",
+      "net_food": "13.7",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Roraima Land",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 1620773,
+      "assemblypeople": 9,
+      "prelates": 5,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Phnom Penh",
+      "city_id": 8,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "10",
+      "loyalty": "26",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": "7",
+        "food": "44",
+        "production": "40.2",
+        "gold": "103.5",
+        "culture": "12.6",
+        "science": "5",
+        "faith": "0"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "10"
+        }
+      ],
+      "housing": "13",
+      "net_amenities": "2",
+      "net_food": "29.9",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Roraima Land",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 1875318,
+      "assemblypeople": 10,
+      "prelates": 5,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Kampot",
+      "city_id": 9,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "8",
+      "loyalty": "29",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": "7",
+        "food": "31",
+        "production": "41.2",
+        "gold": "82.5",
+        "culture": "12.9",
+        "science": "4.3",
+        "faith": "0"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "6"
+        }
+      ],
+      "housing": "12.5",
+      "net_amenities": "3",
+      "net_food": "20.1",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Roraima Land",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 1351807,
+      "assemblypeople": 8,
+      "prelates": 5,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Washington",
+      "city_id": 10,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "36",
+      "loyalty": "30",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": "17",
+        "food": "29.9",
+        "production": "97.7",
+        "gold": "190.8",
+        "culture": "79.5",
+        "science": "56",
+        "faith": "29"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "27"
+        },
+        {
+          "name": "Protestantism",
+          "followers": "2"
+        }
+      ],
+      "housing": "46.5",
+      "net_amenities": "5",
+      "net_food": "15.9",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Federation of American Provinces",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 41038054,
+      "assemblypeople": 36,
+      "prelates": 10,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Lingapura",
+      "city_id": 11,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "32",
+      "loyalty": "26",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": "13",
+        "food": "91",
+        "production": "66.1",
+        "gold": "165.3",
+        "culture": "38",
+        "science": "34.6",
+        "faith": "57.6"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "28"
+        }
+      ],
+      "housing": "41",
+      "net_amenities": "2",
+      "net_food": "36.1",
+      "counties": [
+        {
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "",
+          "distance_from_center": null
+        }
+      ],
+      "group": "Provinces of Western Pannotia and the Bering Sea",
+      "notes": "",
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 24566270,
+      "assemblypeople": 32,
+      "prelates": 8,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Angkor Wat",
+      "city_id": 12,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "31",
+      "loyalty": "27",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": "13",
+        "food": "83",
+        "production": "66.1",
+        "gold": "178.5",
+        "culture": "31",
+        "science": "42.7",
+        "faith": "24.3"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "24"
+        }
+      ],
+      "housing": "43",
+      "net_amenities": "3",
+      "net_food": "43.2",
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Adriatic Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 23989684,
+      "assemblypeople": 31,
+      "prelates": 8,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "St. Louis",
+      "city_id": 13,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "23",
+      "loyalty": "27",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": "13",
+        "food": "58",
+        "production": "68.7",
+        "gold": "65",
+        "culture": "52.5",
+        "science": "29.6",
+        "faith": "34"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "20"
+        },
+        {
+          "name": "Protestantism",
+          "followers": "1"
+        }
+      ],
+      "housing": "32",
+      "net_amenities": "4",
+      "net_food": "24.2",
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Federation of American Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 15619636,
+      "assemblypeople": 23,
+      "prelates": 7,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Philadelphia",
+      "city_id": 14,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "23",
+      "loyalty": "30",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": "16",
+        "food": "56",
+        "production": "83.6",
+        "gold": "191.6",
+        "culture": "41.5",
+        "science": "55.7",
+        "faith": "33.5"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "20"
+        },
+        {
+          "name": "Protestantism",
+          "followers": "1"
+        }
+      ],
+      "housing": "26.5",
+      "net_amenities": "5",
+      "net_food": "20.2",
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Federation of American Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 14436460,
+      "assemblypeople": 23,
+      "prelates": 6,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Charleston",
+      "city_id": 15,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "25",
+      "loyalty": "27",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": "9",
+        "food": "61",
+        "production": "52.5",
+        "gold": "56.6",
+        "culture": "20.5",
+        "science": "27.9",
+        "faith": "27.9"
+      },
+      "religions": [
+        {
+          "name": "Zoroastrianism",
+          "followers": "21"
+        },
+        {
+          "name": "Protestantism",
+          "followers": "1"
+        }
+      ],
+      "housing": "30.5",
+      "net_amenities": "3",
+      "net_food": "18.6",
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Federation of American Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 19153992,
+      "assemblypeople": 25,
+      "prelates": 7,
+      "dominant_religion": "Zoroastrianism"
+    },
+    {
+      "name": "Lavodayapura",
+      "city_id": 16,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "5",
+      "loyalty": "29",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "13.5",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Imperial Avalonia",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 434597,
+      "assemblypeople": 5,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Mediolanum",
+      "city_id": 17,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "7",
+      "loyalty": "29",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "11.5",
+      "net_amenities": "6",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Eastern Roman Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 809781,
+      "assemblypeople": 7,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Antium",
+      "city_id": 18,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "7",
+      "loyalty": "27",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "15",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Royal Provinces of the Western Romaioi",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 818836,
+      "assemblypeople": 7,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Ban Lung",
+      "city_id": 19,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "9",
+      "loyalty": "29",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "12.5",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Gondwanan Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 1463618,
+      "assemblypeople": 9,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Isanapura",
+      "city_id": 20,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "9",
+      "loyalty": "30",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "15",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Imperial Avalonia",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 1496870,
+      "assemblypeople": 9,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Muang Tam",
+      "city_id": 21,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "10",
+      "loyalty": "27",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "13",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Imperial Avalonia",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 2072462,
+      "assemblypeople": 10,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Shrestapura",
+      "city_id": 22,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "10",
+      "loyalty": "30",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "25.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Imperial Avalonia",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 2050692,
+      "assemblypeople": 10,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Amarendrapura",
+      "city_id": 23,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "11",
+      "loyalty": "29",
+      "growth_percentage": "50",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "12.5",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Imperial Avalonia",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 3028752,
+      "assemblypeople": 11,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Chaiya",
+      "city_id": 24,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "11",
+      "loyalty": "32",
+      "growth_percentage": "50",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "12.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Provinces of Western Pannotia and the Bering Sea",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 2242596,
+      "assemblypeople": 11,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Siem Reap",
+      "city_id": 25,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "11",
+      "loyalty": "32",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "13.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Imperial Avalonia",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 2140109,
+      "assemblypeople": 11,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Brundisium",
+      "city_id": 26,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "12",
+      "loyalty": "32",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "18.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Royal Provinces of the Western Romaioi",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 3559644,
+      "assemblypeople": 12,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Aninditapura",
+      "city_id": 27,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "14",
+      "loyalty": "30",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "17.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Provinces of Western Pannotia and the Bering Sea",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 5122332,
+      "assemblypeople": 14,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Cumae",
+      "city_id": 28,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "16",
+      "loyalty": "0",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "21.5",
+      "net_amenities": "5",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Royal Provinces of the Western Romaioi",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 5114349,
+      "assemblypeople": 16,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Palmyra",
+      "city_id": 29,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "16",
+      "loyalty": "0",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "22.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Royal Provinces of the Western Romaioi",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 5536771,
+      "assemblypeople": 16,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Ostia",
+      "city_id": 30,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "16",
+      "loyalty": "34",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "28",
+      "net_amenities": "11",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Eastern Roman Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 6714731,
+      "assemblypeople": 16,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Beng Melea",
+      "city_id": 31,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "17",
+      "loyalty": "27",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "20",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Provinces of Western Pannotia and the Bering Sea",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 6563593,
+      "assemblypeople": 17,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Pre Rup",
+      "city_id": 32,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "17",
+      "loyalty": "27",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "27.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Provinces of Western Pannotia and the Bering Sea",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 7988829,
+      "assemblypeople": 17,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Bilbao",
+      "city_id": 33,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": true,
+      "is_conquered": false,
+      "population": "18",
+      "loyalty": "33",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "25",
+      "net_amenities": "8",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Gondwanan Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 7318664,
+      "assemblypeople": 18,
+      "prelates": 5,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Phetchaburi",
+      "city_id": 34,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "18",
+      "loyalty": "30",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "25.5",
+      "net_amenities": "4",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Confederation of Eastern Avalonian Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 9067954,
+      "assemblypeople": 18,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Ravenna",
+      "city_id": 35,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "18",
+      "loyalty": "0",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "28",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Eastern Roman Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 8156013,
+      "assemblypeople": 18,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Rome",
+      "city_id": 36,
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "18",
+      "loyalty": "0",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "34",
+      "net_amenities": "9",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Eastern Roman Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 7937275,
+      "assemblypeople": 18,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Angkor Borei",
+      "city_id": 37,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "19",
+      "loyalty": "32",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "22.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Confederation of Eastern Avalonian Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 9545200,
+      "assemblypeople": 19,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Phanom Rung",
+      "city_id": 38,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "19",
+      "loyalty": "32",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "24.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Confederation of Eastern Avalonian Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 10299158,
+      "assemblypeople": 19,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Banteay Kdei",
+      "city_id": 39,
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "20",
+      "loyalty": "27",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "27",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Imperial Avalonia",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 9031049,
+      "assemblypeople": 20,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Bhavapura",
+      "city_id": 40,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "20",
+      "loyalty": "30",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "29",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Adriatic Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 10257827,
+      "assemblypeople": 20,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Puteoli",
+      "city_id": 41,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "21",
+      "loyalty": "31",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "25.5",
+      "net_amenities": "4",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Eastern Roman Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 10908381,
+      "assemblypeople": 21,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Arretium",
+      "city_id": 42,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "21",
+      "loyalty": "0",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "28.5",
+      "net_amenities": "5",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Royal Provinces of the Western Romaioi",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 10732160,
+      "assemblypeople": 21,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Lugdunum",
+      "city_id": 43,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "21",
+      "loyalty": "0",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "36.5",
+      "net_amenities": "4",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Eastern Roman Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 9544736,
+      "assemblypeople": 21,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Nagara Jayasri",
+      "city_id": 44,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "22",
+      "loyalty": "38",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "29",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Provinces of Western Pannotia and the Bering Sea",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 10731643,
+      "assemblypeople": 22,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Kompong Svay",
+      "city_id": 45,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "22",
+      "loyalty": "43",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "29",
+      "net_amenities": "5",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Gondwanan Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 14464722,
+      "assemblypeople": 22,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Rajavihara",
+      "city_id": 46,
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "22",
+      "loyalty": "32",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "31",
+      "net_amenities": "4",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Confederation of Eastern Avalonian Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 11832921,
+      "assemblypeople": 22,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Taumutu",
+      "city_id": 47,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": true,
+      "is_conquered": false,
+      "population": "23",
+      "loyalty": "32",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "31",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Adriatic Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 12972714,
+      "assemblypeople": 23,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Indrapura",
+      "city_id": 48,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "23",
+      "loyalty": "33",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "32",
+      "net_amenities": "5",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Gondwanan Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 13261527,
+      "assemblypeople": 23,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Chaturmukha",
+      "city_id": 49,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "24",
+      "loyalty": "24.7",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "27.5",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Gondwanan Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 14909641,
+      "assemblypeople": 24,
+      "prelates": 6,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Velitrae",
+      "city_id": 50,
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "25",
+      "loyalty": "27",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "29.5",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Royal Provinces of the Western Romaioi",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 17551417,
+      "assemblypeople": 25,
+      "prelates": 7,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Dviradapura",
+      "city_id": 51,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "26",
+      "loyalty": "27",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "30.5",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Adriatic Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 17960178,
+      "assemblypeople": 26,
+      "prelates": 7,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Kapiti",
+      "city_id": 52,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": true,
+      "is_conquered": false,
+      "population": "26",
+      "loyalty": "35",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "38.5",
+      "net_amenities": "6",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Gondwanan Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 22006462,
+      "assemblypeople": 26,
+      "prelates": 7,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Isvarapura",
+      "city_id": 53,
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "29",
+      "loyalty": "40",
+      "growth_percentage": "110",
+      "happiness_percentage": "110",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "35",
+      "net_amenities": "3",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Gondwanan Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 26047257,
+      "assemblypeople": 29,
+      "prelates": 8,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Vimayapura",
+      "city_id": 54,
+      "is_national_capital": false,
+      "is_regional_capital": true,
+      "is_founded": true,
+      "is_joined": false,
+      "is_conquered": false,
+      "population": "30",
+      "loyalty": "27",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "34.5",
+      "net_amenities": "2",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Union of the Free Adriatic Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 22785332,
+      "assemblypeople": 30,
+      "prelates": 8,
+      "dominant_religion": "None"
+    },
+    {
+      "name": "Cincinnati",
+      "city_id": 55,
+      "is_national_capital": false,
+      "is_regional_capital": false,
+      "is_founded": false,
+      "is_joined": false,
+      "is_conquered": true,
+      "population": "25",
+      "loyalty": "38",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
+      "yields": {
+        "amenities": null,
+        "food": null,
+        "production": null,
+        "gold": null,
+        "culture": null,
+        "science": null,
+        "faith": null
+      },
+      "religions": [
+        {
+          "name": "",
+          "followers": null
+        }
+      ],
+      "housing": "42.5",
+      "net_amenities": "7",
+      "net_food": null,
+      "counties": [
+        {
+          "name": "",
+          "tile_id": "tile_1",
+          "terrain": "",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": null
+        }
+      ],
+      "group": "Federation of American Provinces",
+      "notes": "",
+      "closest_provinces": [
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        },
+        {
+          "province_name": "",
+          "distance": null
+        }
+      ],
+      "provincial_population": 14602153,
+      "assemblypeople": 25,
+      "prelates": 6,
+      "dominant_religion": "None"
+    }
+  ],
+  "province_groups": [
+    {
+      "name": "Capital Region",
+      "regional_population": 82453089,
+      "assemblypeople": 111,
+      "prelates": 29
+    },
+    {
+      "name": "Roraima Land",
+      "regional_population": 49300503,
+      "assemblypeople": 81,
+      "prelates": 30
+    },
+    {
+      "name": "Federation of American Provinces",
+      "regional_population": 104850295,
+      "assemblypeople": 132,
+      "prelates": 36
+    },
+    {
+      "name": "Provinces of Western Pannotia and the Bering Sea",
+      "regional_population": 57215263,
+      "assemblypeople": 113,
+      "prelates": 35
+    },
+    {
+      "name": "Union of the Free Adriatic Provinces",
+      "regional_population": 87965735,
+      "assemblypeople": 130,
+      "prelates": 35
+    },
+    {
+      "name": "Royal Provinces of the Western Romaioi",
+      "regional_population": 43313177,
+      "assemblypeople": 97,
+      "prelates": 33
+    },
+    {
+      "name": "Eastern Roman Provinces",
+      "regional_population": 44070917,
+      "assemblypeople": 101,
+      "prelates": 34
+    },
+    {
+      "name": "Imperial Avalonia",
+      "regional_population": 20254531,
+      "assemblypeople": 76,
+      "prelates": 36
+    },
+    {
+      "name": "Confederation of Eastern Avalonian Provinces",
+      "regional_population": 40745233,
+      "assemblypeople": 78,
+      "prelates": 24
+    },
+    {
+      "name": "Union of the Free Gondwanan Provinces",
+      "regional_population": 99471891,
+      "assemblypeople": 151,
+      "prelates": 43
+    }
+  ],
+  "global_religions": [
+    "Zoroastrianism",
+    "Protestantism",
+    "Taoism",
+    "Sikhism"
+  ]
+}

@@ -1,0 +1,157 @@
+/* ===== Calculated Fields ===== */
+.calc-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.calc-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(45, 212, 191, 0.06);
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  font-size: 0.82rem;
+  margin-top: 6px;
+}
+
+.calc-stat--inline {
+  margin-top: 0;
+}
+
+.calc-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.calc-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.calc-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.72rem;
+}
+
+.calc-value {
+  color: #2dd4bf;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+  margin-left: 4px;
+}
+
+/* ===== App Navigation ===== */
+.app-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  backdrop-filter: blur(12px);
+}
+
+.app-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.app-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.app-nav-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-raised);
+}
+
+.app-nav-link--active {
+  color: var(--accent);
+  background: rgba(212, 168, 67, 0.1);
+  font-weight: 600;
+}
+
+.app-nav-link--active:hover {
+  background: rgba(212, 168, 67, 0.15);
+}
+
+.nav-link-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.nav-link-label {
+  line-height: 1;
+}
+
+/* ===== Recalculate Button ===== */
+.btn-recalculate {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(45, 212, 191, 0.05));
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  color: #2dd4bf;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-recalculate:hover {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.18), rgba(45, 212, 191, 0.1));
+  border-color: rgba(45, 212, 191, 0.4);
+  box-shadow: 0 0 16px rgba(45, 212, 191, 0.12);
+}
+
+.btn-recalculate:active {
+  transform: scale(0.97);
+}
+
+.btn-recalculate:active .recalc-icon {
+  animation: spinOnce 0.5s ease;
+}
+
+@keyframes spinOnce {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.recalc-icon {
+  flex-shrink: 0;
+}
+

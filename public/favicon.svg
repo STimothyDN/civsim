@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Civ Sim">
+  <rect width="64" height="64" rx="14" fill="#10131b"/>
+  <path d="M32 8 51 19v18c0 11-8 17-19 21-11-4-19-10-19-21V19L32 8Z" fill="#d4a843"/>
+  <path d="M23 27h18v5H23v-5Zm3 9h12v5H26v-5Zm-5 9h22v5H21v-5Z" fill="#10131b"/>
+</svg>
