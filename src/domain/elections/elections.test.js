@@ -270,6 +270,30 @@ describe('election domain', () => {
     expect(withoutTaoism.minority_religion_share).toBeCloseTo(0.2)
   })
 
+  it('derives origin and adjacency features from province metadata', () => {
+    const features = calculateProvinceBaseFeatures({
+      name: 'Washington',
+      group: 'Federation of American Provinces',
+      is_conquered: true,
+      original_country: 'United States of America',
+      population: 10,
+      loyalty: 35,
+      religions: [],
+      yields: {},
+      closest_provinces: [
+        { province_name: 'Boston', distance: 4 },
+        { province_name: 'Philadelphia', distance: 6 },
+        { province_name: 'Frontier', distance: 14 },
+      ],
+    }, { basic_info: { name: 'Khmer Empire' }, state_religion: 'Zoroastrianism' })
+
+    expect(features.foreign_origin_index).toBe(1)
+    expect(features.imperial_origin_index).toBe(0)
+    expect(features.american_identity_index).toBe(1)
+    expect(features.connectedness_index).toBeGreaterThan(features.frontier_index)
+    expect(features.nearest_province_distance).toBe(4)
+  })
+
   it('keeps vote shares normalized and random trends deterministic', () => {
     const shares = scoresToVoteShares({ yellow: 2, orange: 1, red: 1, blue: 1, white: 0.1, purple: 0.1 })
     const trendsA = generateRandomTrendPackage({ seed: 'stable-seed' })
@@ -293,12 +317,15 @@ describe('election domain', () => {
       {
         name: 'Harbor Ward',
         group: 'Federation of American Provinces',
+        original_country: 'United States of America',
         terrain: 'Coast',
-        political_features: { appeal_index: 0.7 },
+        political_features: { appeal_index: 0.7, foreign_origin_index: 1 },
       },
       {
         all: [
           { groupIncludes: ['American'] },
+          { originalCountryIncludes: ['United States'] },
+          { minForeignOriginIndex: 0.8 },
           { terrains: ['Coast'] },
           { minFeatures: { feature: 'appeal_index', value: 0.6 } },
         ],
@@ -334,10 +361,40 @@ describe('election domain', () => {
       id: 'drag',
       effects: [{ level: 'county', party: 'yellow', selector: {}, magnitude: 0.2, mode: 'suppress' }],
     }
+    const adjacentAutonomy = {
+      id: 'adjacent-autonomy',
+      effects: [
+        {
+          level: 'province',
+          party: 'blue',
+          selector: { originalCountryIncludes: 'United States' },
+          magnitude: 0.2,
+          adjacency: {
+            maxDistance: 10,
+            minMultiplier: 0.1,
+            maxMultiplier: 0.4,
+            sourceSelector: { originalCountryIncludes: 'United States' },
+          },
+        },
+      ],
+    }
+    const neighboringProvince = {
+      name: 'Capital Fringe',
+      political_features: {},
+      adjacent_provinces: [
+        {
+          name: 'Boston',
+          original_country: 'United States of America',
+          distance: 4,
+          political_features: { foreign_origin_index: 1 },
+        },
+      ],
+    }
 
     expect(trendEffect(industrialCounty, 'orange', 'county', [laborTrend])).toBeCloseTo(0.4)
     expect(trendEffect(industrialCounty, 'orange', 'county', [laborTrend, grievanceTrend])).toBeCloseTo(0.7)
     expect(trendEffect(industrialCounty, 'yellow', 'county', [establishmentDrag])).toBeCloseTo(-0.2)
+    expect(trendEffect(neighboringProvince, 'blue', 'province', [adjacentAutonomy])).toBeGreaterThan(0)
   })
 
   it('builds narrative trend packages from selected template ids', () => {

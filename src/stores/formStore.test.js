@@ -108,6 +108,46 @@ describe('formStore', () => {
     ])
   })
 
+  it('hydrates county shortcuts from resource and known improvement buildings', () => {
+    const store = useFormStore()
+    store.loadTemplate(
+      {
+        ...sampleTemplate(),
+        provinces: [
+          {
+            name: 'Capital',
+            counties: [
+              {
+                name: 'Old Harbor',
+                improvement: { name: 'Harbor', buildings: { Lighthouse: true, Shipyard: true, Seaport: false }, great_works: {} },
+                features: {},
+                resource: null,
+              },
+              {
+                name: 'New Harbor',
+                improvement: { name: '', buildings: { Existing: true }, great_works: {} },
+                features: {},
+                resource: null,
+              },
+            ],
+          },
+        ],
+      },
+      { silent: true }
+    )
+
+    store.setValueAtPath('provinces[0].counties[1].improvement.name', 'Harbor')
+    store.setValueAtPath('provinces[0].counties[1].resource', 'Fish')
+
+    expect(store.currentData.provinces[0].counties[1].improvement.buildings).toMatchObject({
+      Existing: true,
+      Lighthouse: false,
+      Shipyard: false,
+    })
+    expect(store.currentData.provinces[0].counties[1].improvement.buildings).not.toHaveProperty('Seaport')
+    expect(store.currentData.provinces[0].counties[1].features.Fish).toBe(true)
+  })
+
   it('hydrates valid autosave data and clears invalid drafts', () => {
     const store = useFormStore()
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(createAutosavePayload(sampleTemplate(), '2026-04-30T12:00:00.000Z')))

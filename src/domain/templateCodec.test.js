@@ -20,7 +20,7 @@ describe('templateCodec', () => {
           provincial_population: 123,
           assemblypeople: 28,
           prelates: 16,
-          counties: [{ improvement: 'Farm' }],
+          counties: [{ improvement: 'Farm', resource: 'Wheat' }],
         },
       ],
     })
@@ -38,6 +38,7 @@ describe('templateCodec', () => {
     expect(normalized.provinces[0].counties[0].tile_id).toBe('tile_1')
     expect(normalized.provinces[0].counties[0].distance_from_center).toBeNull()
     expect(normalized.provinces[0].counties[0].improvement).toEqual({ name: 'Farm', buildings: {}, great_works: {} })
+    expect(normalized.provinces[0].counties[0].features.Wheat).toBe(true)
   })
 
   it('keeps closest provinces sorted from closest to furthest', () => {

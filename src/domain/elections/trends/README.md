@@ -21,7 +21,8 @@ Each effect may define:
 - `level`: `national`, `province`, `county`, or an array of levels.
 - `party`: party id to boost or suppress.
 - `mode`: `boost` by default; `suppress` applies a negative score pressure.
-- `selector`: area matcher. Supports legacy selector keys plus `any`, `all`, `not`, `minFeatures`, `maxFeatures`, terrain/resource/name/group filters, and capital/conquest flags.
+- `selector`: area matcher. Supports legacy selector keys plus `any`, `all`, `not`, `minFeatures`, `maxFeatures`, terrain/resource/name/group/original-country filters, connectedness/frontier feature checks, and capital/conquest flags.
+- `adjacency`: optional province-effect spillover. When present, matching source provinces can push a reduced effect into their closest provinces, with distance decay controlled by `maxDistance`, `minMultiplier`, `maxMultiplier`, `cap`, `sourceSelector`, and `targetSelector`.
 - `magnitudeFactor` or `magnitudeRange`: per-effect strength relative to the trend base.
 - `weightBy`: area-affinity scaling from feature values, such as `industrial_index` or `localist_index`.
 - `interactions`: per-effect interaction rules.

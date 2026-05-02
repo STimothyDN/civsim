@@ -48,6 +48,27 @@ function collectUniqueCountyKeys(data, objectPath) {
   return Array.from(set).sort()
 }
 
+function collectBuildingsForImprovement(data, improvementName, excludeCountyPath = '') {
+  const wanted = String(improvementName || '').trim().toLowerCase()
+  if (!wanted || !data || !Array.isArray(data.provinces)) return []
+
+  const buildings = new Set()
+  data.provinces.forEach((province, provinceIndex) => {
+    if (!Array.isArray(province.counties)) return
+    province.counties.forEach((county, countyIndex) => {
+      const countyPath = `provinces[${provinceIndex}].counties[${countyIndex}]`
+      if (countyPath === excludeCountyPath) return
+      const name = String(county?.improvement?.name || '').trim().toLowerCase()
+      if (name !== wanted) return
+      Object.entries(county?.improvement?.buildings || {}).forEach(([building, enabled]) => {
+        if (building.trim() && enabled === true) buildings.add(building.trim())
+      })
+    })
+  })
+
+  return Array.from(buildings).sort()
+}
+
 const AUTOSAVE_DELAY = 350
 let autosaveStop = null
 let autosaveTimer = null
@@ -123,6 +144,23 @@ export const useFormStore = defineStore('form', {
     setValueAtPath(path, value) {
       if (!this.currentData) return
       setValueAtPath(this.currentData, path, value)
+
+      const improvementMatch = path.match(/^(provinces\[\d+\]\.counties\[\d+\])\.improvement\.name$/)
+      if (improvementMatch) {
+        const buildingPath = `${improvementMatch[1]}.improvement.buildings`
+        const existingBuildings = getValueAtPath(this.currentData, buildingPath) || {}
+        collectBuildingsForImprovement(this.currentData, value, improvementMatch[1]).forEach((building) => {
+          if (!Object.prototype.hasOwnProperty.call(existingBuildings, building)) {
+            setValueAtPath(this.currentData, `${buildingPath}.${building}`, false)
+          }
+        })
+      }
+
+      const resourceMatch = path.match(/^(provinces\[\d+\]\.counties\[\d+\])\.resource$/)
+      if (resourceMatch && typeof value === 'string' && value.trim()) {
+        setValueAtPath(this.currentData, `${resourceMatch[1]}.features.${value.trim()}`, true)
+      }
+
       const closestProvinceMatch = path.match(/^(provinces\[\d+\]\.closest_provinces)\[\d+\]\.(province_name|distance)$/)
       if (closestProvinceMatch) {
         sortClosestProvinces(getValueAtPath(this.currentData, closestProvinceMatch[1]))

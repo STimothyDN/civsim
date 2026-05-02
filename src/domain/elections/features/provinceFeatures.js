@@ -29,8 +29,53 @@ const COUNTY_AGGREGATED_FEATURES = [
   'terrain_habitation_index',
 ]
 
+function textIncludes(value, text) {
+  return String(value || '').toLowerCase().includes(String(text || '').toLowerCase())
+}
+
 function groupIncludes(province, text) {
-  return String(province?.group || '').includes(text)
+  return textIncludes(province?.group, text)
+}
+
+function originalCountry(province) {
+  return String(province?.original_country || '').trim()
+}
+
+function currentCountryName(country = {}) {
+  return String(country?.basic_info?.name || 'Khmer Empire').trim()
+}
+
+function isImperialOrigin(province, country = {}) {
+  const origin = originalCountry(province)
+  if (!origin) return !province?.is_joined && !province?.is_conquered
+  return origin.toLowerCase() === currentCountryName(country).toLowerCase() || origin.toLowerCase() === 'khmer empire'
+}
+
+function closestDistances(province = {}) {
+  return (Array.isArray(province.closest_provinces) ? province.closest_provinces : [])
+    .map((entry) => Number(entry?.distance))
+    .filter((distance) => Number.isFinite(distance) && distance > 0)
+}
+
+function average(values = []) {
+  if (!values.length) return null
+  return values.reduce((sum, value) => sum + value, 0) / values.length
+}
+
+function provinceConnectivity(province = {}) {
+  const distances = closestDistances(province)
+  const nearest = distances.length ? Math.min(...distances) : null
+  const avg = average(distances)
+  const connectednessIndex = avg === null ? 0.35 : clamp01(1 - (avg - 3) / 15)
+  const frontierIndex = avg === null ? 0.35 : clamp01((avg - 7) / 12)
+
+  return {
+    nearest_province_distance: nearest,
+    average_closest_province_distance: avg,
+    connectedness_index: connectednessIndex,
+    frontier_index: frontierIndex,
+    adjacency_known_index: clamp01(distances.length / 5),
+  }
 }
 
 function religionFollowerCount(religion) {
@@ -89,8 +134,12 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
   const cultureIndex = norm(num(province?.yields?.culture) / civPopulation, 6)
   const scienceIndex = norm(num(province?.yields?.science) / civPopulation, 5)
   const faithIndex = norm(num(province?.yields?.faith) / civPopulation, 5)
-  const americanIdentityIndex = groupIncludes(province, 'American') ? 1 : 0
-  const romanIdentityIndex = groupIncludes(province, 'Roman') ? 1 : 0
+  const origin = originalCountry(province)
+  const imperialOriginIndex = isImperialOrigin(province, country) ? 1 : 0
+  const foreignOriginIndex = imperialOriginIndex ? 0 : 1
+  const americanIdentityIndex = groupIncludes(province, 'American') || textIncludes(origin, 'American') || textIncludes(origin, 'United States') ? 1 : 0
+  const romanIdentityIndex = groupIncludes(province, 'Roman') || textIncludes(origin, 'Roman') ? 1 : 0
+  const connectivity = provinceConnectivity(province)
 
   let imperialCoreIndex = clamp01(
     0.25 * (province?.is_national_capital ? 1 : 0) +
@@ -99,7 +148,9 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
     0.15 * loyaltyIndex +
     0.1 * stateReligionShare +
     0.1 * cultureIndex +
-    0.1 * scienceIndex
+    0.08 * scienceIndex +
+    0.07 * connectivity.connectedness_index -
+    0.05 * foreignOriginIndex
   )
   if (province?.is_conquered) imperialCoreIndex *= 0.75
 
@@ -109,6 +160,13 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
     taoist_share: taoistShare,
     american_identity_index: americanIdentityIndex,
     roman_identity_index: romanIdentityIndex,
+    imperial_origin_index: imperialOriginIndex,
+    foreign_origin_index: foreignOriginIndex,
+    connectedness_index: connectivity.connectedness_index,
+    frontier_index: connectivity.frontier_index,
+    adjacency_known_index: connectivity.adjacency_known_index,
+    nearest_province_distance: connectivity.nearest_province_distance,
+    average_closest_province_distance: connectivity.average_closest_province_distance,
     imperial_core_index: imperialCoreIndex,
     loyalty_index: loyaltyIndex,
     happiness_index: happinessIndex,
@@ -142,14 +200,17 @@ export function calculateProvinceFeatures(province, country = {}, counties = [],
     0.65 * aggregated.localist_index +
     0.15 * base.minority_religion_share +
     0.1 * (province?.is_conquered ? 1 : 0) +
-    0.1 * aggregated.wilderness_index
+    0.1 * aggregated.wilderness_index +
+    0.08 * base.frontier_index +
+    0.08 * base.foreign_origin_index
   )
   const restorationistIndex = clamp01(
     0.35 * base.roman_identity_index +
     0.2 * (province?.is_conquered ? 1 : 0) +
     0.2 * aggregated.spiritual_index +
     0.15 * localistIndex +
-    0.1 * base.minority_religion_share
+    0.1 * base.minority_religion_share +
+    0.08 * base.foreign_origin_index
   )
 
   return {
@@ -168,6 +229,13 @@ export function calculateProvinceFeatures(province, country = {}, counties = [],
     traditionalist_index: aggregated.traditionalist_index,
     localist_index: localistIndex,
     restorationist_index: restorationistIndex,
+    imperial_origin_index: base.imperial_origin_index,
+    foreign_origin_index: base.foreign_origin_index,
+    connectedness_index: base.connectedness_index,
+    frontier_index: base.frontier_index,
+    adjacency_known_index: base.adjacency_known_index,
+    nearest_province_distance: base.nearest_province_distance,
+    average_closest_province_distance: base.average_closest_province_distance,
     worker_index: aggregated.worker_index,
     worker_grievance_index: workerGrievanceIndex,
     coastal_index: aggregated.coastal_index,

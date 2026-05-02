@@ -165,7 +165,10 @@ export function normalizeIds(data) {
       if (county.name === undefined) county.name = ""
       if (county.distance_from_center === undefined) county.distance_from_center = null
       // ensure new schema defaults exist so older JSON still works
-      if (county.features === undefined) county.features = {}
+      if (!county.features || typeof county.features !== 'object') county.features = {}
+      if (county.resource && typeof county.resource === 'string') {
+        county.features[county.resource.trim()] = true
+      }
       if (county.river === undefined) county.river = null
       if (county.has_railroad === undefined) county.has_railroad = false
       if (county.appeal === undefined) county.appeal = null

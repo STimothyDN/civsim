@@ -153,7 +153,7 @@ function calculateProvincePrelates(province, counties, config) {
   }
 }
 
-function buildProvinceResult(data, row, config) {
+function buildProvinceFeatureUnit(data, row) {
   const country = data?.country || {}
   const provinceInput = createProvinceInput(data, row)
   const baseFeatures = calculateProvinceBaseFeatures(provinceInput, country)
@@ -179,9 +179,50 @@ function buildProvinceResult(data, row, config) {
     group: provinceInput.group || 'Unassigned',
     political_features: provinceFeatures,
   }
+
+  return {
+    province,
+    counties: preliminaryCountyUnits,
+  }
+}
+
+function provinceNameKey(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function provinceRowsByName(data = {}, rows = []) {
+  const byName = new Map()
+  rows.forEach((row) => {
+    const raw = rawProvinceFor(data, row)
+    const name = row?.name || raw?.name
+    if (name) byName.set(provinceNameKey(name), row)
+  })
+  return byName
+}
+
+function adjacentProvinceUnits(data = {}, province = {}, rowsByName = new Map()) {
+  return (Array.isArray(province.closest_provinces) ? province.closest_provinces : [])
+    .map((entry) => {
+      const row = rowsByName.get(provinceNameKey(entry?.province_name))
+      if (!row) return null
+      const { province: adjacent } = buildProvinceFeatureUnit(data, row)
+      return {
+        ...adjacent,
+        distance: num(entry?.distance),
+      }
+    })
+    .filter(Boolean)
+}
+
+function buildProvinceResult(data, row, config, rowsByName = new Map()) {
+  const { province: provinceBase, counties: preliminaryCountyUnits } = buildProvinceFeatureUnit(data, row)
+  const province = {
+    ...provinceBase,
+    adjacent_provinces: adjacentProvinceUnits(data, provinceBase, rowsByName),
+  }
   const counties = preliminaryCountyUnits.map((county) => {
     const features = calculateCountyFeatures(county, {
-      ...provinceFeatures,
+      ...province.political_features,
       is_conquered: province.is_conquered,
     })
     return calculateCountyVote({ ...county, political_features: features }, province, config)
@@ -203,6 +244,15 @@ function buildProvinceResult(data, row, config) {
     is_founded: !!province.is_founded,
     is_joined: !!province.is_joined,
     is_conquered: !!province.is_conquered,
+    original_country: province.original_country || '',
+    closest_provinces: province.closest_provinces || [],
+    adjacent_provinces: province.adjacent_provinces.map((adjacent) => ({
+      name: adjacent.name,
+      group: adjacent.group,
+      original_country: adjacent.original_country || '',
+      distance: adjacent.distance,
+      political_features: adjacent.political_features,
+    })),
     provincial_population: province.provincial_population,
     assemblypeople: province.assemblypeople,
     prelates: province.prelates,
@@ -224,6 +274,7 @@ function buildProvinceResult(data, row, config) {
       adjusted_scores: county.adjusted_scores,
       improvement_name: county.improvement_name,
       terrain: county.terrain,
+      resource: county.resource,
     })),
   }
 }
@@ -378,7 +429,8 @@ function validateResults(provinces, national) {
 export function simulateElection({ data, provinceRows = [], electionConfig = {} } = {}) {
   const config = mergeConfig(electionConfig)
   const rows = Array.isArray(provinceRows) ? provinceRows : []
-  const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config))
+  const rowsByName = provinceRowsByName(data || {}, rows)
+  const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, rowsByName))
   const regions = addRegionControls(aggregateRegions(provinces), config.trends)
   const national = calculateNational(provinces, config)
   const diagnostics = validateResults(provinces, national)

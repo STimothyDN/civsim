@@ -29,7 +29,14 @@ const FEATURE_ALLOWLIST = [
   'taoist_share',
   'american_identity_index',
   'roman_identity_index',
+  'imperial_origin_index',
+  'foreign_origin_index',
   'imperial_core_index',
+  'connectedness_index',
+  'frontier_index',
+  'adjacency_known_index',
+  'nearest_province_distance',
+  'average_closest_province_distance',
   'urbanization_index',
   'urban_index',
   'rural_index',
@@ -101,6 +108,14 @@ const SELECTOR_SHORTCUTS = [
   'minLoyaltyIndex',
   'maxLoyaltyIndex',
   'maxUrbanIndex',
+  'minForeignOriginIndex',
+  'minFrontierIndex',
+  'minConnectednessIndex',
+  'maxConnectednessIndex',
+  'maxNearestProvinceDistance',
+  'minNearestProvinceDistance',
+  'maxAverageClosestProvinceDistance',
+  'minAverageClosestProvinceDistance',
 ]
 
 class ModelOutputError extends Error {
@@ -308,8 +323,16 @@ function provinceSummaries(data, max = MAX_WORLD_PROVINCES) {
     .map(({ province }) => compactObject({
       name: province.name || 'Unnamed province',
       group: province.group || 'Unassigned',
+      originalCountry: province.original_country || null,
       population: integerOrNull(province.provincial_population ?? province.population),
       flags: provinceFlags(province),
+      closestProvinces: (province.closest_provinces || [])
+        .filter((entry) => entry?.province_name)
+        .slice(0, 5)
+        .map((entry) => compactObject({
+          name: entry.province_name,
+          distance: roundNumber(entry.distance, 1),
+        })),
       loyalty: roundNumber(province.loyalty, 1),
       happiness: roundNumber(province.happiness_percentage, 1),
       growth: roundNumber(province.growth_percentage, 1),
@@ -667,6 +690,7 @@ function provinceResultContext(province = {}, baselineProvince = null) {
   return compactObject({
     name: province.name,
     group: province.group,
+    originalCountry: province.original_country || null,
     population: integerOrNull(province.provincial_population),
     flags: provinceFlags(province),
     assemblypeople: integerOrNull(province.assemblypeople),
@@ -678,6 +702,9 @@ function provinceResultContext(province = {}, baselineProvince = null) {
       workerGrievance: roundNumber(province.political_features?.worker_grievance_index, 2),
       spiritual: roundNumber(province.political_features?.spiritual_index, 2),
       imperialCore: roundNumber(province.political_features?.imperial_core_index, 2),
+      foreignOrigin: roundNumber(province.political_features?.foreign_origin_index, 2),
+      frontier: roundNumber(province.political_features?.frontier_index, 2),
+      connectedness: roundNumber(province.political_features?.connectedness_index, 2),
     }),
     assembly: chamberContext(province.assembly, baselineProvince?.assembly),
     council: chamberContext(province.prelates, baselineProvince?.prelates),
@@ -994,6 +1021,8 @@ function customTrendGrammar() {
       'There is no direct region effect level; affect a region with province/county effects plus selector.groupIncludes.',
       'Use minFeatures/maxFeatures for feature names in allowedFeatureNames.',
       'Use groupIncludes, groupEquals, nameIncludes, terrains, resources, improvementIncludes, isConquered, isNationalCapital, isRegionalCapital, isFounded, or isJoined for targeted effects.',
+      'Use originalCountryIncludes/originalCountryEquals plus foreign_origin_index/frontier_index/connectedness_index to target annexed, frontier, or well-connected provinces.',
+      'Use adjacency only on province-level effects when a signal should spill from matching provinces into their closest provinces by distance.',
     ],
     customTrendSchema: {
       label: 'short display name',
@@ -1009,6 +1038,7 @@ function customTrendGrammar() {
           magnitude: 'number, clamped by maxMagnitudeByLevel',
           selector: 'optional selector object using allowed selector grammar',
           weightBy: 'optional { feature, minMultiplier, maxMultiplier } using allowedFeatureNames',
+          adjacency: 'optional for province effects: { maxDistance, minMultiplier, maxMultiplier, cap, sourceSelector, targetSelector } to spill a province effect into nearby provinces',
         },
       ],
     },
@@ -1090,6 +1120,32 @@ function sanitizeWeightBy(weightBy = null) {
   return sanitized.length === 1 ? sanitized[0] : sanitized
 }
 
+function sanitizeAdjacency(adjacency = null) {
+  if (adjacency === true) {
+    return {
+      maxDistance: 10,
+      minMultiplier: 0.08,
+      maxMultiplier: 0.35,
+      cap: 0.35,
+    }
+  }
+  if (!adjacency || typeof adjacency !== 'object') return null
+
+  const maxDistance = roundNumber(clampNumber(adjacency.maxDistance, 1, 40, 10), 1)
+  const minMultiplier = roundNumber(clampNumber(adjacency.minMultiplier, 0, 0.5, 0.08), 2)
+  const maxMultiplier = roundNumber(clampNumber(adjacency.maxMultiplier, minMultiplier, 0.75, 0.35), 2)
+  const cap = roundNumber(clampNumber(adjacency.cap, minMultiplier, 0.85, maxMultiplier), 2)
+
+  return compactObject({
+    maxDistance,
+    minMultiplier,
+    maxMultiplier,
+    cap,
+    sourceSelector: sanitizeSelector(adjacency.sourceSelector || adjacency.selector || {}),
+    targetSelector: sanitizeSelector(adjacency.targetSelector || {}),
+  })
+}
+
 function sanitizeSelector(selector = {}, depth = 0) {
   if (!selector || typeof selector !== 'object' || depth > 3) return {}
   const result = {}
@@ -1126,6 +1182,8 @@ function sanitizeSelector(selector = {}, depth = 0) {
 
     if (normalized === 'groupincludes') result.groupIncludes = sanitizeTextList(value, 6)
     if (normalized === 'groupequals') result.groupEquals = sanitizeTextList(value, 6)
+    if (normalized === 'originalcountryincludes') result.originalCountryIncludes = sanitizeTextList(value, 6)
+    if (normalized === 'originalcountryequals') result.originalCountryEquals = sanitizeTextList(value, 6)
     if (normalized === 'nameincludes') result.nameIncludes = sanitizeTextList(value, 6)
     if (normalized === 'improvementnames') result.improvementNames = sanitizeTextList(value, 8)
     if (normalized === 'improvementincludes') result.improvementIncludes = sanitizeTextList(value, 8)
@@ -1151,6 +1209,7 @@ function sanitizeSelector(selector = {}, depth = 0) {
       isregionalcapital: 'isRegionalCapital',
       isfounded: 'isFounded',
       isjoined: 'isJoined',
+      isimperialorigin: 'isImperialOrigin',
     }
     if (booleanKeys[normalized]) result[booleanKeys[normalized]] = Boolean(value)
   }
@@ -1185,6 +1244,7 @@ function sanitizeCustomEffect(effect = {}, trendId, index) {
     selector: sanitizeSelector(effect.selector || {}),
     magnitude,
     weightBy: sanitizeWeightBy(effect.weightBy),
+    adjacency: primaryLevel === 'province' ? sanitizeAdjacency(effect.adjacency) : null,
   })
 }
 

@@ -22,15 +22,23 @@ function normalizedList(value) {
   return Array.isArray(value) ? value : [value]
 }
 
+function normalizedText(value) {
+  return String(value || '').toLowerCase()
+}
+
 function stringIncludesAny(value, needles) {
-  const source = String(value || '').toLowerCase()
-  return normalizedList(needles).some((needle) => source.includes(String(needle || '').toLowerCase()))
+  const source = normalizedText(value)
+  return normalizedList(needles).some((needle) => source.includes(normalizedText(needle)))
 }
 
 function includesAny(values, expectedValues) {
-  const actual = normalizedList(values).map((value) => String(value || '').toLowerCase())
-  const expected = normalizedList(expectedValues).map((value) => String(value || '').toLowerCase())
+  const actual = normalizedList(values).map(normalizedText)
+  const expected = normalizedList(expectedValues).map(normalizedText)
   return expected.some((value) => actual.includes(value))
+}
+
+function originalCountry(unit) {
+  return unit?.original_country || unit?.raw?.original_country || ''
 }
 
 function matchesFeatureRules(unit, rules = [], type = 'min') {
@@ -53,6 +61,9 @@ export function matchesSelector(unit, selector = {}) {
 
   if (selector.groupIncludes && !stringIncludesAny(unit?.group, selector.groupIncludes)) return false
   if (selector.groupEquals && !includesAny(unit?.group, selector.groupEquals)) return false
+  if (selector.originalCountryIncludes && !stringIncludesAny(originalCountry(unit), selector.originalCountryIncludes)) return false
+  if (selector.originalCountryEquals && !includesAny(originalCountry(unit), selector.originalCountryEquals)) return false
+  if (selector.isImperialOrigin !== undefined && Boolean(featureValue(unit, 'imperial_origin_index')) !== Boolean(selector.isImperialOrigin)) return false
   if (selector.nameIncludes && !stringIncludesAny(unit?.name, selector.nameIncludes)) return false
   if (selector.provinceIndexIn && !normalizedList(selector.provinceIndexIn).includes(unit?.provinceIndex)) return false
   if (selector.improvementNames && !selector.improvementNames.includes(improvementName(unit))) return false
@@ -91,6 +102,14 @@ export function matchesSelector(unit, selector = {}) {
     ['minCivicMonumentIndex', 'civic_monument_index'],
     ['minWorkerGrievanceIndex', 'worker_grievance_index', 'min', ['worker_index']],
     ['minLoyaltyIndex', 'loyalty_index'],
+    ['minForeignOriginIndex', 'foreign_origin_index'],
+    ['minFrontierIndex', 'frontier_index'],
+    ['minConnectednessIndex', 'connectedness_index'],
+    ['maxConnectednessIndex', 'connectedness_index', 'max'],
+    ['maxNearestProvinceDistance', 'nearest_province_distance', 'max'],
+    ['minNearestProvinceDistance', 'nearest_province_distance'],
+    ['maxAverageClosestProvinceDistance', 'average_closest_province_distance', 'max'],
+    ['minAverageClosestProvinceDistance', 'average_closest_province_distance'],
     ['maxLoyaltyIndex', 'loyalty_index', 'max'],
     ['maxUrbanIndex', 'urban_index', 'max', ['urbanization_index']],
   ]
@@ -124,6 +143,7 @@ export function trendEffects(trend = {}) {
       magnitude: effect.magnitude ?? trend.magnitude,
       mode: effect.mode || trend.mode || 'boost',
       weightBy: effect.weightBy || trend.weightBy || null,
+      adjacency: effect.adjacency || trend.adjacency || null,
       interactions: [...(trend.interactions || []), ...(effect.interactions || [])],
       tags: [...trendTags(trend), ...(effect.tags || [])],
     }))
@@ -137,6 +157,7 @@ export function trendEffects(trend = {}) {
     magnitude: trend.magnitude,
     mode: trend.mode || 'boost',
     weightBy: trend.weightBy || null,
+    adjacency: trend.adjacency || null,
     interactions: trend.interactions || [],
     tags: trendTags(trend),
   }]
@@ -198,16 +219,57 @@ function signedMagnitude(effect) {
   return sign * num(effect.magnitude)
 }
 
+function adjacencyConfig(effect) {
+  if (!effect?.adjacency) return null
+  if (effect.adjacency === true) return {}
+  if (typeof effect.adjacency === 'object') return effect.adjacency
+  return null
+}
+
+function adjacentProvinceUnits(unit) {
+  return normalizedList(unit?.adjacent_provinces || unit?.adjacentProvinceUnits)
+}
+
+function adjacencyDistance(entry) {
+  const distance = num(entry?.distance)
+  return distance > 0 ? distance : null
+}
+
+function adjacencyMultiplier(unit, effect) {
+  const config = adjacencyConfig(effect)
+  if (!config) return 0
+  if (config.targetSelector && !matchesSelector(unit, config.targetSelector)) return 0
+
+  const maxDistance = Math.max(0.1, num(config.maxDistance ?? 10, 10))
+  const minMultiplier = num(config.minMultiplier ?? 0.08, 0.08)
+  const maxMultiplier = num(config.maxMultiplier ?? 0.35, 0.35)
+  const cap = num(config.cap ?? maxMultiplier, maxMultiplier)
+  const sourceSelector = config.sourceSelector || config.selector || effect.selector || {}
+
+  const spillover = adjacentProvinceUnits(unit).reduce((sum, adjacent) => {
+    const distance = adjacencyDistance(adjacent)
+    if (distance === null || distance > maxDistance) return sum
+    if (!matchesSelector(adjacent, sourceSelector)) return sum
+    const closeness = clamp01(1 - distance / maxDistance)
+    return sum + minMultiplier + (maxMultiplier - minMultiplier) * closeness
+  }, 0)
+
+  return Math.min(Math.max(0, cap), Math.max(0, spillover))
+}
+
 export function trendEffect(unit, party, level, trends = []) {
   return trends.reduce((sum, trend) => {
     return sum + trendEffects(trend)
       .filter((effect) => levelMatches(effect.level, level))
       .filter((effect) => effect.party === party)
-      .filter((effect) => matchesSelector(unit, effect.selector))
       .reduce((effectSum, effect) => {
+        const directMultiplier = matchesSelector(unit, effect.selector) ? 1 : 0
+        const neighborMultiplier = level === 'province' ? adjacencyMultiplier(unit, effect) : 0
+        if (!directMultiplier && !neighborMultiplier) return effectSum
         const interaction = interactionAdjustment(unit, level, trends, trend, effect)
         const areaMultiplier = areaWeightMultiplier(unit, effect.weightBy)
-        return effectSum + signedMagnitude(effect) * areaMultiplier * interaction.multiplier + interaction.add
+        const effectMultiplier = directMultiplier * areaMultiplier + neighborMultiplier
+        return effectSum + signedMagnitude(effect) * effectMultiplier * interaction.multiplier + interaction.add
       }, 0)
   }, 0)
 }

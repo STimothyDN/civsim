@@ -18,13 +18,18 @@ export function calculateProvincePartyScores(province) {
   const extractiveIndex = f(province, 'extractive_index')
   const leisureTourismIndex = f(province, 'leisure_tourism_index')
   const civicMonumentIndex = f(province, 'civic_monument_index')
+  const foreignOriginIndex = f(province, 'foreign_origin_index')
+  const frontierIndex = f(province, 'frontier_index')
+  const connectednessIndex = f(province, 'connectedness_index')
   const whiteDiasporaScore =
     PARTY_FLOORS.white +
     0.03 * f(province, 'commerce_index') +
     0.025 * f(province, 'localist_index') +
     0.015 * conqueredPenalty +
     0.015 * maritimeIndex +
-    0.015 * wildernessIndex
+    0.015 * wildernessIndex +
+    0.025 * foreignOriginIndex +
+    0.02 * frontierIndex
   const purpleDiasporaScore =
     PARTY_FLOORS.purple +
     0.04 * f(province, 'spiritual_index') +
@@ -32,7 +37,8 @@ export function calculateProvincePartyScores(province) {
     0.025 * f(province, 'minority_religion_share') +
     0.02 * f(province, 'restorationist_index') +
     0.02 * wildernessIndex +
-    0.01 * mountainIndex
+    0.01 * mountainIndex +
+    0.02 * foreignOriginIndex
   const whiteNaturalScore =
     PARTY_FLOORS.white +
     0.85 * americanIdentityIndex +
@@ -65,9 +71,12 @@ export function calculateProvincePartyScores(province) {
       0.15 * f(province, 'loyalty_index') +
       0.08 * civicMonumentIndex +
       0.04 * residentialIndex +
-      0.1 * f(province, 'infrastructure_index') -
+      0.08 * f(province, 'infrastructure_index') +
+      0.06 * connectednessIndex -
       0.175 * conqueredPenalty -
-      0.1 * f(province, 'localist_index'),
+      0.1 * f(province, 'localist_index') -
+      0.08 * foreignOriginIndex -
+      0.04 * frontierIndex,
 
     orange:
       0.1 +
@@ -102,7 +111,9 @@ export function calculateProvincePartyScores(province) {
       0.07 * residentialIndex +
       0.06 * leisureTourismIndex +
       0.04 * maritimeIndex -
-      0.075 * f(province, 'imperial_core_index'),
+      0.075 * f(province, 'imperial_core_index') +
+      0.08 * foreignOriginIndex +
+      0.05 * frontierIndex,
 
     white: isAmericanBase ? whiteNaturalScore : whiteDiasporaScore,
 
