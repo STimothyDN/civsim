@@ -49,26 +49,28 @@
       <div v-else>
         <!-- Primitive fields in a responsive grid -->
         <div v-if="primitiveKeys.length > 0" class="field-row field-row--spaced">
-          <component
-            v-for="key in primitiveKeys"
-            :key="key"
-            :is="componentForChild(key)"
-            :path="childPath(key)"
-            :label="key"
-            :depth="depth + 1"
-          />
+          <template v-for="key in primitiveKeys" :key="key">
+            <component
+              v-if="isFieldVisible(key)"
+              :is="componentForChild(key)"
+              :path="childPath(key)"
+              :label="key"
+              :depth="depth + 1"
+            />
+          </template>
         </div>
         
         <!-- Complex fields (objects, arrays) stacked vertically -->
         <div v-if="complexKeys.length > 0" class="complex-fields">
-          <component
-            v-for="key in complexKeys"
-            :key="key"
-            :is="componentForChild(key)"
-            :path="childPath(key)"
-            :label="key"
-            :depth="depth + 1"
-          />
+          <template v-for="key in complexKeys" :key="key">
+            <component
+              v-if="isFieldVisible(key)"
+              :is="componentForChild(key)"
+              :path="childPath(key)"
+              :label="key"
+              :depth="depth + 1"
+            />
+          </template>
         </div>
       </div>
     </div>
@@ -228,7 +230,7 @@ export default {
       // Identifiers & Core
       'name', 'province_name', 'leader', 'group', 'city_id', 'tile_id', 'distance_from_center', 'distance', 'terrain', 'resource',
       // Status Toggles
-      'is_national_capital', 'is_regional_capital', 'is_founded', 'is_joined', 'is_conquered', 'has_railroad',
+      'is_national_capital', 'is_regional_capital', 'is_founded', 'is_joined', 'is_conquered', 'original_country', 'has_railroad',
       // Demographics & Stats
       'total_population', 'population', 'citizens_working', 'loyalty', 'housing', 'growth_percentage', 'happiness_percentage',
       // Modifiers & Net values
@@ -254,7 +256,16 @@ export default {
       return cKeys.sort((a, b) => getKeyWeight(a) - getKeyWeight(b))
     })
 
-    return { obj, keys, displayTitle, sectionIcon, childPath, componentForChild, toggle, expanded, countText, isAddingKey, newKeyName, addKeyInput, startAddKey, cancelAddKey, confirmAddKey, dynamicKeyOptions, dynamicKeyDatalistId, removeKey, isDynamicKeys, primitiveKeys, complexKeys, depth: props.depth }
+    function isFieldVisible(key) {
+      if (key !== 'original_country') return true
+      const p = props.path || ''
+      if (!p.match(/provinces\[\d+\]$/)) return true
+      
+      const province = obj.value
+      return province?.is_joined || province?.is_conquered
+    }
+
+    return { obj, keys, displayTitle, sectionIcon, childPath, componentForChild, toggle, expanded, countText, isAddingKey, newKeyName, addKeyInput, startAddKey, cancelAddKey, confirmAddKey, dynamicKeyOptions, dynamicKeyDatalistId, removeKey, isDynamicKeys, primitiveKeys, complexKeys, isFieldVisible, depth: props.depth }
   }
 }
 </script>

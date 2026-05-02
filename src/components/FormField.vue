@@ -101,6 +101,12 @@ export default {
       return { provinceIndex: parseInt(match[1], 10), field: match[2] }
     })
 
+    const provinceStatusToggleInfo = computed(() => {
+      const match = props.path.match(/^provinces\[(\d+)\]\.(is_founded|is_joined|is_conquered)$/)
+      if (!match) return null
+      return { provinceIndex: parseInt(match[1], 10), field: match[2] }
+    })
+
     const datalistOptions = computed(() => {
       if (props.path.match(/^provinces\[\d+\]\.closest_provinces\[\d+\]\.province_name$/)) return closestProvinceOptions.value
       if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.terrain$/)) return store.uniqueTerrains
@@ -132,6 +138,16 @@ export default {
         }
         return
       }
+
+      const statusInfo = provinceStatusToggleInfo.value
+      if (statusInfo && e.target.checked) {
+        const fields = ['is_founded', 'is_joined', 'is_conquered']
+        fields.forEach((f) => {
+          store.setValueAtPath(`provinces[${statusInfo.provinceIndex}].${f}`, f === statusInfo.field)
+        })
+        return
+      }
+
       store.setValueAtPath(props.path, e.target.checked)
     }
 

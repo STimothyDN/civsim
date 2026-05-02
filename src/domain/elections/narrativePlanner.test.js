@@ -345,7 +345,10 @@ describe('narrativePlanner LLM prompts', () => {
     expect(userContent).not.toContain('[object Object]')
     expect(userPayload.activeTrends[0]).toMatchObject({ label: 'Rail Opening', templateId: 'rail-opening' })
     expect(userPayload.national.assembly.votePct.yellow).toBe(42)
-    expect(userPayload.focus.regionalOverview[0].assembly.strongestSwing).toMatchObject({ party: 'yellow', points: 9 })
+    expect(userPayload.scopeBoundary).toContain('National page')
+    expect(userPayload.focus.type).toBe('national')
+    expect(userPayload.focus.regionalOverview).toBeUndefined()
+    expect(userPayload.focus.examples[0].assembly.strongestSwing).toMatchObject({ party: 'yellow', points: 9 })
   })
 
   it('uses a compact one-paragraph request for election tickers', async () => {
@@ -369,6 +372,10 @@ describe('narrativePlanner LLM prompts', () => {
     expect(body.max_output_tokens).toBe(420)
     expect(systemContent).toContain('exactly one plain-text paragraph')
     expect(userPayload.scope).toBe('overview')
+    expect(userPayload.scopeBoundary).toContain('only ticker allowed to consolidate')
+    expect(userPayload.focus.type).toBe('overview')
+    expect(userPayload.focus.regionalOverview[0]).toMatchObject({ name: 'Capital Region' })
+    expect(userPayload.focus.provinceHighlights[0]).toMatchObject({ name: 'Angkor Thom' })
     expect(userPayload.activeTrends[0]).toMatchObject({ label: 'Rail Opening' })
     expect(statuses.map((status) => status.eventType)).toEqual([
       'app.preparing',

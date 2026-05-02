@@ -117,6 +117,7 @@ export function createEmptyProvince() {
     closest_provinces: createEmptyClosestProvinces(),
     counties: [createEmptyCounty()],
     group: null,
+    original_country: "",
     notes: "",
   };
 }
@@ -153,6 +154,7 @@ export function normalizeIds(data) {
     }
     if (province.is_national_capital === undefined) province.is_national_capital = false
     if (province.is_regional_capital === undefined) province.is_regional_capital = false
+    if (province.original_country === undefined) province.original_country = ""
     province.closest_provinces = normalizeClosestProvinces(province.closest_provinces)
 
     if (!Array.isArray(province.counties)) {

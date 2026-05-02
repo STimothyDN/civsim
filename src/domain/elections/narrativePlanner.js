@@ -529,26 +529,31 @@ function climateSummarySystemPrompt() {
 
 function broadcastSystemPrompt(scope = 'national', targetName = null) {
   const scopeMap = {
-    national: 'Imperial Decision Desk',
-    regional: `${targetName || 'Regional'} Election Center`,
-    provincial: `${targetName || 'Provincial'} Results Service`,
+    overview: 'Empire-Wide Election Overview Desk',
+    national: 'National Results Desk',
+    regional: `${targetName || 'Regional'} State Broadcasting Service`,
+    provincial: `${targetName || 'Provincial'} Provincial State Broadcast`,
   }
   const stationName = scopeMap[scope] || 'Khmer State Television'
+  const scopeRules = {
+    overview: 'SCOPE: This is the only full-election overview. Consolidate the national board, regions, and notable provinces into one empire-wide top-of-the-hour report.',
+    national: 'SCOPE: Stay focused on national results: imperial chambers, national popular vote, national control, and national trend effects. Use any supplied regional examples only as brief evidence for the national result, never as a region-by-region roundup.',
+    regional: `SCOPE: Stay inside ${targetName || 'this region'}. Write like regional state media serving that region. Discuss only the regional assembly/council and provinces inside this region; do not turn the report into a national roundup.`,
+    provincial: `SCOPE: Stay inside ${targetName || 'this province'}. Write like provincial state media serving this province. Discuss only provincial chambers and counties inside this province; do not turn the report into a regional or national roundup.`,
+  }
 
   return [
     `You are the lead anchor for the ${stationName}.`,
     'TONE: Professional, authoritative, and analytically sharp; emulate a high-end election night broadcast.',
     'TASK: Deliver exactly 5 paragraphs that prioritize hard data while maintaining historical consequence.',
+    scopeRules[scope] || scopeRules.national,
     'PROJECTIONS: Use the language of a decision desk (e.g., "We are projecting," "Too close to call," "Seismic shifts in the battlegrounds," "The path to power").',
-    'DATA FIRST: Lead with the numbers. Seat counts, control shifts, and popular vote margins must be the foundation of the report.',
-    'JOURNALISTIC ANALYSIS: Beyond the numbers, explain why these shifts are occurring based on the provided trends and demographics.',
-    scope === 'national' ? 'Provide a comprehensive national breakdown: House control, the struggle for the Imperial center, and the emerging national mandate.' : '',
-    scope === 'regional' ? `Focus on the regional mechanics of ${targetName}. Detail the local assembly shifts and how this region is influencing the national balance of power.` : '',
-    scope === 'provincial' ? `Deliver a localized deep-dive for ${targetName}. Analyze the county-level data, the council control, and the specific local swings that defined the night.` : '',
-    'Paragraph 1: The Lead. The top-line projection and the overall mood of the electorate.',
-    'Paragraph 2: The Math. A disciplined breakdown of the seats, the control of the houses, and the popular vote margins.',
-    'Paragraph 3-4: The Analysis. Identify specific battleground swings or surprising trend impacts. What specific demographic or regional shift changed the math?',
-    'Paragraph 5: The Outlook. The political reality for the coming term and what this "new math" means for the Empire.',
+    'DATA FIRST: Lead with numbers from the scoped area. Seat counts, control shifts, and popular vote margins must be the foundation of the report.',
+    'STRUCTURE: Paragraph 1 gives the top-of-the-hour overview of what occurred in the scoped area first: the key call, control result, vote movement, and immediate political meaning.',
+    'STRUCTURE: Paragraph 2 gives the scoped math: seats, chamber control, vote shares, and majority thresholds for this area only.',
+    'STRUCTURE: Paragraphs 3 and 4 pull specific examples from the supplied scoped examples, such as decisive provinces, counties, demographic signals, or trend impacts. Keep examples subordinate to the area-wide story.',
+    'STRUCTURE: Paragraph 5 gives the scoped outlook: what this result means for the area now, not a generic empire-wide conclusion unless scope is overview.',
+    'JOURNALISTIC ANALYSIS: Explain why these shifts are occurring based on supplied trends and demographics, but do not speculate outside the data packet.',
     'Use only supplied facts and numbers; do not invent counties, parties, margins, or quotes.',
     'Return ONLY the script as five plain-text paragraphs separated by blank lines. No markdown, headings, commentary, hidden reasoning, or <think> blocks.',
   ].filter(Boolean).join(' ')
@@ -560,10 +565,17 @@ function tickerSystemPrompt(scope = 'national', targetName = null) {
     : scope === 'national'
       ? 'National Decision Desk'
       : targetName || scope
+  const scopeRules = {
+    overview: 'This is the only all-election ticker; consolidate the national, regional, and provincial picture.',
+    national: 'Stay on national chambers, national vote movement, and national control. Do not summarize the whole regional/provincial map.',
+    regional: `Stay inside ${targetName || 'this region'} and write like regional state media.`,
+    provincial: `Stay inside ${targetName || 'this province'} and write like provincial state media.`,
+  }
 
   return [
     `You are writing one live election ticker paragraph for ${scopeName}.`,
     'Return exactly one plain-text paragraph, 55 to 85 words.',
+    scopeRules[scope] || scopeRules.national,
     'Lead with the most important control call or vote movement, then explain the main reason using supplied trends and numbers.',
     'Use hard data, but stay compact enough for an on-page ticker card.',
     'Use only supplied facts and numbers; do not invent counties, parties, margins, or quotes.',
@@ -695,7 +707,49 @@ function findBaselineCounty(baselineProvince, county) {
   )) || null
 }
 
+function regionOverview(results = {}, baselineResults = {}, max = 14) {
+  return Object.entries(results.regions || {})
+    .map(([name, region]) => regionContext(name, region, baselineResults?.regions?.[name]))
+    .sort((a, b) => (numberOrNull(b.population) || 0) - (numberOrNull(a.population) || 0))
+    .slice(0, max)
+}
+
+function provinceHighlights(results = {}, baselineResults = {}, max = 10) {
+  return (results.provinces || [])
+    .sort((a, b) => (
+      (a.is_national_capital ? -1 : 0) - (b.is_national_capital ? -1 : 0) ||
+      (numberOrNull(b.provincial_population) || 0) - (numberOrNull(a.provincial_population) || 0)
+    ))
+    .slice(0, max)
+    .map((province) => provinceResultContext(province, findBaselineProvince(baselineResults, province)))
+}
+
+function nationalFocusExamples(results = {}, baselineResults = {}, max = 4) {
+  return Object.entries(results.regions || {})
+    .map(([name, region]) => regionContext(name, region, baselineResults?.regions?.[name]))
+    .filter((region) => region.assembly?.strongestSwing || region.council?.strongestSwing)
+    .sort((a, b) => {
+      const aSwing = Math.max(Math.abs(a.assembly?.strongestSwing?.points || 0), Math.abs(a.council?.strongestSwing?.points || 0))
+      const bSwing = Math.max(Math.abs(b.assembly?.strongestSwing?.points || 0), Math.abs(b.council?.strongestSwing?.points || 0))
+      return bSwing - aSwing || (numberOrNull(b.population) || 0) - (numberOrNull(a.population) || 0)
+    })
+    .slice(0, max)
+}
+
 function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'national', targetName = null) {
+  if (scope === 'overview') {
+    return {
+      type: 'overview',
+      national: compactObject({
+        population: integerOrNull(results.national?.population),
+        assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly),
+        council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates),
+      }),
+      regionalOverview: regionOverview(results, baselineResults),
+      provinceHighlights: provinceHighlights(results, baselineResults),
+    }
+  }
+
   if (scope === 'regional') {
     const region = results.regions?.[targetName] || {}
     const baselineRegion = baselineResults?.regions?.[targetName] || null
@@ -729,34 +783,49 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
 
   return {
     type: 'national',
-    regionalOverview: Object.entries(results.regions || {})
-      .map(([name, region]) => regionContext(name, region, baselineResults?.regions?.[name]))
-      .sort((a, b) => (numberOrNull(b.population) || 0) - (numberOrNull(a.population) || 0))
-      .slice(0, 14),
+    examples: nationalFocusExamples(results, baselineResults),
   }
 }
 
 function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null) {
+  const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
+  const includeNational = scope === 'overview' || scope === 'national'
+
   return JSON.stringify({
     task: 'Write exactly five plain-text election broadcast paragraphs based only on this newsroom data.',
     scope,
-    target: targetName || 'National',
+    target,
+    scopeBoundary: {
+      overview: 'Full election board. This is the only request allowed to consolidate national, regional, provincial, and county-level context.',
+      national: 'National page. Focus on national chambers, national popular vote, and national control. Regional items are examples only if present in focus.examples.',
+      regional: `Regional page. Focus only on ${targetName || 'the selected region'} and its provinces.`,
+      provincial: `Provincial page. Focus only on ${targetName || 'the selected province'} and its counties.`,
+    }[scope] || 'National page.',
     partyLegend: partyLegend(),
     activeTrends: trendSummaries(results.config?.trends || []),
-    national: compactObject({
+    national: includeNational ? compactObject({
       population: integerOrNull(results.national?.population),
       assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly),
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates),
-    }),
+    }) : undefined,
     focus: broadcastFocusContext(results, baselineResults, scope, targetName),
   })
 }
 
 function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null) {
+  const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
+  const includeNational = scope === 'overview' || scope === 'national'
+
   return JSON.stringify({
     task: 'Write one concise election ticker paragraph based only on this page-specific data.',
     scope,
-    target: targetName || (scope === 'overview' ? 'Election Overview' : 'National'),
+    target,
+    scopeBoundary: {
+      overview: 'Full election board. This is the only ticker allowed to consolidate the whole election.',
+      national: 'National ticker. Focus on national chambers, national vote movement, and national control.',
+      regional: `Regional ticker. Focus only on ${targetName || 'the selected region'} and its provinces.`,
+      provincial: `Provincial ticker. Focus only on ${targetName || 'the selected province'} and its counties.`,
+    }[scope] || 'National ticker.',
     partyLegend: partyLegend(),
     activeTrends: trendSummaries(results.config?.trends || []).slice(0, 8),
     climate: compactObject({
@@ -764,11 +833,11 @@ function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national'
       description: results.config?.scenarioDescription,
       trendCount: Array.isArray(results.config?.trends) ? results.config.trends.length : 0,
     }),
-    national: compactObject({
+    national: includeNational ? compactObject({
       population: integerOrNull(results.national?.population),
       assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly),
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates),
-    }),
+    }) : undefined,
     focus: broadcastFocusContext(results, baselineResults, scope, targetName),
   })
 }

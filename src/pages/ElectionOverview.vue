@@ -19,7 +19,7 @@
           <h2>{{ countryName }} Election Board</h2>
           <p>{{ formatCompactNumber(results.national.population) }} people · {{ results.provinces.length }} provinces · {{ regionRows.length }} regions · simulated live returns</p>
           <div class="overview-hero-actions">
-            <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal">
+            <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('overview')">
               <Radio :size="16" />
               Start Election Broadcast
             </button>

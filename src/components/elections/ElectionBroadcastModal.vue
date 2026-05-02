@@ -6,7 +6,7 @@
           <div class="broadcast-signal">
             <Radio :size="18" class="broadcast-blink" />
             <span id="broadcast-title">
-              {{ uiStore.broadcastScope === 'national' ? 'NATIONAL' : uiStore.broadcastTargetName?.toUpperCase() }} 
+              {{ broadcastTitle }}
               BROADCAST — KHMER STATE TELEVISION
             </span>
           </div>
@@ -104,6 +104,12 @@ export default {
 
     const isFinished = computed(() => {
       return paragraphs.value.length > 0 && currentParagraphIndex.value === paragraphs.value.length - 1 && !isTyping.value
+    })
+
+    const broadcastTitle = computed(() => {
+      if (uiStore.broadcastScope === 'overview') return 'ELECTION OVERVIEW'
+      if (uiStore.broadcastScope === 'national') return 'NATIONAL'
+      return String(uiStore.broadcastTargetName || uiStore.broadcastScope || 'ELECTION').toUpperCase()
     })
 
     async function startBroadcast() {
@@ -204,6 +210,7 @@ export default {
 
     return {
       close,
+      broadcastTitle,
       currentParagraphText,
       displayedParagraphs,
       fastForward,

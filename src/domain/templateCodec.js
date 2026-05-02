@@ -57,6 +57,10 @@ export function buildExportTemplate(currentData, provinceCalcs, regionalTotals) 
       province.assemblypeople = calc.assemblypeople ?? null
       province.prelates = calc.prelates ?? null
       province.dominant_religion = calc.dominantReligion ?? 'None'
+
+      if (province.is_founded && !province.is_joined && !province.is_conquered) {
+        province.original_country = "Khmer Empire"
+      }
     })
   }
 

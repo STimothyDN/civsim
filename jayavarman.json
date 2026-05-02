@@ -77,27 +77,28 @@
       "is_regional_capital": false,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vyadhapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Yasodharapura",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Hariharalaya",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Mahendraparvata",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Arretium",
+          "distance": 10
         }
       ],
-      "provincial_population": 23647699,
+      "original_country": "Khmer Empire",
+      "provincial_population": 23749083,
       "assemblypeople": 30,
       "prelates": 8,
       "dominant_religion": "Zoroastrianism"
@@ -1659,9 +1660,10 @@
           "distance": 8
         }
       ],
-      "provincial_population": 28810041,
+      "original_country": "Khmer Empire",
+      "provincial_population": 31283631,
       "assemblypeople": 33,
-      "prelates": 8,
+      "prelates": 9,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -1670,32 +1672,32 @@
       "is_founded": true,
       "is_joined": false,
       "is_conquered": false,
-      "population": "25",
-      "loyalty": "24",
-      "growth_percentage": "100",
-      "happiness_percentage": "100",
+      "population": "28",
+      "loyalty": "30",
+      "growth_percentage": "120",
+      "happiness_percentage": "120",
       "yields": {
-        "amenities": "15",
-        "food": "70",
-        "production": "85.7",
-        "gold": "222.2",
-        "culture": "39",
-        "science": "55.7",
-        "faith": "40.5"
+        "amenities": "20",
+        "food": "76",
+        "production": "129",
+        "gold": "273",
+        "culture": "96.5",
+        "science": "60",
+        "faith": "46.3"
       },
       "religions": [
         {
           "name": "Zoroastrianism",
-          "followers": "24"
+          "followers": "27"
         },
         {
           "name": "Protestantism",
-          "followers": "1"
+          "followers": "0"
         }
       ],
-      "housing": "29",
-      "net_amenities": "2",
-      "net_food": "24.9",
+      "housing": "32",
+      "net_amenities": "6",
+      "net_food": "28.9",
       "counties": [
         {
           "tile_id": "tile_1",
@@ -1731,28 +1733,29 @@
       "is_regional_capital": true,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Mahendraparvata",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Philadelphia",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "St. Louis",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Serei Saophoan",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Thom",
+          "distance": 9
         }
       ],
-      "provincial_population": 16516497,
-      "assemblypeople": 25,
+      "original_country": "Khmer Empire",
+      "provincial_population": 20029233,
+      "assemblypeople": 28,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
@@ -1827,29 +1830,30 @@
       "is_regional_capital": false,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Philadelphia",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Hariharalaya",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Pre Rup",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Washington",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Thom",
+          "distance": 9
         }
       ],
-      "provincial_population": 27971197,
+      "original_country": "Khmer Empire",
+      "provincial_population": 20702585,
       "assemblypeople": 29,
-      "prelates": 8,
+      "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -1919,27 +1923,28 @@
       "is_regional_capital": false,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Puteoli",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Mediolanum",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Shrestapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ostia",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Yasodharapura",
+          "distance": 8
         }
       ],
-      "provincial_population": 19050296,
+      "original_country": "Khmer Empire",
+      "provincial_population": 17003882,
       "assemblypeople": 27,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -2007,27 +2012,28 @@
       "is_regional_capital": false,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Thom",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Muang Tam",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phnom Penh",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Hariharalaya",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kampot",
+          "distance": 11
         }
       ],
-      "provincial_population": 13433108,
+      "original_country": "Khmer Empire",
+      "provincial_population": 13278290,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -2095,27 +2101,28 @@
       "is_regional_capital": false,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phnom Penh",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Hariharalaya",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kampot",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "St. Louis",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vyadhapura",
+          "distance": 12
         }
       ],
-      "provincial_population": 1580215,
+      "original_country": "Khmer Empire",
+      "provincial_population": 1464985,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -2183,27 +2190,28 @@
       "is_regional_capital": false,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kampot",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Serei Saophoan",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vyadhapura",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Hariharalaya",
+          "distance": 12
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Thom",
+          "distance": 14
         }
       ],
-      "provincial_population": 2250897,
+      "original_country": "Khmer Empire",
+      "provincial_population": 1961985,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -2214,28 +2222,28 @@
       "is_founded": true,
       "is_joined": false,
       "is_conquered": false,
-      "population": "8",
-      "loyalty": "29",
-      "growth_percentage": "110",
-      "happiness_percentage": "110",
+      "population": "9",
+      "loyalty": "24",
+      "growth_percentage": "100",
+      "happiness_percentage": "100",
       "yields": {
         "amenities": "7",
-        "food": "31",
-        "production": "41.2",
-        "gold": "82.5",
-        "culture": "12.9",
-        "science": "4.3",
+        "food": "29",
+        "production": "57.5",
+        "gold": "81.6",
+        "culture": "12.3",
+        "science": "5.5",
         "faith": "0"
       },
       "religions": [
         {
           "name": "Zoroastrianism",
-          "followers": "6"
+          "followers": "8"
         }
       ],
-      "housing": "12.5",
-      "net_amenities": "3",
-      "net_food": "20.1",
+      "housing": "14",
+      "net_amenities": "2",
+      "net_food": "13.7",
       "counties": [
         {
           "tile_id": "tile_1",
@@ -2271,28 +2279,29 @@
       "is_regional_capital": false,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phnom Penh",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Serei Saophoan",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vyadhapura",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Hariharalaya",
+          "distance": 16
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Siem Reap",
+          "distance": 17
         }
       ],
-      "provincial_population": 1060054,
-      "assemblypeople": 8,
+      "original_country": "Khmer Empire",
+      "provincial_population": 1865467,
+      "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
     },
@@ -2318,7 +2327,7 @@
       "religions": [
         {
           "name": "Zoroastrianism",
-          "followers": "27"
+          "followers": "30"
         },
         {
           "name": "Protestantism",
@@ -3691,9 +3700,10 @@
           "distance": 8
         }
       ],
-      "provincial_population": 35494383,
+      "original_country": "America",
+      "provincial_population": 44251666,
       "assemblypeople": 36,
-      "prelates": 9,
+      "prelates": 10,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -3730,11 +3740,165 @@
       "net_food": "44.8",
       "counties": [
         {
+          "name": "City Center",
           "tile_id": "tile_1",
-          "terrain": "",
+          "distance_from_center": 0,
+          "terrain": "Grassland",
           "features": {},
           "improvement": {
+            "name": "City Center",
+            "buildings": {
+              "Monument": true,
+              "Granary": true,
+              "Water Mill": true,
+              "Sewer": true,
+              "Flood Barrier": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": "Rubicon River",
+          "has_railroad": true,
+          "appeal": "11",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Holy Site District",
+          "tile_id": "tile_2",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Holy Site",
+            "buildings": {
+              "Shrine": true,
+              "Gurdwara": true,
+              "Prasat": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": "Rubicon River",
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": "13",
+            "tourism": null
+          }
+        },
+        {
+          "name": "Aqueduct District",
+          "tile_id": "tile_3",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {
+            "Grassland Floodplains": true
+          },
+          "improvement": {
+            "name": "Aqueduct",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Rubicon River",
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Industrial Zone District",
+          "tile_id": "tile_4",
+          "distance_from_center": 1,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Industrial Zone",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Rubicon River",
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": "5",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Bridge South",
+          "tile_id": "tile_5",
+          "distance_from_center": 1,
+          "terrain": "Coast",
+          "features": {
+            "Adriatic Sea": true
+          },
+          "improvement": {
             "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Golden Gate Bridge District",
+          "tile_id": "tile_6",
+          "distance_from_center": 1,
+          "terrain": "Coast",
+          "features": {
+            "Cliff": true,
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "Golden Gate Bridge",
             "buildings": {},
             "great_works": {}
           },
@@ -3752,9 +3916,867 @@
             "science": null,
             "faith": null,
             "tourism": null
+          }
+        },
+        {
+          "name": "Harbor District",
+          "tile_id": "tile_7",
+          "distance_from_center": 1,
+          "terrain": "Coast",
+          "features": {
+            "Bering Sea": true
           },
-          "name": "",
-          "distance_from_center": null
+          "improvement": {
+            "name": "Harbor",
+            "buildings": {
+              "Lighthouse": true,
+              "Shipyard": true,
+              "Seaport": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "6",
+            "production": null,
+            "gold": "14",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Dairy Dells",
+          "tile_id": "tile_8",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Cattle": true
+          },
+          "improvement": {
+            "name": "Pasture",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cattle",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Diplomatic Quarter",
+          "tile_id": "tile_9",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Diplomatic Quarter",
+            "buildings": {
+              "Consulate": true,
+              "Chancery": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Riverbend North",
+          "tile_id": "tile_10",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Grassland Floodplains": true,
+            "Maize": true
+          },
+          "improvement": {
+            "name": "Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Maize",
+          "citizens_working": "1",
+          "river": "Rubicon River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "7",
+            "production": null,
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Commercial Hub District",
+          "tile_id": "tile_11",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Grassland Floodplains": true
+          },
+          "improvement": {
+            "name": "Commercial Hub",
+            "buildings": {
+              "Market": true,
+              "Bank": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "2",
+          "river": "Rubicon River",
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": "14",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Theater Square District",
+          "tile_id": "tile_12",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Volcanic Soil": true
+          },
+          "improvement": {
+            "name": "Theater Square",
+            "buildings": {
+              "Ampitheater": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "10",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Mount Askja",
+          "tile_id": "tile_13",
+          "distance_from_center": 2,
+          "terrain": "Grassland (Mountain)",
+          "features": {
+            "Volcano": true,
+            "Askja": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "10",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Adriatic Reefs",
+          "tile_id": "tile_14",
+          "distance_from_center": 2,
+          "terrain": "Coast",
+          "features": {
+            "Reef": true,
+            "Turtles": true,
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "Fishing Boats",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Turtles",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": "2",
+            "food": "5",
+            "production": "4",
+            "gold": "5",
+            "culture": null,
+            "science": "3",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Peninsulares",
+          "tile_id": "tile_15",
+          "distance_from_center": 2,
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Rainforest": true,
+            "Cliff": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "12",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "University of the Bering Sea",
+          "tile_id": "tile_16",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Campus",
+            "buildings": {
+              "Library": true,
+              "University": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "2",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "10",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": "7",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Bering Reefs",
+          "tile_id": "tile_17",
+          "distance_from_center": 2,
+          "terrain": "Coast",
+          "features": {
+            "Reef": true,
+            "Fish": true,
+            "Bering Sea": true
+          },
+          "improvement": {
+            "name": "Fishing Boats",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Fish",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "6",
+            "production": "4",
+            "gold": "5",
+            "culture": null,
+            "science": "2",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Pannotia Shallows",
+          "tile_id": "tile_18",
+          "distance_from_center": 2,
+          "terrain": "Coast",
+          "features": {
+            "Bering Sea": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Saline Crop",
+          "tile_id": "tile_19",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true,
+            "Cocoa": true
+          },
+          "improvement": {
+            "name": "Plantation",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cocoa",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "10",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "1",
+            "gold": "7",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Northern Gateway",
+          "tile_id": "tile_20",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Rainforest North",
+          "tile_id": "tile_21",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Rainforest West",
+          "tile_id": "tile_22",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Linga Hills",
+          "tile_id": "tile_23",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Riverbend South",
+          "tile_id": "tile_24",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {
+            "Grassland Floodplains": true,
+            "Maize": true
+          },
+          "improvement": {
+            "name": "Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Maize",
+          "citizens_working": "1",
+          "river": "Rubicon River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": null,
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Dam District",
+          "tile_id": "tile_25",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {
+            "Grassland Floodplains": true
+          },
+          "improvement": {
+            "name": "Dam",
+            "buildings": {
+              "Hydroelectric Dam": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Rubicon River",
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Rainforest South",
+          "tile_id": "tile_26",
+          "distance_from_center": 3,
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Water Park District",
+          "tile_id": "tile_27",
+          "distance_from_center": 3,
+          "terrain": "Lake",
+          "features": {
+            "Tonle Sap Lake": true
+          },
+          "improvement": {
+            "name": "Water Park",
+            "buildings": {
+              "Ferris Wheel": true,
+              "Aquarium": true,
+              "Aquatics Center": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": "14",
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Mount Lakeside",
+          "tile_id": "tile_28",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Mountain)",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "10",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Adriatic South",
+          "tile_id": "tile_29",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Adriatic Inlet",
+          "tile_id": "tile_30",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Deer Crossing",
+          "tile_id": "tile_31",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true,
+            "Deer": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Deer",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Western Gateway",
+          "tile_id": "tile_32",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {
+              "Food Market": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Rainforest West",
+          "tile_id": "tile_33",
+          "distance_from_center": 3,
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "9",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Arctica Shallows",
+          "tile_id": "tile_34",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {
+            "Bering Sea": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Saline Jungle",
+          "tile_id": "tile_35",
+          "distance_from_center": 3,
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
         }
       ],
       "group": "Provinces of Western Pannotia and the Bering Sea",
@@ -3779,13 +4801,14 @@
           "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cincinnati",
+          "distance": 10
         }
       ],
-      "provincial_population": 26597207,
+      "original_country": "Khmer Empire",
+      "provincial_population": 31401319,
       "assemblypeople": 32,
-      "prelates": 8,
+      "prelates": 9,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -3871,7 +4894,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 26104572,
+      "original_country": "Khmer Empire",
+      "provincial_population": 23078350,
       "assemblypeople": 31,
       "prelates": 8,
       "dominant_religion": "Zoroastrianism"
@@ -3889,27 +4913,27 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": "13",
-        "food": "58",
-        "production": "68.7",
-        "gold": "65",
-        "culture": "52.5",
-        "science": "29.6",
-        "faith": "34"
+        "amenities": "16",
+        "food": "61",
+        "production": "73.7",
+        "gold": "175",
+        "culture": "74.2",
+        "science": "50",
+        "faith": "74.2"
       },
       "religions": [
         {
           "name": "Zoroastrianism",
-          "followers": "20"
+          "followers": "23"
         },
         {
           "name": "Protestantism",
-          "followers": "1"
+          "followers": "0"
         }
       ],
       "housing": "32",
       "net_amenities": "4",
-      "net_food": "24.2",
+      "net_food": "20.1",
       "counties": [
         {
           "name": "",
@@ -3943,29 +4967,30 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Washington",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Philadelphia",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Charleston",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cincinnati",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Hariharalaya",
+          "distance": 8
         }
       ],
-      "provincial_population": 14391507,
+      "original_country": "America",
+      "provincial_population": 15578169,
       "assemblypeople": 23,
-      "prelates": 6,
+      "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -3981,18 +5006,18 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": "16",
-        "food": "56",
-        "production": "83.6",
-        "gold": "191.6",
-        "culture": "41.5",
-        "science": "55.7",
-        "faith": "33.5"
+        "amenities": "19",
+        "food": "66",
+        "production": "106.6",
+        "gold": "214.6",
+        "culture": "92.3",
+        "science": "57",
+        "faith": "30"
       },
       "religions": [
         {
           "name": "Zoroastrianism",
-          "followers": "20"
+          "followers": "22"
         },
         {
           "name": "Protestantism",
@@ -4000,8 +5025,8 @@
         }
       ],
       "housing": "26.5",
-      "net_amenities": "5",
-      "net_food": "20.2",
+      "net_amenities": "7",
+      "net_food": "28.9",
       "counties": [
         {
           "name": "",
@@ -4035,27 +5060,28 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Mahendraparvata",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Washington",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cincinnati",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "St. Louis",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Hariharalaya",
+          "distance": 7
         }
       ],
-      "provincial_population": 14368550,
+      "original_country": "America",
+      "provincial_population": 14426557,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -4073,18 +5099,18 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": "9",
-        "food": "61",
-        "production": "52.5",
-        "gold": "56.6",
-        "culture": "20.5",
-        "science": "27.9",
-        "faith": "27.9"
+        "amenities": "16",
+        "food": "74",
+        "production": "80",
+        "gold": "141.2",
+        "culture": "36.2",
+        "science": "35.7",
+        "faith": "34"
       },
       "religions": [
         {
           "name": "Zoroastrianism",
-          "followers": "21"
+          "followers": "24"
         },
         {
           "name": "Protestantism",
@@ -4093,7 +5119,7 @@
       ],
       "housing": "30.5",
       "net_amenities": "3",
-      "net_food": "18.6",
+      "net_food": "32.3",
       "counties": [
         {
           "name": "",
@@ -4127,29 +5153,30 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cincinnati",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Washington",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "St. Louis",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Nagara Jayasri",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Philadelphia",
+          "distance": 8
         }
       ],
-      "provincial_population": 15916079,
+      "original_country": "America",
+      "provincial_population": 14454789,
       "assemblypeople": 25,
-      "prelates": 7,
+      "prelates": 6,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -4235,7 +5262,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 395254,
+      "original_country": "Khmer Empire",
+      "provincial_population": 476228,
       "assemblypeople": 5,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4323,7 +5351,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 982633,
+      "original_country": "",
+      "provincial_population": 889903,
       "assemblypeople": 7,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4411,7 +5440,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 911906,
+      "original_country": "",
+      "provincial_population": 1043503,
       "assemblypeople": 7,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4499,7 +5529,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 1616925,
+      "original_country": "Khmer Empire",
+      "provincial_population": 1607855,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4587,7 +5618,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 1404361,
+      "original_country": "Khmer Empire",
+      "provincial_population": 1816620,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4675,7 +5707,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 1962213,
+      "original_country": "Khmer Empire",
+      "provincial_population": 2268206,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4763,7 +5796,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 2238389,
+      "original_country": "Khmer Empire",
+      "provincial_population": 2292060,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4851,7 +5885,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 2821158,
+      "original_country": "Khmer Empire",
+      "provincial_population": 2883579,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4869,23 +5904,23 @@
       "growth_percentage": "50",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "9",
+        "food": "42",
+        "production": "47.2",
+        "gold": "117",
+        "culture": "14.1",
+        "science": "8.2",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "11"
         }
       ],
       "housing": "12.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "14.7",
       "counties": [
         {
           "name": "",
@@ -4919,30 +5954,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Beng Melea",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Aninditapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vimayapura",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Dviradapura",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lingapura",
+          "distance": 12
         }
       ],
-      "provincial_population": 2894546,
+      "original_country": "",
+      "provincial_population": 2556351,
       "assemblypeople": 11,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Siem Reap",
@@ -5027,7 +6063,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 2353580,
+      "original_country": "Khmer Empire",
+      "provincial_population": 2440825,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "None"
@@ -5115,7 +6152,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 2925998,
+      "original_country": "",
+      "provincial_population": 3301275,
       "assemblypeople": 12,
       "prelates": 5,
       "dominant_religion": "None"
@@ -5133,23 +6171,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "10",
+        "food": "52",
+        "production": "64.7",
+        "gold": "112.5",
+        "culture": "15.2",
+        "science": "27.5",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "13"
         }
       ],
       "housing": "17.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "35.3",
       "counties": [
         {
           "name": "",
@@ -5183,30 +6221,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Beng Melea",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Chaiya",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lingapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vimayapura",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Wat",
+          "distance": 9
         }
       ],
-      "provincial_population": 4094386,
+      "original_country": "Khmer Empire",
+      "provincial_population": 5009615,
       "assemblypeople": 14,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Cumae",
@@ -5291,7 +6330,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 6551323,
+      "original_country": "",
+      "provincial_population": 5835585,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "None"
@@ -5379,7 +6419,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 4998781,
+      "original_country": "",
+      "provincial_population": 5661211,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "None"
@@ -5467,7 +6508,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 5961350,
+      "original_country": "",
+      "provincial_population": 5589868,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "None"
@@ -5485,23 +6527,23 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "11",
+        "food": "64",
+        "production": "57.5",
+        "gold": "108.5",
+        "culture": "18.5",
+        "science": "8.5",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "17"
         }
       ],
       "housing": "20",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "41.3",
       "counties": [
         {
           "name": "",
@@ -5535,30 +6577,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Aninditapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Chaiya",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lingapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Nagara Jayasri",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Pre Rup",
+          "distance": 12
         }
       ],
-      "provincial_population": 6337695,
+      "original_country": "Khmer Empire",
+      "provincial_population": 6993253,
       "assemblypeople": 17,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Pre Rup",
@@ -5573,23 +6616,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "12",
+        "food": "62",
+        "production": "48.7",
+        "gold": "18.7",
+        "culture": "29.4",
+        "science": "10.4",
+        "faith": "30.7"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "16"
         }
       ],
       "housing": "27.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "37.6",
       "counties": [
         {
           "name": "",
@@ -5623,30 +6666,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Velitrae",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lingapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Wat",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Mahendraparvata",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Aninditapura",
+          "distance": 10
         }
       ],
-      "provincial_population": 6681664,
+      "original_country": "Khmer Empire",
+      "provincial_population": 6831063,
       "assemblypeople": 17,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Bilbao",
@@ -5731,7 +6775,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 8601477,
+      "original_country": "",
+      "provincial_population": 7547712,
       "assemblypeople": 18,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5819,9 +6864,10 @@
           "distance": null
         }
       ],
-      "provincial_population": 7454567,
+      "original_country": "Khmer Empire",
+      "provincial_population": 9134135,
       "assemblypeople": 18,
-      "prelates": 5,
+      "prelates": 6,
       "dominant_religion": "None"
     },
     {
@@ -5907,9 +6953,10 @@
           "distance": null
         }
       ],
-      "provincial_population": 7378680,
+      "original_country": "",
+      "provincial_population": 8514411,
       "assemblypeople": 18,
-      "prelates": 5,
+      "prelates": 6,
       "dominant_religion": "None"
     },
     {
@@ -5995,9 +7042,10 @@
           "distance": null
         }
       ],
-      "provincial_population": 7168659,
+      "original_country": "",
+      "provincial_population": 7779023,
       "assemblypeople": 18,
-      "prelates": 5,
+      "prelates": 6,
       "dominant_religion": "None"
     },
     {
@@ -6083,9 +7131,10 @@
           "distance": null
         }
       ],
-      "provincial_population": 7453150,
+      "original_country": "Khmer Empire",
+      "provincial_population": 10202370,
       "assemblypeople": 19,
-      "prelates": 5,
+      "prelates": 6,
       "dominant_religion": "None"
     },
     {
@@ -6171,7 +7220,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 10594516,
+      "original_country": "Khmer Empire",
+      "provincial_population": 7581568,
       "assemblypeople": 19,
       "prelates": 6,
       "dominant_religion": "None"
@@ -6259,7 +7309,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 12142084,
+      "original_country": "",
+      "provincial_population": 10330554,
       "assemblypeople": 20,
       "prelates": 6,
       "dominant_religion": "None"
@@ -6347,7 +7398,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 8308543,
+      "original_country": "Khmer Empire",
+      "provincial_population": 11952455,
       "assemblypeople": 20,
       "prelates": 6,
       "dominant_religion": "None"
@@ -6435,7 +7487,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 12512020,
+      "original_country": "",
+      "provincial_population": 11659289,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "None"
@@ -6523,7 +7576,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 13436737,
+      "original_country": "",
+      "provincial_population": 12272620,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "None"
@@ -6611,7 +7665,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 12064902,
+      "original_country": "",
+      "provincial_population": 9686396,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "None"
@@ -6629,23 +7684,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "14",
+        "food": "62",
+        "production": "116",
+        "gold": "238.5",
+        "culture": "35.7",
+        "science": "47.2",
+        "faith": "29.6"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "21"
         }
       ],
       "housing": "29",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "29.5",
       "counties": [
         {
           "name": "",
@@ -6679,30 +7734,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cincinnati",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lingapura",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Charleston",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Beng Melea",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Washington",
+          "distance": 11
         }
       ],
-      "provincial_population": 12217595,
+      "original_country": "Khmer Empire",
+      "provincial_population": 13476077,
       "assemblypeople": 22,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Kompong Svay",
@@ -6787,7 +7843,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 10763342,
+      "original_country": "Khmer Empire",
+      "provincial_population": 13604929,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "None"
@@ -6875,7 +7932,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 12128488,
+      "original_country": "Khmer Empire",
+      "provincial_population": 14539337,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "None"
@@ -6963,7 +8021,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 12637105,
+      "original_country": "",
+      "provincial_population": 13400253,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "None"
@@ -7051,9 +8110,10 @@
           "distance": null
         }
       ],
-      "provincial_population": 16256773,
+      "original_country": "Khmer Empire",
+      "provincial_population": 12932425,
       "assemblypeople": 23,
-      "prelates": 7,
+      "prelates": 6,
       "dominant_religion": "None"
     },
     {
@@ -7139,7 +8199,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 18244674,
+      "original_country": "Khmer Empire",
+      "provincial_population": 17925643,
       "assemblypeople": 24,
       "prelates": 7,
       "dominant_religion": "None"
@@ -7227,7 +8288,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 19720414,
+      "original_country": "",
+      "provincial_population": 19820524,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "None"
@@ -7315,7 +8377,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 18307515,
+      "original_country": "Khmer Empire",
+      "provincial_population": 16093151,
       "assemblypeople": 26,
       "prelates": 7,
       "dominant_religion": "None"
@@ -7403,7 +8466,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 17628590,
+      "original_country": "",
+      "provincial_population": 22203230,
       "assemblypeople": 26,
       "prelates": 7,
       "dominant_religion": "None"
@@ -7491,7 +8555,8 @@
           "distance": null
         }
       ],
-      "provincial_population": 23359296,
+      "original_country": "",
+      "provincial_population": 26181542,
       "assemblypeople": 29,
       "prelates": 8,
       "dominant_religion": "None"
@@ -7579,9 +8644,10 @@
           "distance": null
         }
       ],
-      "provincial_population": 30222471,
+      "original_country": "Khmer Empire",
+      "provincial_population": 23695817,
       "assemblypeople": 30,
-      "prelates": 9,
+      "prelates": 8,
       "dominant_religion": "None"
     },
     {
@@ -7597,23 +8663,27 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "20",
+        "food": "60",
+        "production": "98.5",
+        "gold": "308.9",
+        "culture": "98.5",
+        "science": "58.1",
+        "faith": "69.5"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "24"
+        },
+        {
+          "name": "Protestantism",
+          "followers": "1"
         }
       ],
       "housing": "42.5",
       "net_amenities": "7",
-      "net_food": null,
+      "net_food": "14.4",
       "counties": [
         {
           "name": "",
@@ -7647,92 +8717,93 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Charleston",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Washington",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Philadelphia",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Nagara Jayasri",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "St. Louis",
+          "distance": 8
         }
       ],
-      "provincial_population": 16093996,
+      "original_country": "America",
+      "provincial_population": 15491375,
       "assemblypeople": 25,
       "prelates": 7,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     }
   ],
   "province_groups": [
     {
       "name": "Capital Region",
-      "regional_population": 84941144,
+      "regional_population": 85314886,
       "assemblypeople": 111,
-      "prelates": 29
-    },
-    {
-      "name": "Roraima Land",
-      "regional_population": 49378860,
-      "assemblypeople": 81,
       "prelates": 30
     },
     {
+      "name": "Roraima Land",
+      "regional_population": 46024255,
+      "assemblypeople": 85,
+      "prelates": 29
+    },
+    {
       "name": "Federation of American Provinces",
-      "regional_population": 96264515,
+      "regional_population": 104202556,
       "assemblypeople": 132,
-      "prelates": 35
-    },
-    {
-      "name": "Provinces of Western Pannotia and the Bering Sea",
-      "regional_population": 58823093,
-      "assemblypeople": 113,
-      "prelates": 34
-    },
-    {
-      "name": "Union of the Free Adriatic Provinces",
-      "regional_population": 95580206,
-      "assemblypeople": 130,
       "prelates": 36
     },
     {
+      "name": "Provinces of Western Pannotia and the Bering Sea",
+      "regional_population": 66267678,
+      "assemblypeople": 113,
+      "prelates": 35
+    },
+    {
+      "name": "Union of the Free Adriatic Provinces",
+      "regional_population": 88220026,
+      "assemblypeople": 130,
+      "prelates": 35
+    },
+    {
       "name": "Royal Provinces of the Western Romaioi",
-      "regional_population": 48545159,
+      "regional_population": 47934718,
       "assemblypeople": 97,
       "prelates": 33
     },
     {
       "name": "Eastern Roman Provinces",
-      "regional_population": 46068244,
+      "regional_population": 44118890,
       "assemblypeople": 101,
-      "prelates": 32
+      "prelates": 34
     },
     {
       "name": "Imperial Avalonia",
-      "regional_population": 23317039,
+      "regional_population": 22508072,
       "assemblypeople": 76,
       "prelates": 36
     },
     {
       "name": "Confederation of Eastern Avalonian Provinces",
-      "regional_population": 37630721,
+      "regional_population": 41457410,
       "assemblypeople": 78,
-      "prelates": 22
+      "prelates": 24
     },
     {
       "name": "Union of the Free Gondwanan Provinces",
-      "regional_population": 96471077,
+      "regional_population": 102003336,
       "assemblypeople": 151,
-      "prelates": 46
+      "prelates": 45
     }
   ],
   "global_religions": [

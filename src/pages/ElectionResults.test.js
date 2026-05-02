@@ -7,6 +7,7 @@ import ProvincialElectionResults from './ProvincialElectionResults.vue'
 import RegionalElectionResults from './RegionalElectionResults.vue'
 import { useElectionStore } from '../stores/electionStore'
 import { useFormStore } from '../stores/formStore'
+import { useUiStore } from '../stores/uiStore'
 
 function sampleTemplate() {
   return {
@@ -170,12 +171,16 @@ describe('election result pages', () => {
 
   it('renders the election overview board', async () => {
     const { wrapper } = mountPage(ElectionOverview)
+    const uiStore = useUiStore()
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('Election Board')
     expect(wrapper.text()).toContain('Assembly of the Empire')
     expect(wrapper.text()).toContain('Council of Prelates')
     expect(wrapper.text()).toContain('Regional Calls')
+
+    await wrapper.get('.btn-broadcast-start').trigger('click')
+    expect(uiStore.broadcastScope).toBe('overview')
   })
 
   it('renders regional result tables', async () => {
