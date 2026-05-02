@@ -708,9 +708,12 @@
   border-color: rgba(212, 168, 67, 0.28) !important;
 }
 
-.chamber-congress-house {
+.chamber-parliament {
   position: relative;
+  display: grid;
+  gap: 8px;
   min-height: 308px;
+  padding: 10px 10px 12px;
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 110%, rgba(78, 121, 167, 0.2), transparent 58%),
@@ -720,51 +723,73 @@
   border-radius: var(--radius-md);
 }
 
-.chamber-congress-house--compact {
+.chamber-parliament--compact {
   min-height: 258px;
+}
+
+.chamber-parliament--dots {
+  background:
+    radial-gradient(circle at 50% 100%, rgba(78, 121, 167, 0.14), transparent 58%),
+    var(--bg-input);
+}
+
+.chamber-parliament-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chamber-zoom-reset {
+  padding: 5px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chamber-zoom-reset:hover {
+  border-color: rgba(212, 168, 67, 0.35);
+  color: var(--accent);
+}
+
+.chamber-parliament-hint {
+  flex: 1 1 12rem;
+  text-align: right;
+  color: var(--text-muted);
+  font-size: 0.68rem;
 }
 
 .chamber-svg {
   display: block;
   width: 100%;
-  min-height: 302px;
+  aspect-ratio: 720 / 400;
+  min-height: 268px;
+  cursor: grab;
+  touch-action: none;
 }
 
-.chamber-congress-house--compact .chamber-svg {
-  min-height: 252px;
+.chamber-svg:active {
+  cursor: grabbing;
 }
 
-.chamber-seat-arc .chamber-svg {
-  min-height: 244px;
+.chamber-parliament--compact .chamber-svg {
+  min-height: 228px;
 }
 
-.chamber-seat-arc--compact .chamber-svg {
-  min-height: 198px;
-}
-
-.chamber-government-label,
-.chamber-opposition-label {
-  position: absolute;
-  bottom: 10px;
-  color: var(--text-muted);
-  font-size: 0.68rem;
+.chamber-svg-hemi-label {
+  fill: var(--text-muted);
+  font-family: inherit;
+  font-size: 20px;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.chamber-government-label {
-  left: 14px;
-}
-
-.chamber-opposition-label {
-  right: 14px;
-}
-
-.chamber-arc-guide {
-  fill: none;
-  stroke: rgba(232, 230, 225, 0.08);
-  stroke-width: 1;
+  pointer-events: none;
+  user-select: none;
 }
 
 .chamber-half-line-svg {
@@ -785,20 +810,6 @@
   opacity: 1;
   stroke-width: 2;
   filter: brightness(1.18);
-}
-
-.chamber-seat-arc {
-  min-height: 260px;
-  padding: 8px;
-  background:
-    radial-gradient(circle at 50% 100%, rgba(78, 121, 167, 0.14), transparent 58%),
-    var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-}
-
-.chamber-seat-arc--compact {
-  min-height: 214px;
 }
 
 .chamber-seat--coalition {

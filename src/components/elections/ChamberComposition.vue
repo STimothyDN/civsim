@@ -29,23 +29,39 @@
     </div>
 
     <div
-      v-if="viewMode === 'congress'"
-      class="chamber-congress-house"
-      :class="{ 'chamber-congress-house--compact': compact }"
+      class="chamber-parliament"
+      :class="{
+        'chamber-parliament--compact': compact,
+        'chamber-parliament--dots': viewMode === 'dots',
+      }"
       role="img"
-      :aria-label="`${title} congress-style composition`"
+      :aria-label="vizAriaLabel"
     >
-      <svg class="chamber-svg" viewBox="0 0 720 360" aria-hidden="true">
-        <path
-          v-for="arc in chamberArcs"
-          :key="arc.key"
-          class="chamber-arc-guide"
-          :d="arc.path"
-        />
-        <line class="chamber-half-line-svg" x1="360" y1="72" x2="360" y2="330" />
-        <g>
+      <div class="chamber-parliament-toolbar">
+        <button type="button" class="chamber-zoom-reset" @click="resetVizZoom">
+          Reset view
+        </button>
+        <span class="chamber-parliament-hint" aria-hidden="true">Scroll or pinch to zoom · drag to pan</span>
+      </div>
+
+      <!-- Congress = hemicycle; Seat dots = fixed grid — both use fixed SVG space + zoom -->
+      <svg
+        v-if="viewMode === 'congress'"
+        ref="vizSvgRef"
+        class="chamber-svg chamber-svg--parliament"
+        :viewBox="CHAMBER_VIZ_VIEWBOX"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <g :transform="zoomTransformStr">
+          <line
+            class="chamber-half-line-svg"
+            :x1="parliamentLayout.centerX"
+            :y1="parliamentLayout.lineY1"
+            :x2="parliamentLayout.centerX"
+            :y2="parliamentLayout.lineY2"
+          />
           <circle
-            v-for="seat in congressSeatDots"
+            v-for="seat in parliamentLayout.seats"
             :key="seat.key"
             class="chamber-svg-seat"
             :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party) }"
@@ -56,26 +72,41 @@
           >
             <title>{{ seat.title }}</title>
           </circle>
+          <text
+            class="chamber-svg-hemi-label chamber-svg-hemi-label--gov"
+            :x="parliamentLayout.labelGov.x"
+            :y="parliamentLayout.labelGov.y"
+            text-anchor="start"
+          >Government</text>
+          <text
+            class="chamber-svg-hemi-label chamber-svg-hemi-label--opp"
+            :x="parliamentLayout.labelOpp.x"
+            :y="parliamentLayout.labelOpp.y"
+            text-anchor="end"
+          >Opposition</text>
         </g>
       </svg>
-      <span class="chamber-government-label">Government</span>
-      <span class="chamber-opposition-label">Opposition</span>
-    </div>
-
-    <div v-else class="chamber-seat-arc" :class="{ 'chamber-seat-arc--compact': compact }" role="img" :aria-label="`${title} seat-dot composition`">
-      <svg class="chamber-svg chamber-svg--dots" viewBox="0 0 720 300" aria-hidden="true">
-        <circle
-        v-for="seat in seatDots"
-        :key="seat.key"
-        class="chamber-svg-seat chamber-svg-seat--grid"
-        :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party) }"
-        :cx="seat.x"
-        :cy="seat.y"
-        :r="seat.r"
-        :fill="seat.color"
+      <svg
+        v-else
+        ref="vizSvgRef"
+        class="chamber-svg chamber-svg--seat-grid"
+        :viewBox="CHAMBER_VIZ_VIEWBOX"
+        preserveAspectRatio="xMidYMid meet"
       >
-        <title>{{ seat.title }}</title>
-      </circle>
+        <g :transform="zoomTransformStr">
+          <circle
+            v-for="seat in gridLayout.seats"
+            :key="seat.key"
+            class="chamber-svg-seat chamber-svg-seat--grid"
+            :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party) }"
+            :cx="seat.x"
+            :cy="seat.y"
+            :r="seat.r"
+            :fill="seat.color"
+          >
+            <title>{{ seat.title }}</title>
+          </circle>
+        </g>
       </svg>
     </div>
 
@@ -89,121 +120,14 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue'
+import { zoom, zoomIdentity } from 'd3-zoom'
+import { select } from 'd3-selection'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { PARTIES } from '../../domain/elections'
+import { buildGridSeatLayout, buildParliamentSeatLayout, CHAMBER_VIZ_VIEWBOX } from '../../domain/elections/chambers/parliamentLayout'
 import { chamberControlStyle } from '../../domain/elections/chambers/controlStyles'
 import { useFormStore } from '../../stores/formStore'
 import PartyBadge from './PartyBadge.vue'
-
-const SVG_WIDTH = 720
-const HEMICYCLE_HEIGHT = 360
-const GRID_HEIGHT = 300
-
-function distributeSeatRows(totalSeats, compact) {
-  if (totalSeats <= 0) return []
-  const maxRows = compact ? 7 : 9
-  const rowCount = Math.min(maxRows, Math.max(3, Math.ceil(Math.sqrt(totalSeats) / 2.2)))
-  const weights = Array.from({ length: rowCount }, (_, index) => index + 1)
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0)
-  const rows = weights.map((weight) => {
-    const raw = totalSeats * weight / totalWeight
-    return { count: Math.floor(raw), remainder: raw - Math.floor(raw) }
-  })
-  let missing = totalSeats - rows.reduce((sum, row) => sum + row.count, 0)
-  rows
-    .map((row, index) => ({ row, index }))
-    .sort((a, b) => b.row.remainder - a.row.remainder || b.index - a.index)
-    .forEach(({ row }) => {
-      if (missing <= 0) return
-      row.count += 1
-      missing -= 1
-    })
-  return rows.map((row) => row.count).filter(Boolean)
-}
-
-function congressGeometry(totalSeats, compact) {
-  const rowCounts = distributeSeatRows(totalSeats, compact)
-  const rowMax = Math.max(1, rowCounts.length - 1)
-
-  return rowCounts.flatMap((count, rowIndex) => {
-    const rowRatio = rowMax ? rowIndex / rowMax : 1
-    const radius = (compact ? 86 : 92) + rowRatio * (compact ? 198 : 220)
-    const yScale = compact ? 0.62 : 0.66
-    const centerX = SVG_WIDTH / 2
-    const centerY = compact ? 318 : 326
-    const start = Math.PI + 0.08
-    const end = Math.PI * 2 - 0.08
-
-    return Array.from({ length: count }, (_, seatIndex) => {
-      const angle = count === 1
-        ? Math.PI * 1.5
-        : start + ((seatIndex + 0.5) * (end - start) / count)
-      return {
-        x: centerX + Math.cos(angle) * radius,
-        y: centerY + Math.sin(angle) * radius * yScale,
-        r: compact ? 5.7 : 6.7,
-        rowIndex,
-      }
-    })
-  }).sort((a, b) => a.x - b.x || b.y - a.y)
-}
-
-function congressPositions(seats, compact) {
-  const positions = congressGeometry(seats.length, compact)
-  return seats.map((seat, index) => ({
-    ...seat,
-    x: positions[index]?.x ?? SVG_WIDTH / 2,
-    y: positions[index]?.y ?? HEMICYCLE_HEIGHT - 30,
-    r: positions[index]?.r ?? 6,
-  }))
-}
-
-function chamberArcGuides(totalSeats, compact) {
-  const rowCounts = distributeSeatRows(totalSeats, compact)
-  const rowMax = Math.max(1, rowCounts.length - 1)
-  const centerX = SVG_WIDTH / 2
-  const centerY = compact ? 318 : 326
-  const yScale = compact ? 0.62 : 0.66
-  const start = Math.PI + 0.08
-  const end = Math.PI * 2 - 0.08
-
-  return rowCounts.map((count, rowIndex) => {
-    const rowRatio = rowMax ? rowIndex / rowMax : 1
-    const radius = (compact ? 86 : 92) + rowRatio * (compact ? 198 : 220)
-    const x1 = centerX + Math.cos(start) * radius
-    const y1 = centerY + Math.sin(start) * radius * yScale
-    const x2 = centerX + Math.cos(end) * radius
-    const y2 = centerY + Math.sin(end) * radius * yScale
-    return {
-      key: `arc-${rowIndex}-${count}`,
-      path: `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${radius.toFixed(2)} ${(radius * yScale).toFixed(2)} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`,
-    }
-  })
-}
-
-function gridPositions(seats, compact) {
-  const columns = compact ? 30 : 36
-  const gap = compact ? 17 : 18
-  const radius = compact ? 5.2 : 5.8
-  const rows = Math.max(1, Math.ceil(seats.length / columns))
-  const width = (Math.min(columns, seats.length || columns) - 1) * gap
-  const startX = (SVG_WIDTH - width) / 2
-  const startY = Math.max(28, (GRID_HEIGHT - (rows - 1) * gap) / 2)
-
-  return seats.map((seat, index) => {
-    const row = Math.floor(index / columns)
-    const column = index % columns
-    const rowCount = Math.min(columns, seats.length - row * columns)
-    const rowWidth = (rowCount - 1) * gap
-    const rowStartX = (SVG_WIDTH - rowWidth) / 2
-    return {
-      ...seat,
-      x: rowStartX + column * gap,
-      y: startY + row * gap,
-      r: radius,
-    }
-  })
-}
 
 export default {
   name: 'ChamberComposition',
@@ -221,6 +145,7 @@ export default {
     const viewMode = ref(props.defaultView === 'dots' ? 'dots' : 'congress')
     const coalitionParties = computed(() => new Set(props.control?.parties || []))
     const controlCardStyle = computed(() => chamberControlStyle(props.control, store.partyMeta))
+
     const orderedParties = computed(() => {
       const coalition = props.control?.parties || []
       const rest = PARTIES
@@ -228,11 +153,13 @@ export default {
         .sort((a, b) => Number(props.seats?.[b] || 0) - Number(props.seats?.[a] || 0) || PARTIES.indexOf(a) - PARTIES.indexOf(b))
       return [...coalition, ...rest]
     })
+
     const partyRows = computed(() => PARTIES
       .map((party) => ({ party, seats: Number(props.seats?.[party] || 0) }))
       .filter((party) => party.seats > 0)
       .sort((a, b) => b.seats - a.seats || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party)))
-    const seatDots = computed(() => orderedParties.value.flatMap((party) => {
+
+    const seatList = computed(() => orderedParties.value.flatMap((party) => {
       const seatCount = Number(props.seats?.[party] || 0)
       return Array.from({ length: seatCount }, (_, index) => ({
         key: `${party}-${index}`,
@@ -241,11 +168,102 @@ export default {
         title: `${store.partyMeta[party]?.name || party} seat`,
       }))
     }))
-    const congressSeatDots = computed(() => congressPositions(seatDots.value, props.compact))
-    const chamberArcs = computed(() => chamberArcGuides(seatDots.value.length, props.compact))
-    const seatDotsWithPositions = computed(() => gridPositions(seatDots.value, props.compact))
 
-    return { chamberArcs, coalitionParties, congressSeatDots, controlCardStyle, partyRows, seatDots: seatDotsWithPositions, viewMode }
+    const parliamentLayout = computed(() => buildParliamentSeatLayout(seatList.value, { compact: props.compact }))
+    const gridLayout = computed(() => buildGridSeatLayout(seatList.value, { compact: props.compact }))
+
+    const vizAriaLabel = computed(() => {
+      const mode = viewMode.value === 'congress' ? 'congress hemicycle' : 'rectangular seat grid'
+      return `${props.title} ${mode} composition`
+    })
+
+    const vizSvgRef = ref(null)
+    const zoomAttachedTo = ref(null)
+    const zoomBehavior = ref(null)
+    const zoomTransform = ref(zoomIdentity)
+
+    const zoomTransformStr = computed(() => zoomTransform.value.toString())
+
+    function detachVizZoom() {
+      const prev = zoomAttachedTo.value
+      if (prev) {
+        select(prev).on('.zoom', null)
+        zoomAttachedTo.value = null
+      }
+      zoomBehavior.value = null
+    }
+
+    function attachVizZoom() {
+      detachVizZoom()
+      const el = vizSvgRef.value
+      if (!el) return
+      const svg = select(el)
+      const z = zoom()
+        .scaleExtent([0.4, 14])
+        .filter((event) => {
+          if (event.type === 'dblclick') return false
+          return (!event.ctrlKey || event.type === 'wheel') && !event.button
+        })
+        .on('zoom', (event) => {
+          zoomTransform.value = event.transform
+        })
+      svg.call(z)
+      zoomBehavior.value = z
+      zoomAttachedTo.value = el
+      svg.call(z.transform, zoomIdentity)
+      zoomTransform.value = zoomIdentity
+    }
+
+    function resetVizZoom() {
+      const el = vizSvgRef.value
+      const z = zoomBehavior.value
+      if (!el || !z) {
+        zoomTransform.value = zoomIdentity
+        return
+      }
+      select(el).transition().duration(200).call(z.transform, zoomIdentity)
+    }
+
+    onMounted(() => {
+      nextTick(attachVizZoom)
+    })
+
+    onBeforeUnmount(() => {
+      detachVizZoom()
+    })
+
+    watch(viewMode, () => {
+      zoomTransform.value = zoomIdentity
+      nextTick(() => attachVizZoom())
+    })
+
+    watch(
+      () => [JSON.stringify(props.seats), props.compact],
+      () => {
+        nextTick(() => {
+          zoomTransform.value = zoomIdentity
+          if (vizSvgRef.value && zoomBehavior.value) {
+            select(vizSvgRef.value).call(zoomBehavior.value.transform, zoomIdentity)
+          } else {
+            attachVizZoom()
+          }
+        })
+      },
+    )
+
+    return {
+      CHAMBER_VIZ_VIEWBOX,
+      coalitionParties,
+      controlCardStyle,
+      gridLayout,
+      parliamentLayout,
+      partyRows,
+      resetVizZoom,
+      viewMode,
+      vizAriaLabel,
+      vizSvgRef,
+      zoomTransformStr,
+    }
   },
 }
 </script>
