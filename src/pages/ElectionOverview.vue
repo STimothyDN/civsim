@@ -222,14 +222,15 @@ import ProvinceChart from '../components/ProvinceChart.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
-import { PARTIES, PARTY_META, formatShare, lowerHouseName, upperHouseName, winnerControlStyle } from '../domain/elections'
+import { PARTIES, formatShare, lowerHouseName, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
+import { orderRegionsByReference } from '../domain/elections/viewHelpers'
 
 function leaderFromShares(shares) {
   return [...PARTIES].sort((a, b) => Number(shares?.[b] || 0) - Number(shares?.[a] || 0))[0]
 }
 
-function countControlLeaders(units, chamber) {
+function countControlLeaders(units, chamber, partyMeta) {
   const total = Math.max(1, units.length)
   return PARTIES
     .map((party) => {
@@ -237,7 +238,7 @@ function countControlLeaders(units, chamber) {
       return {
         party,
         count,
-        color: PARTY_META[party].color,
+        color: partyMeta[party]?.color,
         share: (count / total) * 100,
       }
     })
@@ -256,10 +257,11 @@ export default {
     const tickerTargetName = ref(null)
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
     const popularVoteLeader = computed(() => leaderFromShares(results.value.national.assembly.vote_shares))
-    const regionRows = computed(() => Object.values(results.value.regions).sort((a, b) => b.population - a.population))
+    const regionOrder = computed(() => store.currentData?.province_groups || [])
+    const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value))
     const topRegionRows = computed(() => regionRows.value.slice(0, 6))
     const topProvinceRows = computed(() => [...results.value.provinces].sort((a, b) => b.provincial_population - a.provincial_population).slice(0, 8))
-    const regionalChartOption = computed(() => regionalStackedSeatOption(results.value.regions, 'assembly'))
+    const regionalChartOption = computed(() => regionalStackedSeatOption(results.value.regions, 'assembly', store.partyMeta, regionOrder.value))
     const overviewMetrics = computed(() => [
       {
         label: 'Assembly Majority',
@@ -296,32 +298,32 @@ export default {
         eyebrow: 'Regional Map',
         label: 'Assembly Calls',
         total: regionRows.value.length,
-        rows: countControlLeaders(regionRows.value, 'assembly'),
+        rows: countControlLeaders(regionRows.value, 'assembly', store.partyMeta),
       },
       {
         eyebrow: 'Regional Map',
         label: 'Council Calls',
         total: regionRows.value.length,
-        rows: countControlLeaders(regionRows.value, 'prelates'),
+        rows: countControlLeaders(regionRows.value, 'prelates', store.partyMeta),
       },
       {
         eyebrow: 'Provincial Map',
         label: 'Assembly Calls',
         total: results.value.provinces.length,
-        rows: countControlLeaders(results.value.provinces, 'assembly'),
+        rows: countControlLeaders(results.value.provinces, 'assembly', store.partyMeta),
       },
       {
         eyebrow: 'Provincial Map',
         label: 'Council Calls',
         total: results.value.provinces.length,
-        rows: countControlLeaders(results.value.provinces, 'prelates'),
+        rows: countControlLeaders(results.value.provinces, 'prelates', store.partyMeta),
       },
     ])
     const partyRows = computed(() => {
       const totalAssemblySeats = Math.max(1, results.value.national.assembly.seat_count)
       return PARTIES.map((party) => ({
         party,
-        color: PARTY_META[party].color,
+        color: store.partyMeta[party]?.color,
         voteShare: formatShare(results.value.national.assembly.vote_shares[party]),
         popularVote: formatCompactNumber(Math.round(results.value.national.population * Number(results.value.national.assembly.vote_shares[party] || 0))),
         assemblySeats: results.value.national.assembly.seats[party] || 0,
@@ -339,7 +341,7 @@ export default {
     }
 
     function partyControlStyle(party) {
-      const color = PARTY_META[party]?.color || '#d4a843'
+      const color = store.partyMeta[party]?.color || '#d4a843'
       return {
         '--winner-color': color,
         '--winner-bg': `${color}12`,
@@ -364,7 +366,7 @@ export default {
       climateDescription,
       climateName,
       controlBoards,
-      controlCardStyle: winnerControlStyle,
+      controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
       countryName,
       formatCompactNumber,
       formatNumber,

@@ -5,17 +5,20 @@ import { nextTick } from 'vue'
 import FormContainer from './FormContainer.vue'
 import { useFormStore } from '../stores/formStore'
 
-function mountContainer() {
+function mountContainer(options = {}) {
   const pinia = createPinia()
   setActivePinia(pinia)
   const wrapper = mount(FormContainer, {
+    props: options.props,
     global: {
       plugins: [pinia],
       stubs: {
         ArraySection: { template: '<div data-test="array-section" />' },
         FieldsetGroup: { template: '<div data-test="fieldset-group" />' },
         JSONPreview: { template: '<div data-test="json-preview" />' },
+        ProvinceDetails: { template: '<div data-test="province-details">Province Details</div>' },
         ReferenceDataSection: { template: '<div data-test="reference-section" />' },
+        RegionalDetails: { template: '<div data-test="regional-details">Regional Details</div>' },
       },
     },
   })
@@ -48,14 +51,16 @@ describe('FormContainer', () => {
 
     expect(wrapper.text()).toContain('Khmer Empire')
     expect(wrapper.text()).toContain('Country Overview')
-    expect(wrapper.text()).toContain('Regional Overview')
-    expect(wrapper.text()).toContain('Provincial Overview')
+    expect(wrapper.text()).toContain('Regional Details')
+    expect(wrapper.text()).toContain('Province Details')
     expect(wrapper.text()).toContain('Country Data')
     expect(wrapper.text()).toContain('Provinces Data')
 
-    await wrapper.findAll('.builder-tab').find((button) => button.text().includes('Regional Overview')).trigger('click')
-    expect(wrapper.text()).toContain('Core')
-    expect(wrapper.text()).toContain('Regional Pop')
+    await wrapper.findAll('.builder-tab').find((button) => button.text().includes('Regional Details')).trigger('click')
+    expect(wrapper.find('[data-test="regional-details"]').exists()).toBe(true)
+
+    await wrapper.findAll('.builder-tab').find((button) => button.text().includes('Province Details')).trigger('click')
+    expect(wrapper.find('[data-test="province-details"]').exists()).toBe(true)
 
     await wrapper.findAll('.builder-tab').find((button) => button.text().includes('Reference Data')).trigger('click')
     expect(wrapper.find('[data-test="reference-section"]').exists()).toBe(true)
@@ -64,31 +69,35 @@ describe('FormContainer', () => {
     expect(wrapper.find('[data-test="json-preview"]').exists()).toBe(true)
   })
 
-  it('defaults regional and provincial overview order to reference and sidebar order', async () => {
-    const { wrapper, store } = mountContainer()
+  it('can open directly to the Province Details tab', async () => {
+    const { wrapper, store } = mountContainer({ props: { initialSection: 'province-details' } })
     store.loadTemplate(
       {
         country: { basic_info: { name: 'Khmer Empire', leader: '' } },
-        province_groups: ['Beta Region', 'Alpha Region'],
+        province_groups: ['Core'],
         global_religions: [],
-        provinces: [
-          { name: 'Alpha Low', group: 'Alpha Region', population: 10, counties: [] },
-          { name: 'Beta Low', group: 'Beta Region', population: 20, counties: [] },
-          { name: 'Beta High', group: 'Beta Region', population: 40, counties: [] },
-          { name: 'Alpha High', group: 'Alpha Region', population: 30, counties: [] },
-          { name: 'No Group', group: null, population: 50, counties: [] },
-        ],
+        provinces: [{ name: 'Capital', group: 'Core', population: 5, counties: [] }],
       },
       { silent: true }
     )
     await nextTick()
 
-    await wrapper.findAll('.builder-tab').find((button) => button.text().includes('Regional Overview')).trigger('click')
-    let cardTitles = wrapper.findAll('.province-overview-card-header h3').map((node) => node.text())
-    expect(cardTitles).toEqual(['Beta Region', 'Alpha Region', 'Unassigned'])
+    expect(wrapper.find('[data-test="province-details"]').exists()).toBe(true)
+  })
 
-    await wrapper.findAll('.builder-tab').find((button) => button.text().includes('Provincial Overview')).trigger('click')
-    cardTitles = wrapper.findAll('.province-overview-card-header h3').map((node) => node.text())
-    expect(cardTitles).toEqual(['Beta High', 'Beta Low', 'Alpha High', 'Alpha Low', 'No Group'])
+  it('keeps old regional overview links opening the Regional Details tab', async () => {
+    const { wrapper, store } = mountContainer({ props: { initialSection: 'regional-overview' } })
+    store.loadTemplate(
+      {
+        country: { basic_info: { name: 'Khmer Empire', leader: '' } },
+        province_groups: ['Core'],
+        global_religions: [],
+        provinces: [{ name: 'Capital', group: 'Core', population: 5, counties: [] }],
+      },
+      { silent: true }
+    )
+    await nextTick()
+
+    expect(wrapper.find('[data-test="regional-details"]').exists()).toBe(true)
   })
 })

@@ -261,7 +261,7 @@ import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
-import { lowerHouseName, PARTIES, PARTY_META, formatShare, trendHasMatchingEffect, upperHouseName, winnerControlStyle } from '../domain/elections'
+import { lowerHouseName, PARTIES, formatShare, trendHasMatchingEffect, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { provinceFeatureRadarOption } from '../domain/elections/charts/electionChartOptions'
 import { partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
 
@@ -298,7 +298,7 @@ export default {
       prelateSeats: selectedProvince.value?.prelates?.seats?.[party] || 0,
     })))
     const selectedPopularVoteLeader = computed(() => topParty(selectedProvince.value?.assembly?.vote_shares))
-    const selectedPopularVoteLeaderName = computed(() => PARTY_META[selectedPopularVoteLeader.value]?.name || selectedPopularVoteLeader.value)
+    const selectedPopularVoteLeaderName = computed(() => store.partyMeta[selectedPopularVoteLeader.value]?.name || selectedPopularVoteLeader.value)
     const selectedPopularVoteLeaderShare = computed(() => formatShare(selectedProvince.value?.assembly?.vote_shares?.[selectedPopularVoteLeader.value]))
     const selectedPopularVoteLeaderVotes = computed(() => formatCompactNumber(popularVoteCount(
       selectedProvince.value?.provincial_population,
@@ -348,14 +348,14 @@ export default {
     return {
       affectedTrends,
       baselineSelectedProvince,
-      controlCardStyle: winnerControlStyle,
+      controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
       countyRows,
       featureRadarOption,
       formatCompactNumber,
       formatNumber,
       formatShare,
       hasData,
-      partyWinnerStyle,
+      partyWinnerStyle: (party) => partyWinnerStyle(party, store.partyMeta),
       parties: PARTIES,
       provinceOptions,
       provinceCallRows,

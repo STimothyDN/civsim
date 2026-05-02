@@ -1,0 +1,52 @@
+<template>
+  <section class="election-simulator-page">
+    <div class="builder-tabs election-simulator-tabs">
+      <div class="election-simulator-tab-list" role="tablist" aria-label="Election simulator sections">
+        <button
+          v-for="tab in tabs"
+          :key="tab.to"
+          type="button"
+          class="builder-tab"
+          :class="{ 'builder-tab--active': route.path === tab.to }"
+          :aria-selected="route.path === tab.to"
+          role="tab"
+          @click="router.push(tab.to)"
+        >
+          <component :is="tab.icon" :size="16" />
+          <span>{{ tab.label }}</span>
+        </button>
+      </div>
+      <button type="button" class="btn-narrative election-simulator-narrative" @click="uiStore.openElectionNarrativeModal">
+        <Sparkles :size="15" />
+        <span>Election Narrative</span>
+      </button>
+    </div>
+
+    <router-view />
+  </section>
+</template>
+
+<script>
+import { markRaw } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { Building2, LayoutDashboard, Map, Sparkles, Vote } from 'lucide-vue-next'
+import { useUiStore } from '../stores/uiStore'
+
+export default {
+  name: 'ElectionSimulator',
+  setup() {
+    const route = useRoute()
+    const router = useRouter()
+    const uiStore = useUiStore()
+
+    const tabs = [
+      { to: '/elections/overview', label: 'Election Overview', icon: markRaw(LayoutDashboard) },
+      { to: '/elections/national', label: 'National Elections', icon: markRaw(Vote) },
+      { to: '/elections/regional', label: 'Regional Elections', icon: markRaw(Map) },
+      { to: '/elections/provincial', label: 'Provincial Elections', icon: markRaw(Building2) },
+    ]
+
+    return { route, router, tabs, uiStore }
+  },
+}
+</script>

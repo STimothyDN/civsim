@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const HomePage = () => import('../pages/HomePage.vue')
-const ProvinceDetails = () => import('../pages/ProvinceDetails.vue')
+const ElectionSimulator = () => import('../pages/ElectionSimulator.vue')
 const ElectionOverview = () => import('../pages/ElectionOverview.vue')
 const NationalElectionResults = () => import('../pages/NationalElectionResults.vue')
 const RegionalElectionResults = () => import('../pages/RegionalElectionResults.vue')
@@ -12,37 +12,45 @@ const routes = [
     path: '/',
     name: 'Home',
     component: HomePage,
-    meta: { title: 'Civ Sim — Home' },
+    meta: { title: 'Civ Sim — Data Input and Overview' },
   },
   {
     path: '/provinces/details',
-    name: 'ProvinceDetails',
-    component: ProvinceDetails,
-    meta: { title: 'Civ Sim — Province Details' },
+    redirect: { path: '/', query: { section: 'province-details' } },
   },
   {
-    path: '/elections/overview',
-    name: 'ElectionOverview',
-    component: ElectionOverview,
-    meta: { title: 'Civ Sim — Election Overview' },
-  },
-  {
-    path: '/elections/national',
-    name: 'NationalElectionResults',
-    component: NationalElectionResults,
-    meta: { title: 'Civ Sim — National Election Results' },
-  },
-  {
-    path: '/elections/regional',
-    name: 'RegionalElectionResults',
-    component: RegionalElectionResults,
-    meta: { title: 'Civ Sim — Regional Election Results' },
-  },
-  {
-    path: '/elections/provincial',
-    name: 'ProvincialElectionResults',
-    component: ProvincialElectionResults,
-    meta: { title: 'Civ Sim — Provincial Election Results' },
+    path: '/elections',
+    component: ElectionSimulator,
+    children: [
+      {
+        path: '',
+        redirect: '/elections/overview',
+      },
+      {
+        path: 'overview',
+        name: 'ElectionOverview',
+        component: ElectionOverview,
+        meta: { title: 'Civ Sim — Election Simulator' },
+      },
+      {
+        path: 'national',
+        name: 'NationalElectionResults',
+        component: NationalElectionResults,
+        meta: { title: 'Civ Sim — National Election Results' },
+      },
+      {
+        path: 'regional',
+        name: 'RegionalElectionResults',
+        component: RegionalElectionResults,
+        meta: { title: 'Civ Sim — Regional Election Results' },
+      },
+      {
+        path: 'provincial',
+        name: 'ProvincialElectionResults',
+        component: ProvincialElectionResults,
+        meta: { title: 'Civ Sim — Provincial Election Results' },
+      },
+    ],
   },
 ]
 

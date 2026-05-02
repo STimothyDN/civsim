@@ -109,7 +109,7 @@
                     }"
                     @click="selectedIndex = entry.index"
                   >
-                    <span class="sidebar-item-name">{{ itemDisplayName(entry.item, entry.index) }}</span>
+                    <span class="sidebar-item-name">{{ itemSidebarDisplayName(entry.item, entry.index) }}</span>
                     <div class="sidebar-item-badges">
                       <span v-if="entry.item?.is_national_capital" class="sidebar-badge" title="National Capital">👑</span>
                       <span v-if="entry.item?.is_regional_capital" class="sidebar-badge" title="Regional Capital">⭐</span>
@@ -129,7 +129,7 @@
               :class="{ 'sidebar-item--active': selectedIndex === index }"
               @click="selectedIndex = index"
             >
-              <span class="sidebar-item-name">{{ itemDisplayName(item, index) }}</span>
+              <span class="sidebar-item-name">{{ itemSidebarDisplayName(item, index) }}</span>
             </button>
           </template>
         </div>
@@ -424,6 +424,15 @@ export default {
       return `${singular.value} #${index + 1}`
     }
 
+    function itemSidebarDisplayName(item, index) {
+      if (item && typeof item === 'object') {
+        const name = item.name || item.province_name || item.basic_info?.name
+        if (name) return name
+      }
+      if (item && typeof item !== 'object') return String(item)
+      return `#${index + 1}`
+    }
+
     async function add() {
       const newIndex = arr.value.length
       store.addArrayItem(props.path)
@@ -492,7 +501,7 @@ export default {
       }
     }
 
-    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isFixedArray, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl }
+    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isFixedArray, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl }
   }
 }
 </script>

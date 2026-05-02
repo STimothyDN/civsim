@@ -58,4 +58,19 @@ describe('ReferenceDataSection', () => {
     expect(store.currentData.province_groups).toEqual([])
     expect(store.currentData.provinces[0].group).toBeNull()
   })
+
+  it('edits election party names and colors as reference data', async () => {
+    const { pinia, store } = loadReferenceData()
+    const wrapper = mount(ReferenceDataSection, { global: { plugins: [pinia] } })
+
+    await wrapper.get('input[aria-label="yellow party name"]').setValue('Imperial Agrarians')
+    await wrapper.get('label[aria-label="yellow party color"] input').setValue('#123abc')
+
+    expect(store.currentData.election_parties.yellow).toEqual({
+      name: 'Imperial Agrarians',
+      color: '#123abc',
+    })
+    expect(store.partyMeta.yellow.name).toBe('Imperial Agrarians')
+    expect(store.partyMeta.yellow.color).toBe('#123abc')
+  })
 })

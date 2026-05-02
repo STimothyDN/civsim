@@ -54,7 +54,7 @@ import { Loader2, RotateCcw, Shuffle } from 'lucide-vue-next'
 import { useElectionStore } from '../../stores/electionStore'
 import { useFormStore } from '../../stores/formStore'
 import { useUiStore } from '../../stores/uiStore'
-import { PARTIES, PARTY_META } from '../../domain/elections'
+import { PARTIES } from '../../domain/elections'
 import { requestElectionClimateSummary } from '../../domain/elections/narrativePlanner'
 import LlmStatusIndicator from './LlmStatusIndicator.vue'
 import { climateLlmStatus } from './llmStatusCopy'
@@ -85,9 +85,9 @@ export default {
           diff,
           shiftFormatted: `${diff > 0 ? '+' : ''}${(diff * 100).toFixed(1)}%`,
           style: {
-            '--shift-color': PARTY_META[party]?.color || '#888',
-            '--shift-bg': `${PARTY_META[party]?.color || '#888'}15`,
-            '--shift-border': `${PARTY_META[party]?.color || '#888'}40`,
+            '--shift-color': formStore.partyMeta[party]?.color || '#888',
+            '--shift-bg': `${formStore.partyMeta[party]?.color || '#888'}15`,
+            '--shift-border': `${formStore.partyMeta[party]?.color || '#888'}40`,
           },
         }
       }).filter((p) => Math.abs(p.diff) >= 0.0005).sort((a, b) => b.diff - a.diff)

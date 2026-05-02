@@ -274,9 +274,9 @@ import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
-import { lowerHouseName, PARTIES, PARTY_META, formatShare, upperHouseName, winnerControlStyle } from '../domain/elections'
+import { lowerHouseName, PARTIES, formatShare, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
-import { partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
+import { orderRegionsByReference, partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
 
 export default {
   name: 'RegionalElectionResults',
@@ -288,12 +288,13 @@ export default {
     const tickerScope = ref('regional')
     const tickerTargetName = ref(null)
     const { baselineResults, hasData, results, store } = useElectionResults()
-    const regionRows = computed(() => Object.values(results.value.regions).sort((a, b) => b.population - a.population))
+    const regionOrder = computed(() => store.currentData?.province_groups || [])
+    const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value))
     const selectedRegion = computed(() => results.value.regions[selectedRegionName.value] || regionRows.value[0] || null)
     const baselineSelectedRegion = computed(() => baselineResults.value.regions[selectedRegionName.value] || null)
     const selectedLowerHouseName = computed(() => lowerHouseName('regional', selectedRegion.value?.name))
     const selectedUpperHouseName = computed(() => upperHouseName('regional', selectedRegion.value?.name))
-    const regionalAssemblyChartOption = computed(() => regionalStackedSeatOption(results.value.regions, 'assembly'))
+    const regionalAssemblyChartOption = computed(() => regionalStackedSeatOption(results.value.regions, 'assembly', store.partyMeta, regionOrder.value))
     const totalRegionalPopulation = computed(() => regionRows.value.reduce((sum, region) => sum + Number(region.population || 0), 0))
     const totalRegionalAssemblySeats = computed(() => regionRows.value.reduce((sum, region) => sum + sumSeats(region.assembly.seats), 0))
     const selectedRegionSeatColumns = [
@@ -308,7 +309,7 @@ export default {
       prelateSeats: selectedRegion.value?.prelates?.seats?.[party] || 0,
     })))
     const selectedPopularVoteLeader = computed(() => topParty(selectedRegion.value?.assembly?.vote_shares))
-    const selectedPopularVoteLeaderName = computed(() => PARTY_META[selectedPopularVoteLeader.value]?.name || selectedPopularVoteLeader.value)
+    const selectedPopularVoteLeaderName = computed(() => store.partyMeta[selectedPopularVoteLeader.value]?.name || selectedPopularVoteLeader.value)
     const selectedPopularVoteLeaderShare = computed(() => formatShare(selectedRegion.value?.assembly?.vote_shares?.[selectedPopularVoteLeader.value]))
     const selectedPopularVoteLeaderVotes = computed(() => formatCompactNumber(popularVoteCount(
       selectedRegion.value?.population,
@@ -357,13 +358,13 @@ export default {
 
     return {
       baselineSelectedRegion,
-      controlCardStyle: winnerControlStyle,
+      controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
       formatCompactNumber,
       formatNumber,
       hasData,
       formatShare,
       parties: PARTIES,
-      partyWinnerStyle,
+      partyWinnerStyle: (party) => partyWinnerStyle(party, store.partyMeta),
       regionRows,
       regionalPopularVoteRows,
       regionalAssemblyChartOption,

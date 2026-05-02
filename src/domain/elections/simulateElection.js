@@ -1,5 +1,5 @@
 import { THRESHOLDS, BASELINE_ELECTION_CONFIG } from './constants/apportionmentRules'
-import { PARTIES, PARTY_META } from './constants/parties'
+import { PARTIES, partyMetaFromConfig, partyNamesFromConfig } from './constants/parties'
 import { apportionDHondt, apportionModifiedSainteLague, apportionSainteLague, createEmptySeats } from './apportionment/highestAverages'
 import { allocateCountyPopulations } from './population/allocateCountyPopulations'
 import { calculateCountyFeatures } from './features/countyFeatures'
@@ -130,7 +130,7 @@ function calculateProvinceAssembly(province, counties, config) {
       climate_weight: 1 - clamp(localWeight, 0, 1),
     },
     seats,
-    control: determineHouseControl(seats, config.trends),
+    control: determineHouseControl(seats, config.trends, config.partyNames),
     raw_scores: rawScores,
     adjusted_scores: adjustedScores,
   }
@@ -149,7 +149,7 @@ function calculateProvincePrelates(province, counties, config) {
   return {
     vote_shares: voteShares,
     seats,
-    control: determineHouseControl(seats, config.trends),
+    control: determineHouseControl(seats, config.trends, config.partyNames),
   }
 }
 
@@ -321,10 +321,10 @@ function aggregateRegions(provinces) {
   return regions
 }
 
-function addRegionControls(regions, trends) {
+function addRegionControls(regions, trends, partyNames) {
   Object.values(regions).forEach((region) => {
-    region.assembly.control = determineHouseControl(region.assembly.seats, trends)
-    region.prelates.control = determineHouseControl(region.prelates.seats, trends)
+    region.assembly.control = determineHouseControl(region.assembly.seats, trends, partyNames)
+    region.prelates.control = determineHouseControl(region.prelates.seats, trends, partyNames)
     region.dominant_party = region.assembly.control.leaderParty
   })
   return regions
@@ -364,14 +364,14 @@ function calculateNational(provinces, config) {
         climate_weight: 1 - clamp(localWeight, 0, 1),
       },
       seats: assemblySeats,
-      control: determineHouseControl(assemblySeats, config.trends),
+      control: determineHouseControl(assemblySeats, config.trends, config.partyNames),
       raw_scores: rawScores,
       adjusted_scores: adjustedScores,
       seat_count: assemblySeatCount,
     },
     prelates: {
       seats: prelateSeats,
-      control: determineHouseControl(prelateSeats, config.trends),
+      control: determineHouseControl(prelateSeats, config.trends, config.partyNames),
       seat_count: prelateSeatCount,
     },
   }
@@ -427,11 +427,17 @@ function validateResults(provinces, national) {
 }
 
 export function simulateElection({ data, provinceRows = [], electionConfig = {} } = {}) {
-  const config = mergeConfig(electionConfig)
+  const partyMeta = partyMetaFromConfig(data?.election_parties)
+  const partyNames = partyNamesFromConfig(data?.election_parties)
+  const config = {
+    ...mergeConfig(electionConfig),
+    partyNames,
+    partyMeta,
+  }
   const rows = Array.isArray(provinceRows) ? provinceRows : []
   const rowsByName = provinceRowsByName(data || {}, rows)
   const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, rowsByName))
-  const regions = addRegionControls(aggregateRegions(provinces), config.trends)
+  const regions = addRegionControls(aggregateRegions(provinces), config.trends, config.partyNames)
   const national = calculateNational(provinces, config)
   const diagnostics = validateResults(provinces, national)
 
@@ -441,7 +447,7 @@ export function simulateElection({ data, provinceRows = [], electionConfig = {} 
 
   return {
     config,
-    parties: PARTY_META,
+    parties: partyMeta,
     provinces,
     regions,
     national,

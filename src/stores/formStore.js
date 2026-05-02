@@ -5,6 +5,7 @@ import { getValueAtPath, setValueAtPath, removeValueAtPath } from '../utils/path
 import { deepClone } from '../utils/object'
 import { computeAllProvinceCalcs, computeRegionalTotals, resetJitterCache } from '../utils/calculatedFields'
 import { clearAutosavedTemplate, readAutosavedTemplate, writeAutosavedTemplate } from '../domain/autosave'
+import { partyColorsFromConfig, partyMetaFromConfig, partyNamesFromConfig } from '../domain/elections/constants/parties'
 import { buildExportTemplate, normalizeTemplateInput } from '../domain/templateCodec'
 import {
   addNamedItem,
@@ -128,6 +129,18 @@ export const useFormStore = defineStore('form', {
       void state._recalcVersion
       return collectUniqueCountyKeys(state.currentData, 'improvement.great_works')
     },
+    partyMeta(state) {
+      void state._recalcVersion
+      return partyMetaFromConfig(state.currentData?.election_parties)
+    },
+    partyNames(state) {
+      void state._recalcVersion
+      return partyNamesFromConfig(state.currentData?.election_parties)
+    },
+    partyColors(state) {
+      void state._recalcVersion
+      return partyColorsFromConfig(state.currentData?.election_parties)
+    },
   },
   actions: {
     showToast(message, type = 'info') {
@@ -244,6 +257,16 @@ export const useFormStore = defineStore('form', {
     },
     renameGlobalReligion(index, newName) {
       renameGlobalReligion(this.currentData, index, newName)
+    },
+    setPartyName(party, name) {
+      if (!this.currentData?.election_parties?.[party]) return
+      this.currentData.election_parties[party].name = String(name || '').trim()
+      this._recalcVersion++
+    },
+    setPartyColor(party, color) {
+      if (!this.currentData?.election_parties?.[party]) return
+      this.currentData.election_parties[party].color = String(color || '').trim()
+      this._recalcVersion++
     },
     setNationalCapital(provinceIndex) {
       setNationalCapital(this.currentData, provinceIndex)

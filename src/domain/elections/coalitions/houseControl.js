@@ -29,7 +29,7 @@ function coalitionPartnerScore(leaderParty, partnerParty, seats = {}, trends = [
   return naturalScore * 1.35 + seatScore * 1.1 + climateScore * 0.8
 }
 
-export function determineHouseControl(seats = {}, trends = []) {
+export function determineHouseControl(seats = {}, trends = [], partyNames = PARTY_NAMES) {
   const totalSeats = sumObjectValues(seats)
   const majority = Math.floor(totalSeats / 2) + 1
   const leaderParty = dominantParty(seats)
@@ -56,7 +56,7 @@ export function determineHouseControl(seats = {}, trends = []) {
       parties: [leaderParty],
       seats: leaderSeats,
       majority,
-      label: `${PARTY_NAMES[leaderParty]} majority`,
+      label: `${partyNames[leaderParty] || PARTY_NAMES[leaderParty]} majority`,
       detail: `${leaderSeats} of ${totalSeats} seats`,
     }
   }
@@ -84,8 +84,8 @@ export function determineHouseControl(seats = {}, trends = []) {
       parties: [leaderParty, ...supportParties],
       seats: coalitionSeats,
       majority,
-      label: `${PARTY_NAMES[leaderParty]} minority government`,
-      detail: `${coalitionSeats} of ${totalSeats} seats with support from ${supportParties.map((party) => PARTY_NAMES[party]).join(', ')}`,
+      label: `${partyNames[leaderParty] || PARTY_NAMES[leaderParty]} minority government`,
+      detail: `${coalitionSeats} of ${totalSeats} seats with support from ${supportParties.map((party) => partyNames[party] || PARTY_NAMES[party]).join(', ')}`,
     }
   }
 

@@ -1,15 +1,21 @@
 /* ===== Design Tokens ===== */
 :root {
-  --bg-base: #0f1117;
-  --bg-surface: #181a24;
-  --bg-surface-raised: #1e2130;
-  --bg-surface-overlay: #252839;
-  --bg-input: #141620;
+  --bg-base: #101116;
+  --bg-surface: #18191f;
+  --bg-surface-raised: #20222a;
+  --bg-surface-overlay: #292c35;
+  --bg-input: #12141a;
 
   --accent: #d4a843;
   --accent-dim: #a07e2e;
   --accent-glow: rgba(212, 168, 67, 0.25);
   --accent-gradient: linear-gradient(135deg, #d4a843 0%, #c5953a 50%, #b8862f 100%);
+  --data-blue: #4e79a7;
+  --data-orange: #f28e2b;
+  --data-red: #e15759;
+  --data-teal: #76b7b2;
+  --data-green: #59a14f;
+  --data-purple: #af7aa1;
 
   --danger: #e54545;
   --danger-bg: rgba(229, 69, 69, 0.12);
@@ -22,14 +28,14 @@
   --text-muted: #5c5b58;
   --text-accent: #d4a843;
 
-  --border: #2a2d3a;
-  --border-subtle: #22242f;
+  --border: #333540;
+  --border-subtle: #252831;
   --border-focus: var(--accent);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
 
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
@@ -49,7 +55,11 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg-base);
+  background:
+    linear-gradient(180deg, rgba(212, 168, 67, 0.045), transparent 260px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px),
+    var(--bg-base);
+  background-size: auto, 64px 64px, auto;
 }
 
 /* Scrollbar */
@@ -60,16 +70,16 @@ body {
 
 /* ===== App Shell ===== */
 .app-shell {
-  max-width: 1400px;
+  max-width: 1480px;
   margin: 0 auto;
   padding: 0 24px 48px;
 }
 
 /* ===== Header ===== */
 .app-header {
-  padding: 28px 0 20px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 20px;
+  padding: 26px 0 18px;
+  border-bottom: 1px solid rgba(212, 168, 67, 0.22);
+  margin-bottom: 16px;
 }
 
 .app-header-inner {
@@ -90,10 +100,8 @@ body {
   font-family: 'Cinzel', serif;
   font-size: clamp(1.5rem, 2.5vw, 2rem);
   font-weight: 700;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
+  letter-spacing: 0;
 }
 
 .app-header p {
@@ -187,4 +195,3 @@ button:disabled {
 .toolbar button, .toolbar .file-input span {
   padding: 8px 14px;
 }
-

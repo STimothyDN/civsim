@@ -39,6 +39,22 @@ describe('templateCodec', () => {
     expect(normalized.provinces[0].counties[0].distance_from_center).toBeNull()
     expect(normalized.provinces[0].counties[0].improvement).toEqual({ name: 'Farm', buildings: {}, great_works: {} })
     expect(normalized.provinces[0].counties[0].features.Wheat).toBe(true)
+    expect(normalized.election_parties.yellow.name).toBe('Divinus Sol')
+    expect(normalized.election_parties.yellow.color).toBe('#d4a843')
+  })
+
+  it('normalizes party names and colors on import', () => {
+    const normalized = normalizeTemplateInput({
+      country: { basic_info: { name: 'Test', leader: '' } },
+      election_parties: {
+        yellow: { name: 'Imperial Agrarians', color: '#123abc' },
+        orange: { name: '', color: 'not-a-color' },
+      },
+      provinces: [],
+    })
+
+    expect(normalized.election_parties.yellow).toEqual({ name: 'Imperial Agrarians', color: '#123abc' })
+    expect(normalized.election_parties.orange).toEqual({ name: 'United Workers Congress', color: '#fb923c' })
   })
 
   it('keeps closest provinces sorted from closest to furthest', () => {
@@ -75,6 +91,10 @@ describe('templateCodec', () => {
     const output = buildExportTemplate(
       {
         country: { basic_info: { name: 'Test', leader: '' } },
+        election_parties: {
+          yellow: { name: 'Imperial Agrarians', color: '#123abc' },
+          orange: { name: '', color: 'bad' },
+        },
         province_groups: ['Capital Region', 'Frontier'],
         global_religions: ['Zoroastrianism'],
         provinces: [
@@ -112,5 +132,7 @@ describe('templateCodec', () => {
       { name: 'Capital Region', regional_population: 1000, assemblypeople: 12, prelates: 15 },
       { name: 'Frontier', regional_population: null, assemblypeople: null, prelates: null },
     ])
+    expect(output.election_parties.yellow).toEqual({ name: 'Imperial Agrarians', color: '#123abc' })
+    expect(output.election_parties.orange).toEqual({ name: 'United Workers Congress', color: '#fb923c' })
   })
 })

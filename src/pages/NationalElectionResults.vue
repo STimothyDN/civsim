@@ -159,9 +159,9 @@ import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
-import { PARTIES, PARTY_META, formatShare, lowerHouseName, upperHouseName, winnerControlStyle } from '../domain/elections'
+import { PARTIES, formatShare, lowerHouseName, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
-import { popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
+import { orderRegionsByReference, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
 
 export default {
   name: 'NationalElectionResults',
@@ -176,7 +176,8 @@ export default {
     const nationalLowerHouseName = lowerHouseName('national')
     const nationalUpperHouseName = upperHouseName('national')
 
-    const regionalChartOption = computed(() => regionalStackedSeatOption(results.value.regions, 'assembly'))
+    const regionOrder = computed(() => store.currentData?.province_groups || [])
+    const regionalChartOption = computed(() => regionalStackedSeatOption(results.value.regions, 'assembly', store.partyMeta, regionOrder.value))
 
     const summaryCards = computed(() => [
       {
@@ -198,7 +199,7 @@ export default {
       },
       {
         label: 'Popular Vote Leader',
-        value: PARTY_META[topParty(results.value.national.assembly.vote_shares)]?.name || topParty(results.value.national.assembly.vote_shares),
+        value: store.partyMeta[topParty(results.value.national.assembly.vote_shares)]?.name || topParty(results.value.national.assembly.vote_shares),
         detail: `${formatShare(results.value.national.assembly.vote_shares[topParty(results.value.national.assembly.vote_shares)])} national vote`,
       },
       {
@@ -221,7 +222,7 @@ export default {
       prelateSeats: results.value.national.prelates.seats[party],
     })))
 
-    const regionRows = computed(() => Object.values(results.value.regions)
+    const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value)
       .map((region) => {
         const leader = topParty(region.assembly.vote_shares)
         return {
@@ -234,8 +235,7 @@ export default {
           assemblySeats: sumSeats(region.assembly.seats),
           prelateSeats: sumSeats(region.prelates.seats),
         }
-      })
-      .sort((a, b) => b.population - a.population))
+      }))
 
     const warnings = computed(() => results.value.diagnostics.warnings.slice(0, 5))
 
@@ -253,7 +253,7 @@ export default {
 
     return {
       baselineResults,
-      controlCardStyle: winnerControlStyle,
+      controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
       countryName,
       formatCompactNumber,
       formatNumber,

@@ -1,6 +1,45 @@
 /* ===== Election Pages ===== */
+.election-simulator-page {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.election-simulator-tabs {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.election-simulator-tab-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.election-simulator-narrative {
+  margin-left: auto;
+}
+
+@media (max-width: 720px) {
+  .election-simulator-tabs {
+    align-items: stretch;
+  }
+
+  .election-simulator-tab-list,
+  .election-simulator-narrative {
+    width: 100%;
+  }
+
+  .election-simulator-narrative {
+    justify-content: center;
+    margin-left: 0;
+  }
+}
+
 .election-page {
   padding: 4px 0;
+  min-width: 0;
 }
 
 .election-page-header--compact {
@@ -300,10 +339,19 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 16px;
+  min-width: 0;
+}
+
+.election-dashboard-grid > *,
+.election-panel > *,
+.election-call-board,
+.popular-vote-board {
+  min-width: 0;
 }
 
 .election-panel {
   min-width: 0;
+  max-width: 100%;
   padding: 16px;
   margin-bottom: 16px;
   background:
@@ -317,6 +365,7 @@
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 12px;
+  min-width: 0;
 }
 
 .election-select {
@@ -366,7 +415,9 @@
 
 .election-table-wrap {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .election-table {
@@ -662,24 +713,33 @@
   min-height: 308px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 105%, rgba(212, 168, 67, 0.14), transparent 58%),
-    linear-gradient(180deg, rgba(255,255,255,0.03), transparent),
+    radial-gradient(circle at 50% 110%, rgba(78, 121, 167, 0.2), transparent 58%),
+    linear-gradient(180deg, rgba(255,255,255,0.035), transparent),
     var(--bg-input);
   border: 1px solid var(--border-subtle);
-  border-radius: 220px 220px 16px 16px;
+  border-radius: var(--radius-md);
 }
 
 .chamber-congress-house--compact {
   min-height: 258px;
 }
 
-.chamber-half-line {
-  position: absolute;
-  left: 50%;
-  top: 12%;
-  bottom: 8%;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, rgba(232, 230, 225, 0.3), transparent);
+.chamber-svg {
+  display: block;
+  width: 100%;
+  min-height: 302px;
+}
+
+.chamber-congress-house--compact .chamber-svg {
+  min-height: 252px;
+}
+
+.chamber-seat-arc .chamber-svg {
+  min-height: 244px;
+}
+
+.chamber-seat-arc--compact .chamber-svg {
+  min-height: 198px;
 }
 
 .chamber-government-label,
@@ -701,65 +761,51 @@
   right: 14px;
 }
 
-.chamber-congress-seat {
-  position: absolute;
-  width: clamp(8px, 1.15vw, 15px);
-  height: clamp(8px, 1.15vw, 15px);
-  border-radius: 3px 3px 2px 2px;
-  transform: translate(-50%, -50%);
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.25), inset 0 0 0 1px rgba(0,0,0,0.35);
-  opacity: 0.82;
+.chamber-arc-guide {
+  fill: none;
+  stroke: rgba(232, 230, 225, 0.08);
+  stroke-width: 1;
 }
 
-.chamber-congress-seat::after {
-  content: '';
-  position: absolute;
-  left: 18%;
-  right: 18%;
-  bottom: -3px;
-  height: 2px;
-  background: inherit;
-  border-radius: 999px;
-  opacity: 0.82;
+.chamber-half-line-svg {
+  stroke: rgba(232, 230, 225, 0.18);
+  stroke-width: 1;
+  stroke-dasharray: 5 7;
 }
 
-.chamber-congress-house--compact .chamber-congress-seat {
-  width: clamp(7px, 0.95vw, 12px);
-  height: clamp(7px, 0.95vw, 12px);
+.chamber-svg-seat {
+  opacity: 0.84;
+  stroke: rgba(0,0,0,0.48);
+  stroke-width: 1.25;
+  paint-order: stroke fill;
+  transition: opacity var(--transition-fast), stroke-width var(--transition-fast), filter var(--transition-fast);
+}
+
+.chamber-svg-seat:hover {
+  opacity: 1;
+  stroke-width: 2;
+  filter: brightness(1.18);
 }
 
 .chamber-seat-arc {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11px, 1fr));
-  align-content: end;
-  gap: 6px;
   min-height: 260px;
-  padding: 34px 22px 18px;
+  padding: 8px;
   background:
-    radial-gradient(circle at 50% 100%, rgba(212, 168, 67, 0.12), transparent 58%),
+    radial-gradient(circle at 50% 100%, rgba(78, 121, 167, 0.14), transparent 58%),
     var(--bg-input);
   border: 1px solid var(--border-subtle);
-  border-radius: 160px 160px 12px 12px;
+  border-radius: var(--radius-md);
 }
 
 .chamber-seat-arc--compact {
   min-height: 214px;
-  grid-template-columns: repeat(auto-fill, minmax(10px, 1fr));
-  gap: 5px;
-}
-
-.chamber-seat {
-  width: 100%;
-  aspect-ratio: 1;
-  min-width: 5px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.28);
-  opacity: 0.78;
 }
 
 .chamber-seat--coalition {
   opacity: 1;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.25), 0 0 8px rgba(212, 168, 67, 0.2);
+  stroke: rgba(255,255,255,0.74);
+  stroke-width: 1.8;
+  filter: drop-shadow(0 0 4px rgba(212, 168, 67, 0.28));
 }
 
 .chamber-legend {
@@ -802,8 +848,12 @@
 
 .election-call-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 10px;
+}
+
+.election-call-board--regions {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .election-call-board--provinces {

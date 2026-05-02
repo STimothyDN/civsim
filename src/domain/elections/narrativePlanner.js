@@ -1,5 +1,5 @@
 import { DEFAULT_VOLATILITY } from './constants/apportionmentRules'
-import { PARTY_META } from './constants/parties'
+import { PARTIES, PARTY_META, partyMetaFromConfig } from './constants/parties'
 import { RANDOM_TREND_TEMPLATES, generateTrendPackageFromSelections } from './trends/randomizeTrends'
 
 const DEFAULT_ENDPOINT = 'http://localhost:1234/api/v1/chat'
@@ -192,12 +192,24 @@ function slug(value, fallback = 'custom') {
     .slice(0, 48) || fallback
 }
 
-function partyLegend() {
-  return Object.entries(PARTY_META).map(([id, meta]) => ({
-    id,
-    name: meta.name,
-    ideology: meta.ideology,
-  }))
+function partyMetaForContext(source = null) {
+  return partyMetaFromConfig(
+    source?.config?.partyMeta ||
+    source?.parties ||
+    source?.partyMeta ||
+    source?.election_parties
+  )
+}
+
+function partyLegend(partyMeta = PARTY_META) {
+  return PARTIES.map((id) => {
+    const meta = partyMeta[id] || PARTY_META[id]
+    return {
+      id,
+      name: meta.name,
+      ideology: meta.ideology,
+    }
+  })
 }
 
 function templateParties(template) {
@@ -483,6 +495,7 @@ function plannerSystemPrompt() {
 }
 
 function plannerUserPrompt(narrative, data) {
+  const partyMeta = partyMetaForContext(data)
   return JSON.stringify({
     task: 'Select trend templates and election jitter settings for this desired election narrative.',
     rules: [
@@ -532,9 +545,9 @@ function plannerUserPrompt(narrative, data) {
     },
     USER_NARRATIVE: narrative,
     CURRENT_WORLD: worldContext(data),
-    PARTY_LEGEND: partyLegend(),
+    PARTY_LEGEND: partyLegend(partyMeta),
     DEFAULT_VOLATILITY,
-    CUSTOM_TREND_GRAMMAR: customTrendGrammar(),
+    CUSTOM_TREND_GRAMMAR: customTrendGrammar(partyMeta),
     TREND_TEMPLATES: templateSummaries(),
   })
 }
@@ -623,7 +636,7 @@ function sumSeats(seats = {}) {
 function seatMap(seats = {}) {
   return compactObject(
     Object.fromEntries(
-      Object.keys(PARTY_META).map((party) => [party, integerOrNull(seats?.[party]) ?? 0])
+      PARTIES.map((party) => [party, integerOrNull(seats?.[party]) ?? 0])
     )
   )
 }
@@ -631,16 +644,16 @@ function seatMap(seats = {}) {
 function voteShareMap(shares = {}) {
   return compactObject(
     Object.fromEntries(
-      Object.keys(PARTY_META).map((party) => [party, roundNumber((numberOrNull(shares?.[party]) ?? 0) * 100, 1)])
+      PARTIES.map((party) => [party, roundNumber((numberOrNull(shares?.[party]) ?? 0) * 100, 1)])
     )
   )
 }
 
-function topPartiesFromShares(shares = {}, max = 3) {
-  return Object.keys(PARTY_META)
+function topPartiesFromShares(shares = {}, max = 3, partyMeta = PARTY_META) {
+  return PARTIES
     .map((party) => ({
       party,
-      name: PARTY_META[party].name,
+      name: partyMeta[party]?.name || PARTY_META[party].name,
       votePct: roundNumber((numberOrNull(shares?.[party]) ?? 0) * 100, 1),
     }))
     .filter((row) => row.votePct > 0)
@@ -648,7 +661,7 @@ function topPartiesFromShares(shares = {}, max = 3) {
     .slice(0, max)
 }
 
-function strongestSwing(current, baseline) {
+function strongestSwing(current, baseline, partyMeta = PARTY_META) {
   const swings = getSwings(current, baseline)
   const strongest = Object.entries(swings)
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0]
@@ -657,12 +670,12 @@ function strongestSwing(current, baseline) {
   const [party, points] = strongest
   return {
     party,
-    name: PARTY_META[party]?.name || party,
+    name: partyMeta[party]?.name || PARTY_META[party]?.name || party,
     points,
   }
 }
 
-function chamberContext(chamber = {}, baselineChamber = null) {
+function chamberContext(chamber = {}, baselineChamber = null, partyMeta = PARTY_META) {
   return compactObject({
     control: chamber?.control?.label,
     detail: chamber?.control?.detail,
@@ -671,22 +684,22 @@ function chamberContext(chamber = {}, baselineChamber = null) {
     seats: seatMap(chamber?.seats),
     votePct: chamber?.vote_shares ? voteShareMap(chamber.vote_shares) : null,
     swingPct: baselineChamber?.vote_shares ? getSwings(chamber?.vote_shares, baselineChamber.vote_shares) : null,
-    strongestSwing: baselineChamber?.vote_shares ? strongestSwing(chamber?.vote_shares, baselineChamber.vote_shares) : null,
+    strongestSwing: baselineChamber?.vote_shares ? strongestSwing(chamber?.vote_shares, baselineChamber.vote_shares, partyMeta) : null,
   })
 }
 
-function regionContext(name, region = {}, baselineRegion = null) {
+function regionContext(name, region = {}, baselineRegion = null, partyMeta = PARTY_META) {
   return compactObject({
     name,
     population: integerOrNull(region.population),
     provinceCount: integerOrNull(region.province_count),
     provinces: (region.provinces || []).slice(0, 10),
-    assembly: chamberContext(region.assembly, baselineRegion?.assembly),
-    council: chamberContext(region.prelates, baselineRegion?.prelates),
+    assembly: chamberContext(region.assembly, baselineRegion?.assembly, partyMeta),
+    council: chamberContext(region.prelates, baselineRegion?.prelates, partyMeta),
   })
 }
 
-function provinceResultContext(province = {}, baselineProvince = null) {
+function provinceResultContext(province = {}, baselineProvince = null, partyMeta = PARTY_META) {
   return compactObject({
     name: province.name,
     group: province.group,
@@ -706,19 +719,19 @@ function provinceResultContext(province = {}, baselineProvince = null) {
       frontier: roundNumber(province.political_features?.frontier_index, 2),
       connectedness: roundNumber(province.political_features?.connectedness_index, 2),
     }),
-    assembly: chamberContext(province.assembly, baselineProvince?.assembly),
-    council: chamberContext(province.prelates, baselineProvince?.prelates),
+    assembly: chamberContext(province.assembly, baselineProvince?.assembly, partyMeta),
+    council: chamberContext(province.prelates, baselineProvince?.prelates, partyMeta),
   })
 }
 
-function countyResultContext(county = {}, baselineCounty = null) {
+function countyResultContext(county = {}, baselineCounty = null, partyMeta = PARTY_META) {
   return compactObject({
     name: county.name || county.tile_id || 'Unnamed county',
     population: integerOrNull(county.county_population),
     terrain: county.terrain || null,
     improvement: county.improvement_name || null,
-    topParties: topPartiesFromShares(county.vote_shares, 2),
-    strongestSwing: baselineCounty?.vote_shares ? strongestSwing(county.vote_shares, baselineCounty.vote_shares) : null,
+    topParties: topPartiesFromShares(county.vote_shares, 2, partyMeta),
+    strongestSwing: baselineCounty?.vote_shares ? strongestSwing(county.vote_shares, baselineCounty.vote_shares, partyMeta) : null,
   })
 }
 
@@ -734,26 +747,26 @@ function findBaselineCounty(baselineProvince, county) {
   )) || null
 }
 
-function regionOverview(results = {}, baselineResults = {}, max = 14) {
+function regionOverview(results = {}, baselineResults = {}, max = 14, partyMeta = PARTY_META) {
   return Object.entries(results.regions || {})
-    .map(([name, region]) => regionContext(name, region, baselineResults?.regions?.[name]))
+    .map(([name, region]) => regionContext(name, region, baselineResults?.regions?.[name], partyMeta))
     .sort((a, b) => (numberOrNull(b.population) || 0) - (numberOrNull(a.population) || 0))
     .slice(0, max)
 }
 
-function provinceHighlights(results = {}, baselineResults = {}, max = 10) {
+function provinceHighlights(results = {}, baselineResults = {}, max = 10, partyMeta = PARTY_META) {
   return (results.provinces || [])
     .sort((a, b) => (
       (a.is_national_capital ? -1 : 0) - (b.is_national_capital ? -1 : 0) ||
       (numberOrNull(b.provincial_population) || 0) - (numberOrNull(a.provincial_population) || 0)
     ))
     .slice(0, max)
-    .map((province) => provinceResultContext(province, findBaselineProvince(baselineResults, province)))
+    .map((province) => provinceResultContext(province, findBaselineProvince(baselineResults, province), partyMeta))
 }
 
-function nationalFocusExamples(results = {}, baselineResults = {}, max = 4) {
+function nationalFocusExamples(results = {}, baselineResults = {}, max = 4, partyMeta = PARTY_META) {
   return Object.entries(results.regions || {})
-    .map(([name, region]) => regionContext(name, region, baselineResults?.regions?.[name]))
+    .map(([name, region]) => regionContext(name, region, baselineResults?.regions?.[name], partyMeta))
     .filter((region) => region.assembly?.strongestSwing || region.council?.strongestSwing)
     .sort((a, b) => {
       const aSwing = Math.max(Math.abs(a.assembly?.strongestSwing?.points || 0), Math.abs(a.council?.strongestSwing?.points || 0))
@@ -763,17 +776,17 @@ function nationalFocusExamples(results = {}, baselineResults = {}, max = 4) {
     .slice(0, max)
 }
 
-function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'national', targetName = null) {
+function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'national', targetName = null, partyMeta = PARTY_META) {
   if (scope === 'overview') {
     return {
       type: 'overview',
       national: compactObject({
         population: integerOrNull(results.national?.population),
-        assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly),
-        council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates),
+        assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
+        council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
       }),
-      regionalOverview: regionOverview(results, baselineResults),
-      provinceHighlights: provinceHighlights(results, baselineResults),
+      regionalOverview: regionOverview(results, baselineResults, 14, partyMeta),
+      provinceHighlights: provinceHighlights(results, baselineResults, 10, partyMeta),
     }
   }
 
@@ -784,11 +797,11 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
       .filter((province) => province.group === targetName)
       .sort((a, b) => (numberOrNull(b.provincial_population) || 0) - (numberOrNull(a.provincial_population) || 0))
       .slice(0, 12)
-      .map((province) => provinceResultContext(province, findBaselineProvince(baselineResults, province)))
+      .map((province) => provinceResultContext(province, findBaselineProvince(baselineResults, province), partyMeta))
 
     return {
       type: 'regional',
-      region: regionContext(targetName, region, baselineRegion),
+      region: regionContext(targetName, region, baselineRegion, partyMeta),
       provinces,
     }
   }
@@ -799,24 +812,25 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
     const counties = (province.counties || [])
       .sort((a, b) => (numberOrNull(b.county_population) || 0) - (numberOrNull(a.county_population) || 0))
       .slice(0, 12)
-      .map((county) => countyResultContext(county, findBaselineCounty(baselineProvince, county)))
+      .map((county) => countyResultContext(county, findBaselineCounty(baselineProvince, county), partyMeta))
 
     return {
       type: 'provincial',
-      province: provinceResultContext(province, baselineProvince),
+      province: provinceResultContext(province, baselineProvince, partyMeta),
       counties,
     }
   }
 
   return {
     type: 'national',
-    examples: nationalFocusExamples(results, baselineResults),
+    examples: nationalFocusExamples(results, baselineResults, 4, partyMeta),
   }
 }
 
 function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
+  const partyMeta = partyMetaForContext(results)
 
   return JSON.stringify({
     task: 'Write exactly five plain-text election broadcast paragraphs based only on this newsroom data.',
@@ -828,20 +842,21 @@ function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'nation
       regional: `Regional page. Focus only on ${targetName || 'the selected region'} and its provinces.`,
       provincial: `Provincial page. Focus only on ${targetName || 'the selected province'} and its counties.`,
     }[scope] || 'National page.',
-    partyLegend: partyLegend(),
+    partyLegend: partyLegend(partyMeta),
     activeTrends: trendSummaries(results.config?.trends || []),
     national: includeNational ? compactObject({
       population: integerOrNull(results.national?.population),
-      assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly),
-      council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates),
+      assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
+      council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
     }) : undefined,
-    focus: broadcastFocusContext(results, baselineResults, scope, targetName),
+    focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
   })
 }
 
 function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
+  const partyMeta = partyMetaForContext(results)
 
   return JSON.stringify({
     task: 'Write one concise election ticker paragraph based only on this page-specific data.',
@@ -853,7 +868,7 @@ function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national'
       regional: `Regional ticker. Focus only on ${targetName || 'the selected region'} and its provinces.`,
       provincial: `Provincial ticker. Focus only on ${targetName || 'the selected province'} and its counties.`,
     }[scope] || 'National ticker.',
-    partyLegend: partyLegend(),
+    partyLegend: partyLegend(partyMeta),
     activeTrends: trendSummaries(results.config?.trends || []).slice(0, 8),
     climate: compactObject({
       name: results.config?.scenarioName,
@@ -862,14 +877,15 @@ function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national'
     }),
     national: includeNational ? compactObject({
       population: integerOrNull(results.national?.population),
-      assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly),
-      council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates),
+      assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
+      council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
     }) : undefined,
-    focus: broadcastFocusContext(results, baselineResults, scope, targetName),
+    focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
   })
 }
 
 function climateSummaryUserPrompt({ trends, seed, data }) {
+  const partyMeta = partyMetaForContext(data)
   return JSON.stringify({
     task: 'Create a scenario name and description for this randomized election climate.',
     outputSchema: {
@@ -878,7 +894,7 @@ function climateSummaryUserPrompt({ trends, seed, data }) {
     },
     RANDOM_SEED: seed || null,
     CURRENT_WORLD: data ? worldContext(data, { includeProvinces: false }) : null,
-    PARTY_LEGEND: partyLegend(),
+    PARTY_LEGEND: partyLegend(partyMeta),
     RANDOMIZED_TRENDS: trendSummaries(Array.isArray(trends) ? trends : []),
   })
 }
@@ -1004,7 +1020,7 @@ function normalizeScenarioMetadata(plan = {}) {
   }
 }
 
-function customTrendGrammar() {
+function customTrendGrammar(partyMeta = PARTY_META) {
   return {
     useWhen: 'Prefer TREND_TEMPLATES. Add customTrends only for a narrative element that no existing template covers well.',
     limits: {
@@ -1013,7 +1029,7 @@ function customTrendGrammar() {
       effectLevels: CUSTOM_EFFECT_LEVELS,
       maxMagnitudeByLevel: CUSTOM_MAGNITUDE_LIMITS,
     },
-    allowedParties: partyLegend(),
+    allowedParties: partyLegend(partyMeta),
     allowedModes: CUSTOM_MODES,
     allowedSelectorShortcuts: SELECTOR_SHORTCUTS,
     allowedFeatureNames: FEATURE_ALLOWLIST,
@@ -1045,12 +1061,12 @@ function customTrendGrammar() {
   }
 }
 
-function partyIdFromValue(value) {
+function partyIdFromValue(value, partyMeta = PARTY_META) {
   const text = String(value || '').trim()
   if (Object.prototype.hasOwnProperty.call(PARTY_META, text)) return text
 
   const normalized = normalizedKey(text)
-  const match = Object.entries(PARTY_META).find(([id, meta]) => (
+  const match = PARTIES.map((id) => [id, partyMeta[id] || PARTY_META[id]]).find(([id, meta]) => (
     normalizedKey(id) === normalized || normalizedKey(meta.name) === normalized
   ))
 
@@ -1223,10 +1239,10 @@ function normalizeEffectLevels(value) {
     .filter((level) => CUSTOM_EFFECT_LEVELS.includes(level)), CUSTOM_EFFECT_LEVELS.length)
 }
 
-function sanitizeCustomEffect(effect = {}, trendId, index) {
+function sanitizeCustomEffect(effect = {}, trendId, index, partyMeta = PARTY_META) {
   if (!effect || typeof effect !== 'object') return null
   const levels = normalizeEffectLevels(effect.level || effect.levels)
-  const party = partyIdFromValue(effect.party)
+  const party = partyIdFromValue(effect.party, partyMeta)
   if (!levels.length || !party) return null
 
   const primaryLevel = levels[0]
@@ -1248,7 +1264,7 @@ function sanitizeCustomEffect(effect = {}, trendId, index) {
   })
 }
 
-function compileCustomTrends(plan = {}, seed = 'narrative') {
+function compileCustomTrends(plan = {}, seed = 'narrative', partyMeta = PARTY_META) {
   const rawCustomTrends = pickField(plan, ['customTrends', 'custom_trends', 'generatedTrends', 'generated_trends'])
   if (!Array.isArray(rawCustomTrends)) return []
 
@@ -1263,7 +1279,7 @@ function compileCustomTrends(plan = {}, seed = 'narrative') {
         : [customTrend]
       const effects = rawEffects
         .slice(0, MAX_CUSTOM_EFFECTS)
-        .map((effect, effectIndex) => sanitizeCustomEffect(effect, trendId, effectIndex))
+        .map((effect, effectIndex) => sanitizeCustomEffect(effect, trendId, effectIndex, partyMeta))
         .filter(Boolean)
 
       if (!effects.length) return null
@@ -1646,6 +1662,7 @@ export async function requestElectionNarrativePlan({
   model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
   onStatus,
 } = {}) {
+  const partyMeta = partyMetaForContext(data)
   emitLlmStatus(onStatus, {
     phase: 'preparing',
     progress: 0.06,
@@ -1687,7 +1704,7 @@ export async function requestElectionNarrativePlan({
     selections: Array.isArray(plan.selections) ? plan.selections : [],
     volatility: sanitizeVolatility(plan.jitter?.volatility),
   })
-  const customTrends = compileCustomTrends(plan, seed)
+  const customTrends = compileCustomTrends(plan, seed, partyMeta)
   if (customTrends.length) {
     packageDef.trends = [...packageDef.trends, ...customTrends]
   }

@@ -35,28 +35,48 @@
       role="img"
       :aria-label="`${title} congress-style composition`"
     >
-      <span class="chamber-half-line"></span>
+      <svg class="chamber-svg" viewBox="0 0 720 360" aria-hidden="true">
+        <path
+          v-for="arc in chamberArcs"
+          :key="arc.key"
+          class="chamber-arc-guide"
+          :d="arc.path"
+        />
+        <line class="chamber-half-line-svg" x1="360" y1="72" x2="360" y2="330" />
+        <g>
+          <circle
+            v-for="seat in congressSeatDots"
+            :key="seat.key"
+            class="chamber-svg-seat"
+            :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party) }"
+            :cx="seat.x"
+            :cy="seat.y"
+            :r="seat.r"
+            :fill="seat.color"
+          >
+            <title>{{ seat.title }}</title>
+          </circle>
+        </g>
+      </svg>
       <span class="chamber-government-label">Government</span>
       <span class="chamber-opposition-label">Opposition</span>
-      <span
-        v-for="seat in congressSeatDots"
-        :key="seat.key"
-        class="chamber-congress-seat"
-        :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party) }"
-        :style="seat.style"
-        :title="seat.title"
-      ></span>
     </div>
 
     <div v-else class="chamber-seat-arc" :class="{ 'chamber-seat-arc--compact': compact }" role="img" :aria-label="`${title} seat-dot composition`">
-      <span
+      <svg class="chamber-svg chamber-svg--dots" viewBox="0 0 720 300" aria-hidden="true">
+        <circle
         v-for="seat in seatDots"
         :key="seat.key"
-        class="chamber-seat"
+        class="chamber-svg-seat chamber-svg-seat--grid"
         :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party) }"
-        :style="{ backgroundColor: seat.color }"
-        :title="seat.title"
-      ></span>
+        :cx="seat.x"
+        :cy="seat.y"
+        :r="seat.r"
+        :fill="seat.color"
+      >
+        <title>{{ seat.title }}</title>
+      </circle>
+      </svg>
     </div>
 
     <div class="chamber-legend">
@@ -70,14 +90,19 @@
 
 <script>
 import { computed, ref } from 'vue'
-import { PARTIES, PARTY_META } from '../../domain/elections'
+import { PARTIES } from '../../domain/elections'
 import { chamberControlStyle } from '../../domain/elections/chambers/controlStyles'
+import { useFormStore } from '../../stores/formStore'
 import PartyBadge from './PartyBadge.vue'
+
+const SVG_WIDTH = 720
+const HEMICYCLE_HEIGHT = 360
+const GRID_HEIGHT = 300
 
 function distributeSeatRows(totalSeats, compact) {
   if (totalSeats <= 0) return []
-  const maxRows = compact ? 9 : 12
-  const rowCount = Math.min(maxRows, Math.max(4, Math.ceil(Math.sqrt(totalSeats) / 1.9)))
+  const maxRows = compact ? 7 : 9
+  const rowCount = Math.min(maxRows, Math.max(3, Math.ceil(Math.sqrt(totalSeats) / 2.2)))
   const weights = Array.from({ length: rowCount }, (_, index) => index + 1)
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0)
   const rows = weights.map((weight) => {
@@ -102,14 +127,23 @@ function congressGeometry(totalSeats, compact) {
 
   return rowCounts.flatMap((count, rowIndex) => {
     const rowRatio = rowMax ? rowIndex / rowMax : 1
-    const xRadius = 12 + rowRatio * 46
-    const yRadius = 10 + rowRatio * (compact ? 58 : 76)
+    const radius = (compact ? 86 : 92) + rowRatio * (compact ? 198 : 220)
+    const yScale = compact ? 0.62 : 0.66
+    const centerX = SVG_WIDTH / 2
+    const centerY = compact ? 318 : 326
+    const start = Math.PI + 0.08
+    const end = Math.PI * 2 - 0.08
 
     return Array.from({ length: count }, (_, seatIndex) => {
       const angle = count === 1
-        ? Math.PI / 2
-        : Math.PI - ((seatIndex + 0.5) * Math.PI / count)
-      return { x: 50 + Math.cos(angle) * xRadius, y: 94 - Math.sin(angle) * yRadius, rowIndex }
+        ? Math.PI * 1.5
+        : start + ((seatIndex + 0.5) * (end - start) / count)
+      return {
+        x: centerX + Math.cos(angle) * radius,
+        y: centerY + Math.sin(angle) * radius * yScale,
+        r: compact ? 5.7 : 6.7,
+        rowIndex,
+      }
     })
   }).sort((a, b) => a.x - b.x || b.y - a.y)
 }
@@ -118,12 +152,57 @@ function congressPositions(seats, compact) {
   const positions = congressGeometry(seats.length, compact)
   return seats.map((seat, index) => ({
     ...seat,
-    style: {
-      left: `${positions[index]?.x ?? 50}%`,
-      top: `${positions[index]?.y ?? 92}%`,
-      backgroundColor: seat.color,
-    },
+    x: positions[index]?.x ?? SVG_WIDTH / 2,
+    y: positions[index]?.y ?? HEMICYCLE_HEIGHT - 30,
+    r: positions[index]?.r ?? 6,
   }))
+}
+
+function chamberArcGuides(totalSeats, compact) {
+  const rowCounts = distributeSeatRows(totalSeats, compact)
+  const rowMax = Math.max(1, rowCounts.length - 1)
+  const centerX = SVG_WIDTH / 2
+  const centerY = compact ? 318 : 326
+  const yScale = compact ? 0.62 : 0.66
+  const start = Math.PI + 0.08
+  const end = Math.PI * 2 - 0.08
+
+  return rowCounts.map((count, rowIndex) => {
+    const rowRatio = rowMax ? rowIndex / rowMax : 1
+    const radius = (compact ? 86 : 92) + rowRatio * (compact ? 198 : 220)
+    const x1 = centerX + Math.cos(start) * radius
+    const y1 = centerY + Math.sin(start) * radius * yScale
+    const x2 = centerX + Math.cos(end) * radius
+    const y2 = centerY + Math.sin(end) * radius * yScale
+    return {
+      key: `arc-${rowIndex}-${count}`,
+      path: `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${radius.toFixed(2)} ${(radius * yScale).toFixed(2)} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`,
+    }
+  })
+}
+
+function gridPositions(seats, compact) {
+  const columns = compact ? 30 : 36
+  const gap = compact ? 17 : 18
+  const radius = compact ? 5.2 : 5.8
+  const rows = Math.max(1, Math.ceil(seats.length / columns))
+  const width = (Math.min(columns, seats.length || columns) - 1) * gap
+  const startX = (SVG_WIDTH - width) / 2
+  const startY = Math.max(28, (GRID_HEIGHT - (rows - 1) * gap) / 2)
+
+  return seats.map((seat, index) => {
+    const row = Math.floor(index / columns)
+    const column = index % columns
+    const rowCount = Math.min(columns, seats.length - row * columns)
+    const rowWidth = (rowCount - 1) * gap
+    const rowStartX = (SVG_WIDTH - rowWidth) / 2
+    return {
+      ...seat,
+      x: rowStartX + column * gap,
+      y: startY + row * gap,
+      r: radius,
+    }
+  })
 }
 
 export default {
@@ -138,9 +217,10 @@ export default {
     defaultView: { type: String, default: 'congress' },
   },
   setup(props) {
+    const store = useFormStore()
     const viewMode = ref(props.defaultView === 'dots' ? 'dots' : 'congress')
     const coalitionParties = computed(() => new Set(props.control?.parties || []))
-    const controlCardStyle = computed(() => chamberControlStyle(props.control))
+    const controlCardStyle = computed(() => chamberControlStyle(props.control, store.partyMeta))
     const orderedParties = computed(() => {
       const coalition = props.control?.parties || []
       const rest = PARTIES
@@ -157,13 +237,15 @@ export default {
       return Array.from({ length: seatCount }, (_, index) => ({
         key: `${party}-${index}`,
         party,
-        color: PARTY_META[party]?.color || '#9b9a97',
-        title: `${PARTY_META[party]?.name || party} seat`,
+        color: store.partyMeta[party]?.color || '#9b9a97',
+        title: `${store.partyMeta[party]?.name || party} seat`,
       }))
     }))
     const congressSeatDots = computed(() => congressPositions(seatDots.value, props.compact))
+    const chamberArcs = computed(() => chamberArcGuides(seatDots.value.length, props.compact))
+    const seatDotsWithPositions = computed(() => gridPositions(seatDots.value, props.compact))
 
-    return { coalitionParties, congressSeatDots, controlCardStyle, partyRows, seatDots, viewMode }
+    return { chamberArcs, coalitionParties, congressSeatDots, controlCardStyle, partyRows, seatDots: seatDotsWithPositions, viewMode }
   },
 }
 </script>

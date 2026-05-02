@@ -132,220 +132,12 @@
         </div>
       </section>
 
-      <section v-else-if="activeSection === 'regional-overview'" class="workspace-panel">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">Regional Overview</p>
-            <h2>{{ orderedRegionSummaries.length }} Province Groups</h2>
-          </div>
-          <Network class="panel-icon" />
-        </div>
-
-        <div class="province-overview-list">
-          <div v-if="!orderedRegionSummaries.length" class="empty-inline">
-            No province groups available.
-          </div>
-
-          <article
-            v-for="(region, orderIndex) in orderedRegionSummaries"
-            :key="region.name"
-            class="province-overview-card"
-            :class="{
-              'province-overview-card--dragging': draggedRegionName === region.name,
-              'province-overview-card--drop-target': dropTargetRegionName === region.name && draggedRegionName !== region.name,
-            }"
-            draggable="true"
-            @dragstart="onRegionDragStart($event, region.name)"
-            @dragenter.prevent="onRegionDragEnter(region.name)"
-            @dragover.prevent
-            @drop.prevent="onRegionDrop(region.name)"
-            @dragend="onRegionDragEnd"
-          >
-            <header class="province-overview-card-header">
-              <span class="province-drag-handle" title="Drag to reorder">
-                <GripVertical :size="18" />
-              </span>
-              <div>
-                <p class="eyebrow">#{{ orderIndex + 1 }}</p>
-                <h3>{{ region.name }}</h3>
-                <small>{{ region.provinceCount }} provinces</small>
-              </div>
-              <div class="province-overview-pop">
-                <span>Regional Pop</span>
-                <strong>{{ formatCompactNumber(region.provincialPopulation) }}</strong>
-              </div>
-            </header>
-
-            <div class="province-status-strip">
-              <span v-for="badge in region.badges" :key="badge.label" :class="`province-status-chip province-status-chip--${badge.tone}`">
-                {{ badge.label }}
-              </span>
-            </div>
-
-            <div class="province-overview-metrics region-overview-metrics">
-              <div v-for="metric in region.topMetrics" :key="metric.label" class="province-metric-tile">
-                <span>{{ metric.label }}</span>
-                <strong>{{ metric.value }}</strong>
-              </div>
-            </div>
-
-            <div class="province-detail-grid">
-              <section class="province-detail-block">
-                <h4>Civic</h4>
-                <div v-for="metric in region.civicMetrics" :key="metric.label" class="metric-row">
-                  <span>{{ metric.label }}</span>
-                  <strong>{{ metric.value }}</strong>
-                </div>
-              </section>
-
-              <section class="province-detail-block">
-                <h4>Yields</h4>
-                <div class="yield-bar-list">
-                  <div v-for="yieldItem in region.yieldMetrics" :key="yieldItem.key" class="yield-bar-row">
-                    <span>{{ yieldItem.label }}</span>
-                    <div class="yield-bar-track">
-                      <i :style="{ width: `${yieldItem.share}%` }"></i>
-                    </div>
-                    <strong>{{ formatNumber(yieldItem.value) }}</strong>
-                  </div>
-                </div>
-              </section>
-
-              <section class="province-detail-block">
-                <h4>Religion</h4>
-                <div class="metric-row">
-                  <span>Dominant</span>
-                  <strong>{{ region.religionName }}</strong>
-                </div>
-                <div class="metric-row">
-                  <span>Followers</span>
-                  <strong>{{ formatNumber(region.religionFollowers) }}</strong>
-                </div>
-              </section>
-
-              <section class="province-detail-block">
-                <h4>Provinces</h4>
-                <div class="metric-row">
-                  <span>County Records</span>
-                  <strong>{{ region.countyDetailCount }} / {{ region.countyCount }}</strong>
-                </div>
-                <div class="region-province-list">
-                  <span v-for="provinceName in region.provinceNames" :key="provinceName">{{ provinceName }}</span>
-                  <span v-if="!region.provinceNames.length">No assigned provinces</span>
-                </div>
-              </section>
-            </div>
-          </article>
-        </div>
+      <section v-else-if="activeSection === 'regional-details'" class="workspace-panel workspace-panel--flush">
+        <RegionalDetails />
       </section>
 
-      <section v-else-if="activeSection === 'provincial-overview'" class="workspace-panel">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">Provincial Overview</p>
-            <h2>{{ provinceCount }} Provinces</h2>
-          </div>
-          <Rows3 class="panel-icon" />
-        </div>
-
-        <div class="province-overview-list">
-          <div v-if="!orderedProvinceSummaries.length" class="empty-inline">
-            No provinces available.
-          </div>
-
-          <article
-            v-for="(province, orderIndex) in orderedProvinceSummaries"
-            :key="province.index"
-            class="province-overview-card"
-            :class="{
-              'province-overview-card--dragging': draggedProvinceIndex === province.index,
-              'province-overview-card--drop-target': dropTargetProvinceIndex === province.index && draggedProvinceIndex !== province.index,
-            }"
-            draggable="true"
-            @dragstart="onProvinceDragStart($event, province.index)"
-            @dragenter.prevent="onProvinceDragEnter(province.index)"
-            @dragover.prevent
-            @drop.prevent="onProvinceDrop(province.index)"
-            @dragend="onProvinceDragEnd"
-          >
-            <header class="province-overview-card-header">
-              <span class="province-drag-handle" title="Drag to reorder">
-                <GripVertical :size="18" />
-              </span>
-              <div>
-                <p class="eyebrow">#{{ orderIndex + 1 }}</p>
-                <h3>{{ province.name }}</h3>
-                <small>{{ province.group }}</small>
-              </div>
-              <div class="province-overview-pop">
-                <span>Provincial Pop</span>
-                <strong>{{ formatCompactNumber(province.provincialPopulation) }}</strong>
-              </div>
-            </header>
-
-            <div class="province-status-strip">
-              <span v-for="badge in province.badges" :key="badge.label" :class="`province-status-chip province-status-chip--${badge.tone}`">
-                {{ badge.label }}
-              </span>
-            </div>
-
-            <div class="province-overview-metrics">
-              <div v-for="metric in province.topMetrics" :key="metric.label" class="province-metric-tile">
-                <span>{{ metric.label }}</span>
-                <strong>{{ metric.value }}</strong>
-              </div>
-            </div>
-
-            <div class="province-detail-grid">
-              <section class="province-detail-block">
-                <h4>Civic</h4>
-                <div v-for="metric in province.civicMetrics" :key="metric.label" class="metric-row">
-                  <span>{{ metric.label }}</span>
-                  <strong>{{ metric.value }}</strong>
-                </div>
-              </section>
-
-              <section class="province-detail-block">
-                <h4>Yields</h4>
-                <div class="yield-bar-list">
-                  <div v-for="yieldItem in province.yieldMetrics" :key="yieldItem.key" class="yield-bar-row">
-                    <span>{{ yieldItem.label }}</span>
-                    <div class="yield-bar-track">
-                      <i :style="{ width: `${yieldItem.share}%` }"></i>
-                    </div>
-                    <strong>{{ formatNumber(yieldItem.value) }}</strong>
-                  </div>
-                </div>
-              </section>
-
-              <section class="province-detail-block">
-                <h4>Religion</h4>
-                <div class="metric-row">
-                  <span>Dominant</span>
-                  <strong>{{ province.religionName }}</strong>
-                </div>
-                <div class="metric-row">
-                  <span>Followers</span>
-                  <strong>{{ formatNumber(province.religionFollowers) }}</strong>
-                </div>
-              </section>
-
-              <section class="province-detail-block">
-                <h4>County Data</h4>
-                <div class="metric-row">
-                  <span>Records</span>
-                  <strong>{{ province.countyDetailCount }} / {{ province.countyCount }}</strong>
-                </div>
-                <div class="metric-row">
-                  <span>County Yield</span>
-                  <strong>{{ formatNumber(province.totalCountyYield) }}</strong>
-                </div>
-              </section>
-            </div>
-
-            <p v-if="province.notes" class="province-overview-notes">{{ province.notes }}</p>
-          </article>
-        </div>
+      <section v-else-if="activeSection === 'province-details'" class="workspace-panel workspace-panel--flush">
+        <ProvinceDetails />
       </section>
 
       <section v-else-if="activeSection === 'country'" class="workspace-panel">
@@ -368,16 +160,17 @@
 </template>
 
 <script>
-import { defineAsyncComponent, markRaw, ref } from 'vue'
-import { BadgeCheck, Braces, FilePlus2, Flag, Globe2, GripVertical, Layers, MapPinned, Network, Rows3 } from 'lucide-vue-next'
-import { useBuilderCardOrder } from '../composables/useBuilderCardOrder'
+import { defineAsyncComponent, markRaw, ref, watch } from 'vue'
+import { BadgeCheck, Braces, ChartNoAxesColumnIncreasing, FilePlus2, Flag, Globe2, Layers, MapPinned, Network } from 'lucide-vue-next'
 import { useBuilderOverview } from '../composables/useBuilderOverview'
 import { useFormStore } from '../stores/formStore'
 
 const ArraySection = defineAsyncComponent(() => import('./ArraySection.vue'))
 const FieldsetGroup = defineAsyncComponent(() => import('./FieldsetGroup.vue'))
 const JSONPreview = defineAsyncComponent(() => import('./JSONPreview.vue'))
+const ProvinceDetails = defineAsyncComponent(() => import('../pages/ProvinceDetails.vue'))
 const ReferenceDataSection = defineAsyncComponent(() => import('./ReferenceDataSection.vue'))
+const RegionalDetails = defineAsyncComponent(() => import('../pages/RegionalDetails.vue'))
 
 export default {
   name: 'FormContainer',
@@ -387,24 +180,46 @@ export default {
     FieldsetGroup,
     FilePlus2,
     Globe2,
-    GripVertical,
     JSONPreview,
     Network,
+    ProvinceDetails,
     ReferenceDataSection,
-    Rows3,
+    RegionalDetails,
   },
-  setup() {
+  props: {
+    initialSection: {
+      type: String,
+      default: 'country-overview',
+    },
+  },
+  setup(props) {
     const store = useFormStore()
-    const activeSection = ref('country-overview')
     const sections = [
       { id: 'country-overview', label: 'Country Overview', icon: markRaw(BadgeCheck) },
-      { id: 'regional-overview', label: 'Regional Overview', icon: markRaw(Network) },
-      { id: 'provincial-overview', label: 'Provincial Overview', icon: markRaw(Rows3) },
+      { id: 'regional-details', label: 'Regional Details', icon: markRaw(Network) },
+      { id: 'province-details', label: 'Province Details', icon: markRaw(ChartNoAxesColumnIncreasing) },
       { id: 'country', label: 'Country Data', icon: markRaw(Flag) },
       { id: 'provinces', label: 'Provinces Data', icon: markRaw(MapPinned) },
       { id: 'reference', label: 'Reference Data', icon: markRaw(Layers) },
       { id: 'json', label: 'JSON Preview', icon: markRaw(Braces) },
     ]
+    const sectionIds = new Set(sections.map((section) => section.id))
+    const sectionAliases = {
+      'regional-overview': 'regional-details',
+      'provincial-overview': 'province-details',
+    }
+    const normalizeSection = (section) => {
+      const normalized = sectionAliases[section] || section
+      return sectionIds.has(normalized) ? normalized : 'country-overview'
+    }
+    const activeSection = ref(normalizeSection(props.initialSection))
+
+    watch(
+      () => props.initialSection,
+      (section) => {
+        activeSection.value = normalizeSection(section)
+      }
+    )
 
     const {
       civicMetrics,
@@ -414,34 +229,13 @@ export default {
       economyMetrics,
       formatCompactNumber,
       formatNumber,
-      groupCount,
-      provinceCount,
-      provinceSummaries,
       regionSummaries,
       religionMetrics,
       representationMetrics,
-      sidebarProvinceOrder,
       totalEconomyOutput,
       totalProvincialPopulation,
       totalRawPopulation,
     } = useBuilderOverview(store)
-
-    const {
-      draggedProvinceIndex,
-      draggedRegionName,
-      dropTargetProvinceIndex,
-      dropTargetRegionName,
-      onProvinceDragEnd,
-      onProvinceDragEnter,
-      onProvinceDragStart,
-      onProvinceDrop,
-      onRegionDragEnd,
-      onRegionDragEnter,
-      onRegionDragStart,
-      onRegionDrop,
-      orderedProvinceSummaries,
-      orderedRegionSummaries,
-    } = useBuilderCardOrder({ provinceSummaries, regionSummaries, sidebarProvinceOrder })
 
     return {
       activeSection,
@@ -449,25 +243,9 @@ export default {
       countryIdentity,
       countryName,
       countrySummaryCards,
-      draggedProvinceIndex,
-      draggedRegionName,
-      dropTargetProvinceIndex,
-      dropTargetRegionName,
       economyMetrics,
       formatCompactNumber,
       formatNumber,
-      groupCount,
-      onProvinceDragEnd,
-      onProvinceDragEnter,
-      onProvinceDragStart,
-      onProvinceDrop,
-      onRegionDragEnd,
-      onRegionDragEnter,
-      onRegionDragStart,
-      onRegionDrop,
-      orderedProvinceSummaries,
-      orderedRegionSummaries,
-      provinceCount,
       regionSummaries,
       religionMetrics,
       representationMetrics,

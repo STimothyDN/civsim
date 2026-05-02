@@ -1,3 +1,5 @@
+import { DEFAULT_PARTY_CONFIG, normalizePartyConfig } from '../domain/elections/constants/parties'
+
 export const defaultTemplate = {
   country: {
     basic_info: {
@@ -16,6 +18,7 @@ export const defaultTemplate = {
   provinces: [],
   province_groups: [],
   global_religions: [],
+  election_parties: DEFAULT_PARTY_CONFIG,
 };
 
 export function createEmptyReligion() {
@@ -141,7 +144,9 @@ function normalizeClosestProvinces(value) {
 }
 
 export function normalizeIds(data) {
-  if (!data || !Array.isArray(data.provinces)) return;
+  if (!data) return;
+  data.election_parties = normalizePartyConfig(data.election_parties)
+  if (!Array.isArray(data.provinces)) return;
   data.provinces.forEach((province, provinceIndex) => {
     province.city_id = provinceIndex + 1;
 

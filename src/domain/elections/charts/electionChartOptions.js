@@ -1,4 +1,4 @@
-import { PARTIES, PARTY_COLORS, PARTY_NAMES } from '../constants/parties'
+import { PARTIES, PARTY_COLORS, PARTY_NAMES, PARTY_META } from '../constants/parties'
 import { num } from '../normalization/numbers'
 
 const TEXT_COLOR = '#e8e6e1'
@@ -6,8 +6,16 @@ const AXIS_COLOR = '#9b9a97'
 const GRID_COLOR = '#2a2d3a'
 const BG_COLOR = 'transparent'
 
-function partyColors() {
-  return PARTIES.map((party) => PARTY_COLORS[party])
+function metaColor(party, partyMeta = PARTY_META) {
+  return partyMeta[party]?.color || PARTY_COLORS[party]
+}
+
+function metaName(party, partyMeta = PARTY_META) {
+  return partyMeta[party]?.name || PARTY_NAMES[party]
+}
+
+function partyColors(partyMeta = PARTY_META) {
+  return PARTIES.map((party) => metaColor(party, partyMeta))
 }
 
 function emptyOption(text) {
@@ -22,19 +30,19 @@ function emptyOption(text) {
   }
 }
 
-export function partySeatBarOption(seats = {}, title = 'Seats') {
+export function partySeatBarOption(seats = {}, title = 'Seats', partyMeta = PARTY_META) {
   const values = PARTIES.map((party) => num(seats[party]))
   if (!values.some(Boolean)) return emptyOption('No seats allocated')
 
   return {
-    color: partyColors(),
+    color: partyColors(partyMeta),
     backgroundColor: BG_COLOR,
     textStyle: { color: TEXT_COLOR, fontFamily: 'Inter, system-ui, sans-serif' },
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#181a24', borderColor: GRID_COLOR, textStyle: { color: TEXT_COLOR } },
     grid: { left: 42, right: 18, top: 32, bottom: 78, containLabel: true },
     xAxis: {
       type: 'category',
-      data: PARTIES.map((party) => PARTY_NAMES[party]),
+      data: PARTIES.map((party) => metaName(party, partyMeta)),
       axisLabel: { color: AXIS_COLOR, rotate: 24 },
       axisTick: { show: false },
       axisLine: { lineStyle: { color: GRID_COLOR } },
@@ -50,19 +58,24 @@ export function partySeatBarOption(seats = {}, title = 'Seats') {
         name: title,
         type: 'bar',
         barMaxWidth: 42,
-        data: PARTIES.map((party) => ({ value: num(seats[party]), itemStyle: { color: PARTY_COLORS[party] } })),
+        data: PARTIES.map((party) => ({ value: num(seats[party]), itemStyle: { color: metaColor(party, partyMeta) } })),
         itemStyle: { borderRadius: [3, 3, 0, 0] },
       },
     ],
   }
 }
 
-export function regionalStackedSeatOption(regions = {}, chamber = 'assembly') {
-  const regionList = Object.values(regions)
+export function regionalStackedSeatOption(regions = {}, chamber = 'assembly', partyMeta = PARTY_META, regionOrder = []) {
+  const orderMap = new Map(regionOrder.map((name, index) => [name, index]))
+  const regionList = Object.values(regions).sort((a, b) => {
+    const aOrder = orderMap.has(a.name) ? orderMap.get(a.name) : Number.POSITIVE_INFINITY
+    const bOrder = orderMap.has(b.name) ? orderMap.get(b.name) : Number.POSITIVE_INFINITY
+    return aOrder - bOrder || a.name.localeCompare(b.name)
+  })
   if (!regionList.length) return emptyOption('No regional results')
 
   return {
-    color: partyColors(),
+    color: partyColors(partyMeta),
     backgroundColor: BG_COLOR,
     textStyle: { color: TEXT_COLOR, fontFamily: 'Inter, system-ui, sans-serif' },
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#181a24', borderColor: GRID_COLOR, textStyle: { color: TEXT_COLOR } },
@@ -82,12 +95,12 @@ export function regionalStackedSeatOption(regions = {}, chamber = 'assembly') {
       splitLine: { lineStyle: { color: GRID_COLOR } },
     },
     series: PARTIES.map((party) => ({
-      name: PARTY_NAMES[party],
+      name: metaName(party, partyMeta),
       type: 'bar',
       stack: chamber,
       barMaxWidth: 38,
       data: regionList.map((region) => num(region[chamber]?.seats?.[party])),
-      itemStyle: { color: PARTY_COLORS[party] },
+      itemStyle: { color: metaColor(party, partyMeta) },
     })),
   }
 }
@@ -133,4 +146,3 @@ export function provinceFeatureRadarOption(province) {
     ],
   }
 }
-

@@ -1,5 +1,15 @@
 export { APPORTIONMENT, BASELINE_ELECTION_CONFIG, DEFAULT_VOLATILITY, DEFAULT_VOTE_BLEND, THRESHOLDS } from './constants/apportionmentRules'
-export { PARTIES, PARTY_COLORS, PARTY_META, PARTY_NAMES } from './constants/parties'
+export {
+  DEFAULT_PARTY_CONFIG,
+  PARTIES,
+  PARTY_COLORS,
+  PARTY_META,
+  PARTY_NAMES,
+  normalizePartyConfig,
+  partyColorsFromConfig,
+  partyMetaFromConfig,
+  partyNamesFromConfig,
+} from './constants/parties'
 export { simulateElection, formatShare } from './simulateElection'
 export { generateRandomTrendPackage, generateTrendPackageFromSelections, RANDOM_TREND_TEMPLATES } from './trends/randomizeTrends'
 export { matchesSelector, trendClimateScore, trendEffect, trendEffects, trendHasMatchingEffect, trendTags } from './trends/matchTrend'

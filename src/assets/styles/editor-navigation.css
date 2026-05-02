@@ -56,9 +56,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 22px;
-  padding: 10px 14px;
-  background: var(--bg-surface);
+  margin-bottom: 18px;
+  padding: 8px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.028), transparent),
+    rgba(24, 25, 31, 0.94);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   position: sticky;
@@ -80,10 +82,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   font-size: 0.84rem;
-  font-weight: 500;
+  font-weight: 700;
   color: var(--text-secondary);
   text-decoration: none;
   transition: all var(--transition-fast);
@@ -93,12 +96,13 @@
 .app-nav-link:hover {
   color: var(--text-primary);
   background: var(--bg-surface-raised);
+  border-color: var(--border-subtle);
 }
 
 .app-nav-link--active {
-  color: var(--accent);
-  background: rgba(212, 168, 67, 0.1);
-  font-weight: 600;
+  color: #f1eee8;
+  background: linear-gradient(90deg, rgba(78, 121, 167, 0.26), rgba(212, 168, 67, 0.12));
+  border-color: rgba(78, 121, 167, 0.5);
 }
 
 .app-nav-link--active:hover {
@@ -128,10 +132,10 @@
   align-items: center;
   gap: 7px;
   padding: 8px 16px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(45, 212, 191, 0.05));
-  border: 1px solid rgba(45, 212, 191, 0.25);
-  color: #2dd4bf;
+  border-radius: var(--radius-sm);
+  background: rgba(78, 121, 167, 0.12);
+  border: 1px solid rgba(78, 121, 167, 0.34);
+  color: #9ecae1;
   font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
@@ -141,7 +145,7 @@
 }
 
 .btn-narrative {
-  background: linear-gradient(135deg, rgba(212, 168, 67, 0.13), rgba(212, 168, 67, 0.06));
+  background: rgba(212, 168, 67, 0.12);
   border-color: rgba(212, 168, 67, 0.3);
   color: var(--accent);
 }

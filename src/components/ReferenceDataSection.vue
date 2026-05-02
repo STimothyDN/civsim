@@ -105,12 +105,45 @@
         </select>
       </div>
     </div>
+
+    <div class="reference-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Reference Data</p>
+          <h2>Election Parties</h2>
+        </div>
+        <Palette class="panel-icon" />
+      </div>
+
+      <div class="party-reference-list">
+        <div v-for="party in parties" :key="party" class="party-reference-row">
+          <label class="party-color-field" :aria-label="`${party} party color`">
+            <span class="swatch" :style="{ background: partyConfig[party]?.color }"></span>
+            <input
+              type="color"
+              :value="partyConfig[party]?.color"
+              @input="setPartyColor(party, $event.target.value)"
+            />
+          </label>
+          <label class="party-name-field">
+            <span>{{ party }}</span>
+            <input
+              :value="partyConfig[party]?.name"
+              :aria-label="`${party} party name`"
+              @input="setPartyName(party, $event.target.value)"
+            />
+          </label>
+          <code>{{ partyConfig[party]?.color }}</code>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script>
 import { computed, ref } from 'vue'
-import { AlertTriangle, Landmark, Layers, MapPinned, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
+import { AlertTriangle, Landmark, Layers, MapPinned, Palette, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
+import { PARTIES } from '../domain/elections/constants/parties'
 import { useFormStore } from '../stores/formStore'
 import { colorForIndex } from '../domain/colors'
 
@@ -128,13 +161,15 @@ function duplicateNames(items) {
 
 export default {
   name: 'ReferenceDataSection',
-  components: { AlertTriangle, Landmark, Layers, MapPinned, Plus, Sparkles, Trash2 },
+  components: { AlertTriangle, Landmark, Layers, MapPinned, Palette, Plus, Sparkles, Trash2 },
   setup() {
     const store = useFormStore()
     const newGroup = ref('')
     const newReligion = ref('')
 
     const groups = computed(() => store.currentData?.province_groups || [])
+    const partyConfig = computed(() => store.currentData?.election_parties || store.partyMeta)
+    const parties = PARTIES
     const religions = computed(() => store.currentData?.global_religions || [])
     const provinces = computed(() => store.currentData?.provinces || [])
     const stateReligion = computed(() => store.currentData?.country?.state_religion || null)
@@ -236,6 +271,14 @@ export default {
       store.setValueAtPath('country.state_religion', value || null)
     }
 
+    function setPartyName(party, value) {
+      store.setPartyName(party, value)
+    }
+
+    function setPartyColor(party, value) {
+      store.setPartyColor(party, value)
+    }
+
     return {
       addGroup,
       addReligion,
@@ -244,6 +287,8 @@ export default {
       groups,
       newGroup,
       newReligion,
+      parties,
+      partyConfig,
       provinceCountForGroup,
       provinces,
       religionReferenceCount,
@@ -254,6 +299,8 @@ export default {
       renameGroup,
       renameReligion,
       setGroup,
+      setPartyColor,
+      setPartyName,
       setStateReligion,
       stateReligion,
     }

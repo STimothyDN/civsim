@@ -1,5 +1,6 @@
 import { deepClone } from '../utils/object'
 import { defaultTemplate, normalizeIds, sortClosestProvinces } from '../utils/schema'
+import { normalizePartyConfig } from './elections/constants/parties'
 
 export const CALCULATED_PROVINCE_KEYS = [
   'provincial_population',
@@ -35,6 +36,7 @@ export function normalizeTemplateInput(template) {
   normalized.provinces = Array.isArray(normalized.provinces) ? normalized.provinces : []
   normalized.province_groups = normalizeNameArray(normalized.province_groups)
   normalized.global_religions = normalizeNameArray(normalized.global_religions)
+  normalized.election_parties = normalizePartyConfig(normalized.election_parties)
 
   stripCalculatedProvinceFields(normalized.provinces)
   normalizeIds(normalized)
@@ -46,6 +48,7 @@ export function buildExportTemplate(currentData, provinceCalcs, regionalTotals) 
   if (!currentData) return null
 
   const output = deepClone(currentData)
+  output.election_parties = normalizePartyConfig(output.election_parties)
   const calcs = Array.isArray(provinceCalcs) ? provinceCalcs : []
   const totals = regionalTotals instanceof Map ? regionalTotals : new Map()
 

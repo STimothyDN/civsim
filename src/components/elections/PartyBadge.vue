@@ -7,7 +7,7 @@
 
 <script>
 import { computed } from 'vue'
-import { PARTY_META } from '../../domain/elections'
+import { useFormStore } from '../../stores/formStore'
 
 export default {
   name: 'PartyBadge',
@@ -16,7 +16,8 @@ export default {
     short: { type: Boolean, default: false },
   },
   setup(props) {
-    const meta = computed(() => PARTY_META[props.party] || { name: props.party, color: '#9b9a97' })
+    const store = useFormStore()
+    const meta = computed(() => store.partyMeta[props.party] || { name: props.party, color: '#9b9a97' })
     const partyLabel = computed(() => props.party.charAt(0).toUpperCase() + props.party.slice(1))
     const badgeStyle = computed(() => ({
       borderColor: `${meta.value.color}55`,
@@ -28,4 +29,3 @@ export default {
   },
 }
 </script>
-

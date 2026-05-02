@@ -58,9 +58,9 @@ describe('ArraySection province sidebar ordering', () => {
     const groups = wrapper.findAll('.sidebar-group')
 
     expect(sidebarGroupNames(wrapper)).toEqual(['North', 'South', 'Unassigned'])
-    expect(sidebarItemNames(groups[0])).toEqual(['Province: North High', 'Province: North Low'])
-    expect(sidebarItemNames(groups[1])).toEqual(['Province: South High', 'Province: South Low'])
-    expect(sidebarItemNames(groups[2])).toEqual(['Province: Ungrouped'])
+    expect(sidebarItemNames(groups[0])).toEqual(['North High', 'North Low'])
+    expect(sidebarItemNames(groups[1])).toEqual(['South High', 'South Low'])
+    expect(sidebarItemNames(groups[2])).toEqual(['Ungrouped'])
   })
 
   it('dynamically reorders the sidebar without reordering the JSON array', async () => {
@@ -70,7 +70,7 @@ describe('ArraySection province sidebar ordering', () => {
     await nextTick()
 
     const groups = wrapper.findAll('.sidebar-group')
-    expect(sidebarItemNames(groups[0])).toEqual(['Province: North Low', 'Province: North High'])
+    expect(sidebarItemNames(groups[0])).toEqual(['North Low', 'North High'])
     expect(store.currentData.provinces.map((province) => province.name)).toEqual([
       'North Low',
       'South High',

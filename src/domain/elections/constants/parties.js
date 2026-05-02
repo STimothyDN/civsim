@@ -57,6 +57,60 @@ export const PARTY_META = {
   },
 }
 
+export const DEFAULT_PARTY_CONFIG = Object.fromEntries(
+  PARTIES.map((party) => [
+    party,
+    {
+      name: PARTY_NAMES[party],
+      color: PARTY_COLORS[party],
+    },
+  ])
+)
+
+function sanitizeColor(value, fallback) {
+  const color = String(value || '').trim()
+  return /^#[0-9a-f]{6}$/i.test(color) ? color : fallback
+}
+
+export function normalizePartyConfig(value = {}) {
+  return Object.fromEntries(
+    PARTIES.map((party) => {
+      const source = value?.[party] || {}
+      return [
+        party,
+        {
+          name: String(source.name || PARTY_NAMES[party]).trim() || PARTY_NAMES[party],
+          color: sanitizeColor(source.color, PARTY_COLORS[party]),
+        },
+      ]
+    })
+  )
+}
+
+export function partyMetaFromConfig(value = {}) {
+  const config = normalizePartyConfig(value)
+  return Object.fromEntries(
+    PARTIES.map((party) => [
+      party,
+      {
+        ...PARTY_META[party],
+        name: config[party].name,
+        color: config[party].color,
+      },
+    ])
+  )
+}
+
+export function partyNamesFromConfig(value = {}) {
+  const meta = partyMetaFromConfig(value)
+  return Object.fromEntries(PARTIES.map((party) => [party, meta[party].name]))
+}
+
+export function partyColorsFromConfig(value = {}) {
+  const meta = partyMetaFromConfig(value)
+  return Object.fromEntries(PARTIES.map((party) => [party, meta[party].color]))
+}
+
 export const PARTY_FLOORS = {
   yellow: 0.08,
   orange: 0.08,
@@ -65,4 +119,3 @@ export const PARTY_FLOORS = {
   white: 0.015,
   purple: 0.015,
 }
-

@@ -2,8 +2,8 @@ import { PARTY_META } from '../constants/parties'
 
 const FALLBACK_COLOR = '#d4a843'
 
-export function controlStyleVars(control, prefix = 'winner') {
-  const color = PARTY_META[control?.leaderParty]?.color || FALLBACK_COLOR
+export function controlStyleVars(control, prefix = 'winner', partyMeta = PARTY_META) {
+  const color = partyMeta[control?.leaderParty]?.color || FALLBACK_COLOR
   const isMinority = control?.status === 'minority-government'
   const isEmpty = !control || control.status === 'empty'
   const baseColor = isEmpty ? 'var(--accent)' : color
@@ -17,10 +17,10 @@ export function controlStyleVars(control, prefix = 'winner') {
   }
 }
 
-export function winnerControlStyle(control) {
-  return controlStyleVars(control, 'winner')
+export function winnerControlStyle(control, partyMeta = PARTY_META) {
+  return controlStyleVars(control, 'winner', partyMeta)
 }
 
-export function chamberControlStyle(control) {
-  return controlStyleVars(control, 'control')
+export function chamberControlStyle(control, partyMeta = PARTY_META) {
+  return controlStyleVars(control, 'control', partyMeta)
 }
