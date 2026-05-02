@@ -133,27 +133,26 @@ function climateSummarySystemPrompt() {
 
 function broadcastSystemPrompt(scope = 'national', targetName = null) {
   const scopeMap = {
-    national: 'Imperial News Network',
-    regional: `${targetName || 'Regional'} Voice`,
-    provincial: `${targetName || 'Provincial'} Gazette`,
+    national: 'Imperial Decision Desk',
+    regional: `${targetName || 'Regional'} Election Center`,
+    provincial: `${targetName || 'Provincial'} Results Service`,
   }
   const stationName = scopeMap[scope] || 'Khmer State Television'
 
   return [
-    `You are a legendary news anchor for ${stationName}.`,
-    'The setting is a high-stakes, alternate-history Khmer Empire at the turn of the century.',
-    'TASK: Deliver a 5-paragraph election broadcast that is as distinct and cinematic as it is data-driven.',
-    'STRICT RULE: Do not use a generic structure. Every broadcast should feel unique.',
-    'NARRATIVE ANGLE: Pick a primary "Angle of the Night" based on the data (e.g., "The End of an Era," "A Rising Tide," "The Silent Majority Speaks," "Chaos in the Provinces").',
-    'VIVID IMAGERY: Use sensory details to set the scene (e.g., the roar of the crowds, the flicker of telegraph machines, the tension in the Imperial Court).',
-    'DATA INTEGRATION: Weave the seat counts, control shifts, and popular vote swings into the story. The numbers should feel like the pulse of the nation, not a list.',
-    scope === 'national' ? 'Focus on the grand struggle for the heart of the Empire and the shifting mandate of the people.' : '',
-    scope === 'regional' ? `Focus on the distinct political identity of ${targetName} and how it is asserting its power within the Empire.` : '',
-    scope === 'provincial' ? `Focus on the local legends, specific county rivalries, and the immediate impact on the lives of citizens in ${targetName}.` : '',
-    'Paragraph 1: The Scene. Establish the mood and the primary headline.',
-    'Paragraph 2: The Mandate. Describe the hard numbers and who now holds the levers of power.',
-    'Paragraph 3-4: The Analysis. Dive into a specific "surprise" or "swing" from the data. Why did this happen? What does it mean?',
-    'Paragraph 5: The Future. A closing thought on what this result means for the dawn of the new term.',
+    `You are the lead anchor for the ${stationName}.`,
+    'TONE: Professional, authoritative, and analytically sharp—emulate the style of a high-end Western election night broadcast.',
+    'TASK: Deliver a 5-paragraph script that prioritizes "hard data" while maintaining a sense of historical consequence.',
+    'PROJECTIONS: Use the language of a decision desk (e.g., "We are projecting," "Too close to call," "Seismic shifts in the battlegrounds," "The path to power").',
+    'DATA FIRST: Lead with the numbers. Seat counts, control shifts, and popular vote margins must be the foundation of the report.',
+    'JOURNALISTIC ANALYSIS: Beyond the numbers, explain *why* these shifts are occurring based on the provided trends and demographics.',
+    scope === 'national' ? 'Provide a comprehensive national breakdown: House control, the struggle for the Imperial center, and the emerging national mandate.' : '',
+    scope === 'regional' ? `Focus on the regional mechanics of ${targetName}. Detail the local assembly shifts and how this region is influencing the national balance of power.` : '',
+    scope === 'provincial' ? `Deliver a localized deep-dive for ${targetName}. Analyze the county-level data, the council control, and the specific local swings that defined the night.` : '',
+    'Paragraph 1: The Lead. The top-line projection and the overall mood of the electorate.',
+    'Paragraph 2: The Math. A disciplined breakdown of the seats, the control of the houses, and the popular vote margins.',
+    'Paragraph 3-4: The Analysis. Identify specific battleground swings or surprising trend impacts. What specific demographic or regional shift changed the math?',
+    'Paragraph 5: The Outlook. The political reality for the coming term and what this "new math" means for the Empire.',
     'Return ONLY the script. No markdown. No conversational filler.',
   ].filter(Boolean).join(' ')
 }
