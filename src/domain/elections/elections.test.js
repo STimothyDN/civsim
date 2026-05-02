@@ -6,6 +6,7 @@ import {
   apportionDHondt,
   apportionModifiedSainteLague,
   apportionSainteLague,
+  countyAllowsAmbientPopulation,
   generateRandomTrendPackage,
   generateTrendPackageFromSelections,
   matchesSelector,
@@ -14,6 +15,8 @@ import {
   trendEffect,
 } from './index'
 import { determineHouseControl } from './coalitions/houseControl'
+import { calculateCountyFeatures } from './features/countyFeatures'
+import { calculateProvinceBaseFeatures } from './features/provinceFeatures'
 import { calculateProvincePartyScores } from './scoring/provinceScores'
 
 function sampleTemplate() {
@@ -115,6 +118,12 @@ function sum(values) {
   return Object.values(values).reduce((total, value) => total + value, 0)
 }
 
+function expectPartySharesClose(actual, expected, digits = 8) {
+  PARTIES.forEach((party) => {
+    expect(actual[party]).toBeCloseTo(expected[party], digits)
+  })
+}
+
 describe('election domain', () => {
   it('apportions seats with deterministic highest-averages helpers', () => {
     const shares = { yellow: 0.4, orange: 0.3, red: 0.15, blue: 0.1, white: 0.03, purple: 0.02 }
@@ -131,6 +140,134 @@ describe('election domain', () => {
 
     expect(counties.reduce((total, county) => total + county.county_population, 0)).toBe(1001)
     expect(counties.every((county) => county.county_population_share >= 0)).toBe(true)
+  })
+
+  it('keeps unworked water and mountain tiles from receiving ambient county population', () => {
+    const province = {
+      counties: [
+        {
+          name: 'Center',
+          tile_id: 'tile_1',
+          distance_from_center: 0,
+          terrain: 'Plains',
+          improvement: { name: 'City Center', buildings: {}, great_works: {} },
+          citizens_working: 2,
+          river: true,
+          has_railroad: true,
+          yields: { food: 4, production: 3 },
+        },
+        {
+          name: 'Empty Shore',
+          tile_id: 'tile_2',
+          distance_from_center: 2,
+          terrain: 'Coast',
+          improvement: { name: '', buildings: {}, great_works: {} },
+          citizens_working: null,
+          yields: { food: 2, production: 3, gold: 3 },
+        },
+        {
+          name: 'Unworked Peak',
+          tile_id: 'tile_3',
+          distance_from_center: 3,
+          terrain: 'Grassland (Mountain)',
+          improvement: { name: 'National Park', buildings: {}, great_works: {} },
+          citizens_working: null,
+          yields: {},
+        },
+        {
+          name: 'Working Harbor',
+          tile_id: 'tile_4',
+          distance_from_center: 2,
+          terrain: 'Coast',
+          improvement: { name: 'Harbor', buildings: { Lighthouse: true, Shipyard: true, Seaport: true }, great_works: {} },
+          citizens_working: 3,
+          yields: { food: 6, production: 2, gold: 8 },
+        },
+      ],
+    }
+    const counties = allocateCountyPopulations(province, 1000)
+
+    expect(counties.reduce((total, county) => total + county.county_population, 0)).toBe(1000)
+    expect(countyAllowsAmbientPopulation(province.counties[1])).toBe(false)
+    expect(countyAllowsAmbientPopulation(province.counties[2])).toBe(false)
+    expect(counties.find((county) => county.tile_id === 'tile_2').county_population).toBe(0)
+    expect(counties.find((county) => county.tile_id === 'tile_3').county_population).toBe(0)
+    expect(counties.find((county) => county.tile_id === 'tile_4').county_population).toBeGreaterThan(0)
+  })
+
+  it('derives expanded county indexes from terrain, settlement, and improvement details', () => {
+    const provinceContext = {
+      imperial_core_index: 0.5,
+      minority_religion_share: 0.2,
+      state_religion_share: 0.7,
+      roman_identity_index: 0,
+    }
+    const harbor = calculateCountyFeatures({
+      terrain: 'Coast',
+      improvement: { name: 'Harbor', buildings: { Lighthouse: true, Shipyard: true, Seaport: true }, great_works: {} },
+      citizens_working: 3,
+      distance_from_center: 2,
+      appeal: null,
+      features: {},
+      yields: { food: 6, production: 2, gold: 8 },
+    }, provinceContext)
+    const mountainPark = calculateCountyFeatures({
+      terrain: 'Tundra (Mountain)',
+      improvement: { name: 'National Park', buildings: {}, great_works: {} },
+      citizens_working: null,
+      distance_from_center: 4,
+      appeal: 8,
+      features: { Volcano: true },
+      yields: {},
+    }, provinceContext)
+    const quarry = calculateCountyFeatures({
+      terrain: 'Grassland',
+      resource: 'Marble',
+      improvement: { name: 'Quarry', buildings: {}, great_works: {} },
+      citizens_working: 1,
+      distance_from_center: 3,
+      has_railroad: true,
+      appeal: 4,
+      features: { Marble: true },
+      yields: { food: 2, production: 5, culture: 1 },
+    }, provinceContext)
+
+    expect(harbor.maritime_index).toBeGreaterThan(0.6)
+    expect(harbor.coastal_index).toBeGreaterThan(0.5)
+    expect(harbor.terrain_habitation_index).toBe(1)
+    expect(mountainPark.mountain_index).toBeGreaterThan(0.6)
+    expect(mountainPark.wilderness_index).toBeGreaterThan(0.5)
+    expect(mountainPark.terrain_habitation_index).toBe(0)
+    expect(quarry.extractive_index).toBeGreaterThan(0.5)
+  })
+
+  it('counts listed zero-follower religions as tiny provincial presences', () => {
+    const country = { state_religion: 'Zoroastrianism' }
+    const features = calculateProvinceBaseFeatures({
+      population: 10,
+      loyalty: 50,
+      religions: [
+        { name: 'Zoroastrianism', followers: '0' },
+        { name: 'Taoism', followers: '0' },
+        { name: 'Protestantism', followers: '2' },
+      ],
+      yields: {},
+    }, country)
+    const withoutTaoism = calculateProvinceBaseFeatures({
+      population: 10,
+      loyalty: 50,
+      religions: [
+        { name: 'Zoroastrianism', followers: '0' },
+        { name: 'Protestantism', followers: '2' },
+      ],
+      yields: {},
+    }, country)
+
+    expect(features.state_religion_share).toBeCloseTo(0.025)
+    expect(features.taoist_share).toBeCloseTo(0.025)
+    expect(features.minority_religion_share).toBeCloseTo(0.225)
+    expect(withoutTaoism.taoist_share).toBe(0)
+    expect(withoutTaoism.minority_religion_share).toBeCloseTo(0.2)
   })
 
   it('keeps vote shares normalized and random trends deterministic', () => {
@@ -243,6 +380,44 @@ describe('election domain', () => {
     expect(['majority', 'minority-government']).toContain(result.national.assembly.control.status)
     expect(Object.keys(result.regions)).toContain('Capital Region')
     expect(result.diagnostics.validation.countyPopulation).toBe(true)
+  })
+
+  it('blends province and national assembly votes from local results and climate scores', () => {
+    const template = sampleTemplate()
+    const result = simulateElection({
+      data: template,
+      provinceRows: sampleRows(template),
+      electionConfig: {
+        seed: 'blend-test',
+        jitterSeed: 'blend-test',
+        trends: [],
+        volatility: { national: 0, region: 0, province: 0, county: 0 },
+        voteBlend: {
+          provincialAssemblyLocalWeight: 0.25,
+          nationalAssemblyLocalWeight: 0.4,
+        },
+      },
+    })
+
+    result.provinces.forEach((province) => {
+      const expectedProvinceShares = Object.fromEntries(PARTIES.map((party) => [
+        party,
+        0.25 * province.assembly.local_vote_shares[party] + 0.75 * province.assembly.climate_vote_shares[party],
+      ]))
+
+      expectPartySharesClose(province.assembly.vote_shares, expectedProvinceShares)
+      expect(province.assembly.vote_blend.local_weight).toBe(0.25)
+      expect(province.assembly.vote_blend.climate_weight).toBe(0.75)
+    })
+
+    const expectedNationalShares = Object.fromEntries(PARTIES.map((party) => [
+      party,
+      0.4 * result.national.assembly.local_vote_shares[party] + 0.6 * result.national.assembly.climate_vote_shares[party],
+    ]))
+
+    expectPartySharesClose(result.national.assembly.vote_shares, expectedNationalShares)
+    expect(result.national.assembly.vote_blend.local_weight).toBe(0.4)
+    expect(result.national.assembly.vote_blend.climate_weight).toBe(0.6)
   })
 
   it('finds minority government control from the largest party and natural partners', () => {

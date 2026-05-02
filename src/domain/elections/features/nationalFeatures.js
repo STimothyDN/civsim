@@ -22,6 +22,15 @@ export function calculateNationalFeatures(provinces = []) {
     'localist_index',
     'traditionalist_index',
     'restorationist_index',
+    'coastal_index',
+    'maritime_index',
+    'mountain_index',
+    'wilderness_index',
+    'residential_index',
+    'extractive_index',
+    'leisure_tourism_index',
+    'civic_monument_index',
+    'terrain_habitation_index',
     'loyalty_index',
     'happiness_index',
     'growth_index',
@@ -53,4 +62,3 @@ export function calculateNationalFeatures(provinces = []) {
     national_population: nationalPopulation,
   }
 }
-

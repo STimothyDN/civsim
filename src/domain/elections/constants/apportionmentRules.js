@@ -5,6 +5,11 @@ export const DEFAULT_VOLATILITY = {
   county: 0.20,
 }
 
+export const DEFAULT_VOTE_BLEND = {
+  provincialAssemblyLocalWeight: 0.65,
+  nationalAssemblyLocalWeight: 0.7,
+}
+
 export const APPORTIONMENT = {
   provincialAssembly: 'dhondt',
   provincialPrelates: 'modifiedSainteLague',
@@ -27,4 +32,5 @@ export const BASELINE_ELECTION_CONFIG = {
   scenarioDescription: 'No randomized climate trends are active.',
   trends: [],
   volatility: DEFAULT_VOLATILITY,
+  voteBlend: DEFAULT_VOTE_BLEND,
 }

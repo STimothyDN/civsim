@@ -97,9 +97,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 21507207,
+      "provincial_population": 23647699,
       "assemblypeople": 30,
-      "prelates": 7,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -165,7 +165,7 @@
           "distance_from_center": "0"
         },
         {
-          "name": "Riverside District",
+          "name": "Riverside",
           "tile_id": "tile_2",
           "terrain": "Grassland",
           "features": {},
@@ -335,7 +335,7 @@
           "distance_from_center": "1"
         },
         {
-          "name": "Park West Entrance",
+          "name": "Park Center West",
           "tile_id": "tile_8",
           "terrain": "Grassland",
           "features": {
@@ -754,7 +754,7 @@
           "distance_from_center": "3"
         },
         {
-          "name": "Park East Entrance",
+          "name": "Park Center East",
           "tile_id": "tile_22",
           "terrain": "Grassland",
           "features": {
@@ -1659,9 +1659,9 @@
           "distance": 8
         }
       ],
-      "provincial_population": 31389707,
+      "provincial_population": 28810041,
       "assemblypeople": 33,
-      "prelates": 9,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -1751,7 +1751,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 19912471,
+      "provincial_population": 16516497,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -1847,7 +1847,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 24540134,
+      "provincial_population": 27971197,
       "assemblypeople": 29,
       "prelates": 8,
       "dominant_religion": "Zoroastrianism"
@@ -1939,7 +1939,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 16371958,
+      "provincial_population": 19050296,
       "assemblypeople": 27,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -2027,7 +2027,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 13184217,
+      "provincial_population": 13433108,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -2115,7 +2115,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 1620773,
+      "provincial_population": 1580215,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -2203,7 +2203,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 1875318,
+      "provincial_population": 2250897,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -2291,7 +2291,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 1351807,
+      "provincial_population": 1060054,
       "assemblypeople": 8,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -2307,13 +2307,13 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": "17",
-        "food": "29.9",
-        "production": "97.7",
-        "gold": "190.8",
-        "culture": "79.5",
-        "science": "56",
-        "faith": "29"
+        "amenities": "23",
+        "food": "83",
+        "production": "117.4",
+        "gold": "226.7",
+        "culture": "119.8",
+        "science": "69.5",
+        "faith": "33.5"
       },
       "religions": [
         {
@@ -2331,10 +2331,582 @@
       "counties": [
         {
           "tile_id": "tile_1",
-          "terrain": "",
+          "terrain": "Grassland (Hills)",
           "features": {},
           "improvement": {
+            "name": "City Center",
+            "buildings": {
+              "Monument": true,
+              "Granary": true,
+              "Sewer": true,
+              "Flood Barrier": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "City Center",
+          "distance_from_center": 0
+        },
+        {
+          "name": "Bayside",
+          "tile_id": "tile_2",
+          "distance_from_center": 1,
+          "terrain": "Coast",
+          "features": {
+            "Reef": true,
+            "Cliff": true,
+            "San Francisco Bay": true
+          },
+          "improvement": {
             "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": "4",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Aerodrome District",
+          "tile_id": "tile_3",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Aerodrome",
+            "buildings": {
+              "Hangar": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Temple of Artemis District",
+          "tile_id": "tile_4",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Temple of Artemis",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "2",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Industrial Zone District",
+          "tile_id": "tile_5",
+          "distance_from_center": 1,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Industrial Zone",
+            "buildings": {
+              "Workshop": true,
+              "Factory": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "2",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": "8",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "City Quarry District",
+          "tile_id": "tile_6",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {
+            "Stone": true
+          },
+          "improvement": {
+            "name": "Quarry",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Stone",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "5",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Washington A&T University District",
+          "tile_id": "tile_7",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Campus",
+            "buildings": {
+              "Library": true,
+              "University": true,
+              "Research Lab": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": "13",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Seaside",
+          "tile_id": "tile_8",
+          "distance_from_center": 2,
+          "terrain": "Coast",
+          "features": {
+            "Amber": true,
+            "San Francisco Bay": true
+          },
+          "improvement": {
+            "name": "Fishing Boats",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Amber",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "3",
+            "gold": "5",
+            "culture": "1",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Breadbasket",
+          "tile_id": "tile_9",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Estadio District",
+          "tile_id": "tile_10",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Estadio do Maracana",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": "13",
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Honeyfields",
+          "tile_id": "tile_11",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Honey": true
+          },
+          "improvement": {
+            "name": "Camp",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Honey",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "1",
+            "gold": "4",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "South Honeyfields",
+          "tile_id": "tile_12",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {
+            "Honey": true
+          },
+          "improvement": {
+            "name": "Camp",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Honey",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "4",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Theater Square District",
+          "tile_id": "tile_13",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Theater Square",
+            "buildings": {
+              "Ampitheater": true,
+              "Archaeological Museum": true,
+              "Broadcast Center": true
+            },
+            "great_works": {
+              "Drinking Alone by Moonlight": true,
+              "Chalice": true,
+              "Rossum's Universal RObots": true,
+              "Longsword": true,
+              "Stone Tablet": true
+            }
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "15",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "South Pastureland",
+          "tile_id": "tile_14",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {
+            "Horses": true
+          },
+          "improvement": {
+            "name": "Pasture",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Horses",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "4",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Pastureland",
+          "tile_id": "tile_15",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {
+            "Horses": true
+          },
+          "improvement": {
+            "name": "Pasture",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Horses",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "0",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "4",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Ironworks",
+          "tile_id": "tile_16",
+          "distance_from_center": 2,
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Iron": true
+          },
+          "improvement": {
+            "name": "Mine",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Iron",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "1",
+            "production": "6",
+            "gold": null,
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Preserve District",
+          "tile_id": "tile_17",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Preserve",
+            "buildings": {
+              "Grove": true,
+              "Sanctuary": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Holy Site District",
+          "tile_id": "tile_18",
+          "distance_from_center": 2,
+          "terrain": "Tundra",
+          "features": {},
+          "improvement": {
+            "name": "Holy Site",
+            "buildings": {
+              "Shrine": true,
+              "Gurdwara": true,
+              "Prasat": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": "11",
+            "tourism": null
+          }
+        },
+        {
+          "name": "Commercial Hub District",
+          "tile_id": "tile_19",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Commercial Hub",
+            "buildings": {
+              "Market": true,
+              "Bank": true,
+              "Stock Exchange": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "9",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": "24",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Torre de Belem District",
+          "tile_id": "tile_20",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {
+            "Cliff": true,
+            "San Francisco Bay": true
+          },
+          "improvement": {
+            "name": "Torre de Belem",
             "buildings": {},
             "great_works": {}
           },
@@ -2348,13 +2920,749 @@
             "food": null,
             "production": null,
             "gold": null,
+            "culture": "6",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Entertainment Complex District",
+          "tile_id": "tile_21",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Entertainment Complex",
+            "buildings": {
+              "Arena": true,
+              "Zoo": true,
+              "Stadium": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": "13",
+            "food": null,
+            "production": null,
+            "gold": null,
             "culture": null,
             "science": null,
             "faith": null,
             "tourism": null
+          }
+        },
+        {
+          "name": "Encampment District",
+          "tile_id": "tile_22",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Encampment",
+            "buildings": {
+              "Stable": true,
+              "Armory": true,
+              "Military Academy": true
+            },
+            "great_works": {}
           },
-          "name": "",
-          "distance_from_center": null
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": "6",
+            "gold": "6",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Cliffs of Crater",
+          "tile_id": "tile_23",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {
+              "Food Market": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Washadelphia",
+          "tile_id": "tile_24",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Washinnati",
+          "tile_id": "tile_25",
+          "distance_from_center": 3,
+          "terrain": "Plains (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "West Breadbasket",
+          "tile_id": "tile_26",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {
+            "Wheat": true
+          },
+          "improvement": {
+            "name": "Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Wheat",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "0",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Park 3 District",
+          "tile_id": "tile_27",
+          "distance_from_center": 3,
+          "terrain": "Tundra (Mountain)",
+          "features": {
+            "Washington National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Park Center",
+          "tile_id": "tile_28",
+          "distance_from_center": 3,
+          "terrain": "Tundra",
+          "features": {
+            "Volcanic Soil": true,
+            "Washington National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "9",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Offshore Wind Farm District",
+          "tile_id": "tile_29",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {
+            "San Francisco Bay": true
+          },
+          "improvement": {
+            "name": "Offshore Wind Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "4",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Harbor District",
+          "tile_id": "tile_30",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {
+            "San Francisco Bay": true
+          },
+          "improvement": {
+            "name": "Harbor",
+            "buildings": {
+              "Lighthouse": true,
+              "Shipyard": true,
+              "Seaport": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "6",
+            "production": null,
+            "gold": "8",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Shoreline",
+          "tile_id": "tile_31",
+          "distance_from_center": 4,
+          "terrain": "Coast",
+          "features": {
+            "Cliff": true,
+            "San Francisco Bay": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Gulf Quarry District",
+          "tile_id": "tile_32",
+          "distance_from_center": 4,
+          "terrain": "Grassland",
+          "features": {
+            "Marble": true
+          },
+          "improvement": {
+            "name": "Quarry",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Marble",
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "4",
+            "gold": null,
+            "culture": "1",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Sonora",
+          "tile_id": "tile_33",
+          "distance_from_center": 4,
+          "terrain": "Desert",
+          "features": {
+            "Sonoran Desert": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Se Kong River",
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Park 2 District",
+          "tile_id": "tile_34",
+          "distance_from_center": 4,
+          "terrain": "Tundra (Mountain)",
+          "features": {
+            "Volcano": true,
+            "Washington National Park": true,
+            "Mount Rainier": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Park 1 District",
+          "tile_id": "tile_35",
+          "distance_from_center": 4,
+          "terrain": "Tundra (Hills)",
+          "features": {
+            "Volcanic Soil": true,
+            "Washington National Park": true,
+            "Cliff": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "3",
+            "gold": null,
+            "culture": null,
+            "science": "2",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Baymouth",
+          "tile_id": "tile_36",
+          "distance_from_center": 4,
+          "terrain": "Coast",
+          "features": {
+            "San Francisco Bay": true
+          },
+          "improvement": {
+            "name": "Seastead",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Shallow Central",
+          "tile_id": "tile_37",
+          "distance_from_center": 4,
+          "terrain": "Coast",
+          "features": {
+            "San Francisco Bay": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Deep Central",
+          "tile_id": "tile_38",
+          "distance_from_center": 4,
+          "terrain": "Ocean",
+          "features": {
+            "San Francisco Bay": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "1",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Gulf Inlet",
+          "tile_id": "tile_39",
+          "distance_from_center": 5,
+          "terrain": "Coast",
+          "features": {
+            "Gulf of Thailand": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Jutland",
+          "tile_id": "tile_40",
+          "distance_from_center": 5,
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true,
+            "Antiquity Site": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "9",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "West Ocean Cliffs",
+          "tile_id": "tile_41",
+          "distance_from_center": 5,
+          "terrain": "Coast",
+          "features": {
+            "Cliff": true,
+            "Atlantic Ocean": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Ocean Cliffs",
+          "tile_id": "tile_42",
+          "distance_from_center": 5,
+          "terrain": "Coast",
+          "features": {
+            "Cliff": true,
+            "Atlantic Ocean": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Atlantic West",
+          "tile_id": "tile_43",
+          "distance_from_center": 5,
+          "terrain": "Coast",
+          "features": {
+            "Atlantic Ocean": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Atlantic Central",
+          "tile_id": "tile_44",
+          "distance_from_center": 5,
+          "terrain": "Coast",
+          "features": {
+            "Atlantic Ocean": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Atlantic East",
+          "tile_id": "tile_45",
+          "distance_from_center": 5,
+          "terrain": "Coast",
+          "features": {
+            "Atlantic Ocean": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
         }
       ],
       "group": "Federation of American Provinces",
@@ -2363,29 +3671,29 @@
       "is_regional_capital": true,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cincinnati",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Philadelphia",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "St. Louis",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Charleston",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Mahendraparvata",
+          "distance": 8
         }
       ],
-      "provincial_population": 41038054,
+      "provincial_population": 35494383,
       "assemblypeople": 36,
-      "prelates": 10,
+      "prelates": 9,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -2471,7 +3779,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 24566270,
+      "provincial_population": 26597207,
       "assemblypeople": 32,
       "prelates": 8,
       "dominant_religion": "Zoroastrianism"
@@ -2559,7 +3867,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 23989684,
+      "provincial_population": 26104572,
       "assemblypeople": 31,
       "prelates": 8,
       "dominant_religion": "Zoroastrianism"
@@ -2651,9 +3959,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 15619636,
+      "provincial_population": 14391507,
       "assemblypeople": 23,
-      "prelates": 7,
+      "prelates": 6,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -2743,7 +4051,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 14436460,
+      "provincial_population": 14368550,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -2835,7 +4143,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 19153992,
+      "provincial_population": 15916079,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -2923,7 +4231,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 434597,
+      "provincial_population": 395254,
       "assemblypeople": 5,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3011,7 +4319,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 809781,
+      "provincial_population": 982633,
       "assemblypeople": 7,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3099,7 +4407,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 818836,
+      "provincial_population": 911906,
       "assemblypeople": 7,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3187,7 +4495,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 1463618,
+      "provincial_population": 1616925,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3275,7 +4583,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 1496870,
+      "provincial_population": 1404361,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3363,7 +4671,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 2072462,
+      "provincial_population": 1962213,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3451,7 +4759,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 2050692,
+      "provincial_population": 2238389,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3539,7 +4847,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 3028752,
+      "provincial_population": 2821158,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3627,7 +4935,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 2242596,
+      "provincial_population": 2894546,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3715,7 +5023,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 2140109,
+      "provincial_population": 2353580,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3803,7 +5111,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 3559644,
+      "provincial_population": 2925998,
       "assemblypeople": 12,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3891,7 +5199,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 5122332,
+      "provincial_population": 4094386,
       "assemblypeople": 14,
       "prelates": 5,
       "dominant_religion": "None"
@@ -3979,7 +5287,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 5114349,
+      "provincial_population": 6551323,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4067,7 +5375,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 5536771,
+      "provincial_population": 4998781,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4155,7 +5463,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 6714731,
+      "provincial_population": 5961350,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4243,7 +5551,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 6563593,
+      "provincial_population": 6337695,
       "assemblypeople": 17,
       "prelates": 5,
       "dominant_religion": "None"
@@ -4331,9 +5639,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 7988829,
+      "provincial_population": 6681664,
       "assemblypeople": 17,
-      "prelates": 6,
+      "prelates": 5,
       "dominant_religion": "None"
     },
     {
@@ -4419,9 +5727,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 7318664,
+      "provincial_population": 8601477,
       "assemblypeople": 18,
-      "prelates": 5,
+      "prelates": 6,
       "dominant_religion": "None"
     },
     {
@@ -4507,9 +5815,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 9067954,
+      "provincial_population": 7454567,
       "assemblypeople": 18,
-      "prelates": 6,
+      "prelates": 5,
       "dominant_religion": "None"
     },
     {
@@ -4595,9 +5903,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 8156013,
+      "provincial_population": 7378680,
       "assemblypeople": 18,
-      "prelates": 6,
+      "prelates": 5,
       "dominant_religion": "None"
     },
     {
@@ -4683,9 +5991,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 7937275,
+      "provincial_population": 7168659,
       "assemblypeople": 18,
-      "prelates": 6,
+      "prelates": 5,
       "dominant_religion": "None"
     },
     {
@@ -4771,9 +6079,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 9545200,
+      "provincial_population": 7453150,
       "assemblypeople": 19,
-      "prelates": 6,
+      "prelates": 5,
       "dominant_religion": "None"
     },
     {
@@ -4859,7 +6167,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 10299158,
+      "provincial_population": 10594516,
       "assemblypeople": 19,
       "prelates": 6,
       "dominant_religion": "None"
@@ -4947,7 +6255,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 9031049,
+      "provincial_population": 12142084,
       "assemblypeople": 20,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5035,7 +6343,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 10257827,
+      "provincial_population": 8308543,
       "assemblypeople": 20,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5123,7 +6431,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 10908381,
+      "provincial_population": 12512020,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5211,7 +6519,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 10732160,
+      "provincial_population": 13436737,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5299,7 +6607,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 9544736,
+      "provincial_population": 12064902,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5387,7 +6695,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 10731643,
+      "provincial_population": 12217595,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5475,7 +6783,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 14464722,
+      "provincial_population": 10763342,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5563,7 +6871,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 11832921,
+      "provincial_population": 12128488,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5651,7 +6959,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 12972714,
+      "provincial_population": 12637105,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "None"
@@ -5739,9 +7047,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 13261527,
+      "provincial_population": 16256773,
       "assemblypeople": 23,
-      "prelates": 6,
+      "prelates": 7,
       "dominant_religion": "None"
     },
     {
@@ -5827,9 +7135,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 14909641,
+      "provincial_population": 18244674,
       "assemblypeople": 24,
-      "prelates": 6,
+      "prelates": 7,
       "dominant_religion": "None"
     },
     {
@@ -5915,7 +7223,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 17551417,
+      "provincial_population": 19720414,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "None"
@@ -6003,7 +7311,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 17960178,
+      "provincial_population": 18307515,
       "assemblypeople": 26,
       "prelates": 7,
       "dominant_religion": "None"
@@ -6091,7 +7399,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 22006462,
+      "provincial_population": 17628590,
       "assemblypeople": 26,
       "prelates": 7,
       "dominant_religion": "None"
@@ -6179,7 +7487,7 @@
           "distance": null
         }
       ],
-      "provincial_population": 26047257,
+      "provincial_population": 23359296,
       "assemblypeople": 29,
       "prelates": 8,
       "dominant_religion": "None"
@@ -6267,9 +7575,9 @@
           "distance": null
         }
       ],
-      "provincial_population": 22785332,
+      "provincial_population": 30222471,
       "assemblypeople": 30,
-      "prelates": 8,
+      "prelates": 9,
       "dominant_religion": "None"
     },
     {
@@ -6355,72 +7663,72 @@
           "distance": null
         }
       ],
-      "provincial_population": 14602153,
+      "provincial_population": 16093996,
       "assemblypeople": 25,
-      "prelates": 6,
+      "prelates": 7,
       "dominant_religion": "None"
     }
   ],
   "province_groups": [
     {
       "name": "Capital Region",
-      "regional_population": 82453089,
+      "regional_population": 84941144,
       "assemblypeople": 111,
       "prelates": 29
     },
     {
       "name": "Roraima Land",
-      "regional_population": 49300503,
+      "regional_population": 49378860,
       "assemblypeople": 81,
       "prelates": 30
     },
     {
       "name": "Federation of American Provinces",
-      "regional_population": 104850295,
+      "regional_population": 96264515,
       "assemblypeople": 132,
-      "prelates": 36
+      "prelates": 35
     },
     {
       "name": "Provinces of Western Pannotia and the Bering Sea",
-      "regional_population": 57215263,
+      "regional_population": 58823093,
       "assemblypeople": 113,
-      "prelates": 35
+      "prelates": 34
     },
     {
       "name": "Union of the Free Adriatic Provinces",
-      "regional_population": 87965735,
+      "regional_population": 95580206,
       "assemblypeople": 130,
-      "prelates": 35
+      "prelates": 36
     },
     {
       "name": "Royal Provinces of the Western Romaioi",
-      "regional_population": 43313177,
+      "regional_population": 48545159,
       "assemblypeople": 97,
       "prelates": 33
     },
     {
       "name": "Eastern Roman Provinces",
-      "regional_population": 44070917,
+      "regional_population": 46068244,
       "assemblypeople": 101,
-      "prelates": 34
+      "prelates": 32
     },
     {
       "name": "Imperial Avalonia",
-      "regional_population": 20254531,
+      "regional_population": 23317039,
       "assemblypeople": 76,
       "prelates": 36
     },
     {
       "name": "Confederation of Eastern Avalonian Provinces",
-      "regional_population": 40745233,
+      "regional_population": 37630721,
       "assemblypeople": 78,
-      "prelates": 24
+      "prelates": 22
     },
     {
       "name": "Union of the Free Gondwanan Provinces",
-      "regional_population": 99471891,
+      "regional_population": 96471077,
       "assemblypeople": 151,
-      "prelates": 43
+      "prelates": 46
     }
   ],
   "global_religions": [

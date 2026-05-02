@@ -1,5 +1,7 @@
 import { clamp01, norm, num } from '../normalization/numbers'
 
+const LISTED_RELIGION_FOLLOWER_FLOOR = 0.25
+
 const COUNTY_AGGREGATED_FEATURES = [
   'urban_index',
   'rural_index',
@@ -16,17 +18,46 @@ const COUNTY_AGGREGATED_FEATURES = [
   'localist_index',
   'traditionalist_index',
   'restorationist_index',
+  'coastal_index',
+  'maritime_index',
+  'mountain_index',
+  'wilderness_index',
+  'residential_index',
+  'extractive_index',
+  'leisure_tourism_index',
+  'civic_monument_index',
+  'terrain_habitation_index',
 ]
 
 function groupIncludes(province, text) {
   return String(province?.group || '').includes(text)
 }
 
-function religionFollowers(province, religionName) {
-  if (!religionName || !Array.isArray(province?.religions)) return 0
-  return province.religions
-    .filter((religion) => religion?.name === religionName)
-    .reduce((sum, religion) => sum + num(religion.followers), 0)
+function religionFollowerCount(religion) {
+  const followers = num(religion?.followers)
+  return followers > 0 ? followers : LISTED_RELIGION_FOLLOWER_FLOOR
+}
+
+function religionFollowerMap(province) {
+  if (!Array.isArray(province?.religions)) return {}
+
+  return province.religions.reduce((followersByReligion, religion) => {
+    const name = String(religion?.name || '').trim()
+    if (!name) return followersByReligion
+    followersByReligion[name] = num(followersByReligion[name]) + religionFollowerCount(religion)
+    return followersByReligion
+  }, {})
+}
+
+function religionFollowers(followersByReligion, religionName) {
+  if (!religionName) return 0
+  return num(followersByReligion?.[religionName])
+}
+
+function nonStateReligionFollowers(followersByReligion, stateReligion) {
+  return Object.entries(followersByReligion || {}).reduce((sum, [religionName, followers]) => {
+    return religionName === stateReligion ? sum : sum + num(followers)
+  }, 0)
 }
 
 function populationWeightedFeature(counties, featureName, provincialPopulation) {
@@ -44,8 +75,10 @@ function populationWeightedFeature(counties, featureName, provincialPopulation) 
 export function calculateProvinceBaseFeatures(province, country = {}) {
   const civPopulation = Math.max(1, num(province?.population, 1))
   const stateReligion = country?.state_religion || null
-  const stateReligionShare = clamp01(religionFollowers(province, stateReligion) / civPopulation)
-  const taoistShare = clamp01(religionFollowers(province, 'Taoism') / civPopulation)
+  const followersByReligion = religionFollowerMap(province)
+  const stateReligionShare = clamp01(religionFollowers(followersByReligion, stateReligion) / civPopulation)
+  const minorityReligionShare = clamp01(nonStateReligionFollowers(followersByReligion, stateReligion) / civPopulation)
+  const taoistShare = clamp01(religionFollowers(followersByReligion, 'Taoism') / civPopulation)
   const loyaltyIndex = norm(province?.loyalty, 50)
   const happinessIndex = norm(province?.happiness_percentage, 120)
   const growthIndex = norm(province?.growth_percentage, 120)
@@ -72,7 +105,7 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
 
   return {
     state_religion_share: stateReligionShare,
-    minority_religion_share: clamp01(1 - stateReligionShare),
+    minority_religion_share: minorityReligionShare,
     taoist_share: taoistShare,
     american_identity_index: americanIdentityIndex,
     roman_identity_index: romanIdentityIndex,
@@ -98,16 +131,18 @@ export function calculateProvinceFeatures(province, country = {}, counties = [],
   }, {})
 
   const workerGrievanceIndex = clamp01(
-    0.3 * (1 - base.amenity_index) +
+    0.25 * (1 - base.amenity_index) +
     0.25 * (1 - base.happiness_index) +
     0.2 * base.production_index +
-    0.15 * aggregated.industrial_index +
-    0.1 * aggregated.urban_index
+    0.13 * aggregated.industrial_index +
+    0.09 * aggregated.urban_index +
+    0.08 * aggregated.extractive_index
   )
   const localistIndex = clamp01(
-    0.75 * aggregated.localist_index +
+    0.65 * aggregated.localist_index +
     0.15 * base.minority_religion_share +
-    0.1 * (province?.is_conquered ? 1 : 0)
+    0.1 * (province?.is_conquered ? 1 : 0) +
+    0.1 * aggregated.wilderness_index
   )
   const restorationistIndex = clamp01(
     0.35 * base.roman_identity_index +
@@ -135,6 +170,14 @@ export function calculateProvinceFeatures(province, country = {}, counties = [],
     restorationist_index: restorationistIndex,
     worker_index: aggregated.worker_index,
     worker_grievance_index: workerGrievanceIndex,
+    coastal_index: aggregated.coastal_index,
+    maritime_index: aggregated.maritime_index,
+    mountain_index: aggregated.mountain_index,
+    wilderness_index: aggregated.wilderness_index,
+    residential_index: aggregated.residential_index,
+    extractive_index: aggregated.extractive_index,
+    leisure_tourism_index: aggregated.leisure_tourism_index,
+    civic_monument_index: aggregated.civic_monument_index,
+    terrain_habitation_index: aggregated.terrain_habitation_index,
   }
 }
-

@@ -19,24 +19,37 @@ export function calculateCountyPartyScores(county, province) {
   const religiousMinorityIndex = num(provinceFeatures.minority_religion_share)
   const conqueredAmericanIndex = americanIdentityIndex && conqueredPenalty ? 1 : 0
   const inverseScienceCultureIndex = clamp01(1 - ((f(county, 'science_index') + f(county, 'culture_index')) / 2))
+  const maritimeIndex = f(county, 'maritime_index')
+  const mountainIndex = f(county, 'mountain_index')
+  const wildernessIndex = f(county, 'wilderness_index')
+  const residentialIndex = f(county, 'residential_index')
+  const extractiveIndex = f(county, 'extractive_index')
+  const leisureTourismIndex = f(county, 'leisure_tourism_index')
+  const civicMonumentIndex = f(county, 'civic_monument_index')
   const whiteDiasporaScore =
     PARTY_FLOORS.white +
     0.035 * f(county, 'commercial_index') +
     0.025 * f(county, 'urban_index') +
-    0.02 * localistIndex
+    0.02 * localistIndex +
+    0.015 * maritimeIndex +
+    0.015 * wildernessIndex
   const purpleDiasporaScore =
     PARTY_FLOORS.purple +
     0.05 * f(county, 'spiritual_index') +
     0.035 * f(county, 'faith_index') +
     0.025 * religiousMinorityIndex +
-    0.02 * f(county, 'restorationist_index')
+    0.02 * f(county, 'restorationist_index') +
+    0.02 * wildernessIndex +
+    0.01 * mountainIndex
   const whiteNaturalScore =
     PARTY_FLOORS.white +
     0.7 * americanIdentityIndex +
     0.175 * conqueredAmericanIndex +
     0.1 * f(county, 'commercial_index') +
     0.075 * f(county, 'urban_index') +
-    0.05 * localistIndex
+    0.05 * localistIndex +
+    0.035 * maritimeIndex +
+    0.025 * wildernessIndex
   const purpleNaturalScore =
     PARTY_FLOORS.purple +
     0.5 * taoistShare +
@@ -44,7 +57,9 @@ export function calculateCountyPartyScores(county, province) {
     0.225 * f(county, 'spiritual_index') +
     0.15 * f(county, 'faith_index') +
     0.125 * religiousMinorityIndex +
-    0.1 * romanIdentityIndex
+    0.1 * romanIdentityIndex +
+    0.035 * wildernessIndex +
+    0.025 * mountainIndex
   const isAmericanBase = americanIdentityIndex >= 0.5
   const isLotusBase = romanIdentityIndex >= 0.5 || taoistShare >= 0.05
 
@@ -56,6 +71,8 @@ export function calculateCountyPartyScores(county, province) {
       0.175 * f(county, 'intellectual_index') +
       0.15 * f(county, 'infrastructure_index') +
       0.125 * stateReligionShare +
+      0.08 * civicMonumentIndex +
+      0.04 * residentialIndex +
       0.1 * loyaltyIndex -
       0.15 * conqueredPenalty -
       0.1 * localistIndex,
@@ -67,6 +84,8 @@ export function calculateCountyPartyScores(county, province) {
       0.2 * f(county, 'urban_index') +
       0.2 * f(county, 'production_index') +
       0.125 * f(county, 'mine_or_corporation_index') +
+      0.09 * extractiveIndex +
+      0.05 * maritimeIndex +
       0.1 * workerGrievanceIndex -
       0.1 * f(county, 'spiritual_index') -
       0.075 * imperialCore,
@@ -78,6 +97,9 @@ export function calculateCountyPartyScores(county, province) {
       0.25 * f(county, 'military_index') +
       0.175 * f(county, 'food_index') +
       0.15 * f(county, 'traditionalist_index') +
+      0.08 * wildernessIndex +
+      0.05 * mountainIndex +
+      0.04 * extractiveIndex +
       0.075 * inverseScienceCultureIndex -
       0.125 * f(county, 'urban_index'),
 
@@ -90,6 +112,9 @@ export function calculateCountyPartyScores(county, province) {
       0.175 * f(county, 'commercial_middle_class_index') +
       0.125 * f(county, 'culture_index') +
       0.125 * f(county, 'science_index') +
+      0.08 * residentialIndex +
+      0.07 * leisureTourismIndex +
+      0.04 * maritimeIndex +
       0.125 * localistIndex -
       0.075 * imperialCore,
 

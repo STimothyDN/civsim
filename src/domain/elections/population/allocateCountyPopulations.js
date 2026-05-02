@@ -20,6 +20,8 @@ export const IMPROVEMENT_POP_MULTIPLIERS = {
   Preserve: 0.85,
 }
 
+const AMBIENT_POPULATION_BLOCKED_TERRAINS = ['Ocean', 'Coast', 'Mountain']
+
 function cloneCounty(county, index) {
   return {
     ...(county || {}),
@@ -35,14 +37,24 @@ function cloneCounty(county, index) {
   }
 }
 
+function terrainName(county) {
+  return String(county?.terrain || '')
+}
+
+export function countyAllowsAmbientPopulation(county) {
+  if (Math.max(0, num(county?.citizens_working)) > 0) return true
+  const terrain = terrainName(county)
+  return !AMBIENT_POPULATION_BLOCKED_TERRAINS.some((blockedTerrain) => terrain.includes(blockedTerrain))
+}
+
 function improvementMultiplier(county) {
   const name = String(county?.improvement?.name || '').trim()
   if (IMPROVEMENT_POP_MULTIPLIERS[name] !== undefined) return IMPROVEMENT_POP_MULTIPLIERS[name]
-  if (String(county?.terrain || '').includes('Mountain')) return 0.45
+  if (terrainName(county).includes('Mountain')) return 0.45
   return 0.75
 }
 
-export function countyPopulationWeight(county) {
+function rawCountyPopulationWeight(county) {
   const distance = Math.max(0, num(county?.distance_from_center))
   const distanceMultiplier = 1 / (1 + 0.28 * distance)
   const citizenMultiplier = 1 + 0.35 * Math.max(0, num(county?.citizens_working))
@@ -63,6 +75,10 @@ export function countyPopulationWeight(county) {
   )
 }
 
+export function countyPopulationWeight(county) {
+  return countyAllowsAmbientPopulation(county) ? rawCountyPopulationWeight(county) : 0
+}
+
 export function allocateCountyPopulations(province, provincialPopulation) {
   const provincePopulation = Math.max(0, Math.round(num(provincialPopulation)))
   const sourceCounties = Array.isArray(province?.counties) && province.counties.length
@@ -70,16 +86,19 @@ export function allocateCountyPopulations(province, provincialPopulation) {
     : [{ name: '', tile_id: 'tile_1', improvement: { name: '', buildings: {}, great_works: {} }, features: {}, yields: {} }]
   const counties = sourceCounties.map(cloneCounty)
 
+  const eligibilityWeights = counties.map(countyPopulationWeight)
+  const totalEligibilityWeight = eligibilityWeights.reduce((sum, weight) => sum + weight, 0)
+  const weights = totalEligibilityWeight > 0 ? eligibilityWeights : counties.map(rawCountyPopulationWeight)
+
   if (counties.length === 1) {
     return counties.map((county) => ({
       ...county,
       county_population: provincePopulation,
       county_population_share: provincePopulation > 0 ? 1 : 0,
-      population_weight: 1,
+      population_weight: weights[0] || 1,
     }))
   }
 
-  const weights = counties.map(countyPopulationWeight)
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0) || counties.length
   const allocations = counties.map((county, index) => {
     const rawPopulation = provincePopulation * weights[index] / totalWeight
@@ -113,4 +132,3 @@ export function allocateCountyPopulations(province, provincialPopulation) {
       population_weight: weight,
     }))
 }
-

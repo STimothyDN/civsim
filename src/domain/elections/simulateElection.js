@@ -11,7 +11,7 @@ import { calculateProvincePartyScores } from './scoring/provinceScores'
 import { emptyPartyMap, scoresToVoteShares, sumPartyMaps, weightedVoteShares } from './scoring/normalizeScores'
 import { applyJitter } from './randomness/jitter'
 import { applyTrends } from './trends/applyTrends'
-import { num, roundTo, sumObjectValues } from './normalization/numbers'
+import { clamp, num, roundTo, sumObjectValues } from './normalization/numbers'
 import { determineHouseControl } from './coalitions/houseControl'
 
 function mergeConfig(electionConfig = {}) {
@@ -22,8 +22,28 @@ function mergeConfig(electionConfig = {}) {
       ...BASELINE_ELECTION_CONFIG.volatility,
       ...(electionConfig.volatility || {}),
     },
+    voteBlend: {
+      ...BASELINE_ELECTION_CONFIG.voteBlend,
+      ...(electionConfig.voteBlend || {}),
+    },
     trends: Array.isArray(electionConfig.trends) ? electionConfig.trends : [],
   }
+}
+
+function normalizeVoteShares(shares = {}) {
+  const totals = Object.fromEntries(PARTIES.map((party) => [party, Math.max(0, num(shares?.[party]))]))
+  const total = sumObjectValues(totals)
+  if (total <= 0) return scoresToVoteShares(totals)
+  return Object.fromEntries(PARTIES.map((party) => [party, totals[party] / total]))
+}
+
+function blendVoteShares(localShares, climateShares, localWeight) {
+  const local = clamp(num(localWeight, 0.5), 0, 1)
+  const climate = 1 - local
+  return normalizeVoteShares(Object.fromEntries(PARTIES.map((party) => [
+    party,
+    local * num(localShares?.[party]) + climate * num(climateShares?.[party]),
+  ])))
 }
 
 function rawProvinceFor(data, row) {
@@ -80,7 +100,7 @@ function calculateCountyVote(county, province, config) {
   }
 }
 
-function calculateProvinceAssembly(province, config) {
+function calculateProvinceAssembly(province, counties, config) {
   const rawScores = calculateProvincePartyScores(province)
   const trendScores = applyTrends(rawScores, province, 'province', config.trends)
   const adjustedScores = applyJitter(trendScores, {
@@ -88,7 +108,14 @@ function calculateProvinceAssembly(province, config) {
     region: province.group || 'Unassigned',
     province: province.city_id || province.provinceIndex,
   }, config)
-  const voteShares = scoresToVoteShares(adjustedScores)
+  const climateVoteShares = scoresToVoteShares(adjustedScores)
+  const localVoteShares = weightedVoteShares(
+    counties,
+    (county) => county.county_population,
+    (county) => county.vote_shares
+  )
+  const localWeight = num(config.voteBlend?.provincialAssemblyLocalWeight, 0.65)
+  const voteShares = blendVoteShares(localVoteShares, climateVoteShares, localWeight)
   const seats = apportionDHondt(voteShares, province.assemblypeople, {
     threshold: THRESHOLDS.provincialAssembly,
     rawScores: adjustedScores,
@@ -96,6 +123,12 @@ function calculateProvinceAssembly(province, config) {
 
   return {
     vote_shares: voteShares,
+    local_vote_shares: localVoteShares,
+    climate_vote_shares: climateVoteShares,
+    vote_blend: {
+      local_weight: clamp(localWeight, 0, 1),
+      climate_weight: 1 - clamp(localWeight, 0, 1),
+    },
     seats,
     control: determineHouseControl(seats, config.trends),
     raw_scores: rawScores,
@@ -153,7 +186,7 @@ function buildProvinceResult(data, row, config) {
     })
     return calculateCountyVote({ ...county, political_features: features }, province, config)
   })
-  const assembly = calculateProvinceAssembly(province, config)
+  const assembly = calculateProvinceAssembly(province, counties, config)
   const prelates = calculateProvincePrelates(province, counties, config)
   const national_prelate_delegation = apportionDHondt(assembly.vote_shares, province.prelates, {
     threshold: THRESHOLDS.nationalPrelates,
@@ -252,7 +285,14 @@ function calculateNational(provinces, config) {
   const rawScores = calculateNationalPartyScores(features)
   const trendScores = applyTrends(rawScores, unit, 'national', config.trends)
   const adjustedScores = applyJitter(trendScores, { national: 'national' }, config)
-  const voteShares = scoresToVoteShares(adjustedScores)
+  const climateVoteShares = scoresToVoteShares(adjustedScores)
+  const localVoteShares = weightedVoteShares(
+    provinces,
+    (province) => province.provincial_population,
+    (province) => province.assembly.vote_shares
+  )
+  const localWeight = num(config.voteBlend?.nationalAssemblyLocalWeight, 0.7)
+  const voteShares = blendVoteShares(localVoteShares, climateVoteShares, localWeight)
   const assemblySeatCount = provinces.reduce((sum, province) => sum + num(province.assemblypeople), 0)
   const prelateSeatCount = provinces.reduce((sum, province) => sum + num(province.prelates.seat_count), 0)
   const assemblySeats = apportionSainteLague(voteShares, assemblySeatCount, {
@@ -266,6 +306,12 @@ function calculateNational(provinces, config) {
     population: features.national_population,
     assembly: {
       vote_shares: voteShares,
+      local_vote_shares: localVoteShares,
+      climate_vote_shares: climateVoteShares,
+      vote_blend: {
+        local_weight: clamp(localWeight, 0, 1),
+        climate_weight: 1 - clamp(localWeight, 0, 1),
+      },
       seats: assemblySeats,
       control: determineHouseControl(assemblySeats, config.trends),
       raw_scores: rawScores,
