@@ -38,6 +38,13 @@
           Load or create a template before applying an election narrative.
         </div>
 
+        <LlmStatusIndicator
+          v-if="isLoading && llmStatus"
+          :status="llmStatus"
+          title="Narrative Planner"
+          variant="compact"
+        />
+
         <div v-if="statusItems.length" class="narrative-status-list">
           <div v-for="item in statusItems" :key="item.id" class="narrative-status-item" :class="`narrative-status-item--${item.type}`">
             <CheckCircle2 v-if="item.type === 'success'" :size="15" />
@@ -72,13 +79,14 @@ import { requestElectionNarrativePlan } from '../../domain/elections/narrativePl
 import { useElectionStore } from '../../stores/electionStore'
 import { useFormStore } from '../../stores/formStore'
 import { useUiStore } from '../../stores/uiStore'
+import LlmStatusIndicator from './LlmStatusIndicator.vue'
 import PartyBadge from './PartyBadge.vue'
 
 let statusId = 0
 
 export default {
   name: 'ElectionNarrativeModal',
-  components: { CheckCircle2, Loader2, PartyBadge, Sparkles, TriangleAlert, X },
+  components: { CheckCircle2, LlmStatusIndicator, Loader2, PartyBadge, Sparkles, TriangleAlert, X },
   setup() {
     const uiStore = useUiStore()
     const formStore = useFormStore()
@@ -88,6 +96,7 @@ export default {
     const appliedPackage = ref(null)
     const textareaRef = ref(null)
     const phase = ref('idle')
+    const llmStatus = ref(null)
     const isLoading = computed(() => phase.value === 'loading')
 
     watch(
@@ -120,16 +129,17 @@ export default {
       phase.value = 'loading'
       statusItems.value = []
       appliedPackage.value = null
+      llmStatus.value = null
 
       try {
-        pushStatus('Building election context for the local model.')
-        pushStatus('Sending narrative to LM Studio at localhost:1234.')
         const { packageDef } = await requestElectionNarrativePlan({
           narrative: prompt,
           data: formStore.currentData,
+          onStatus: (status) => {
+            llmStatus.value = status
+          },
         })
 
-        pushStatus('Parsing trend selections and jitter settings.')
         if (!packageDef.trends.length) {
           throw new Error('The model did not select any valid trend templates.')
         }
@@ -151,6 +161,7 @@ export default {
       close,
       formStore,
       isLoading,
+      llmStatus,
       narrative,
       statusItems,
       submitNarrative,

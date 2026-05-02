@@ -96,6 +96,38 @@ function mountPage(component, withData = true) {
   return { wrapper, store, electionStore: useElectionStore() }
 }
 
+function nativeChatResponse(content) {
+  const encoder = new TextEncoder()
+  const event = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`
+  const streamText = [
+    event('chat.start', { model_instance_id: 'qwen/qwen3.5-9b' }),
+    event('prompt_processing.start', {}),
+    event('prompt_processing.progress', { progress: 0.5 }),
+    event('prompt_processing.end', {}),
+    event('message.start', {}),
+    event('message.delta', { content }),
+    event('message.end', {}),
+    event('chat.end', {
+      result: {
+        model_instance_id: 'qwen/qwen3.5-9b',
+        output: [{ type: 'message', content }],
+        stats: { input_tokens: 100, total_output_tokens: 30 },
+      },
+    }),
+  ].join('')
+
+  return {
+    ok: true,
+    body: new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(streamText))
+        controller.close()
+      },
+    }),
+    text: async () => streamText,
+  }
+}
+
 describe('election result pages', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
@@ -110,37 +142,13 @@ describe('election result pages', () => {
   it('renders national results and randomizes the election climate', async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: '',
-                reasoning_content: 'Thinking through the climate...',
-              },
-              finish_reason: 'length',
-            },
-          ],
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  scenario: {
-                    scenario_name: 'Breadline Backlash',
-                    scenario_description: 'Cost pressures and local unrest define the randomized climate.',
-                  },
-                }),
-              },
-            },
-          ],
-        }),
-      })
+      .mockResolvedValueOnce(nativeChatResponse(''))
+      .mockResolvedValueOnce(nativeChatResponse(JSON.stringify({
+        scenario: {
+          scenario_name: 'Breadline Backlash',
+          scenario_description: 'Cost pressures and local unrest define the randomized climate.',
+        },
+      })))
     vi.stubGlobal('fetch', fetchMock)
 
     const { wrapper, electionStore } = mountPage(NationalElectionResults)

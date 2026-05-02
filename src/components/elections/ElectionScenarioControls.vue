@@ -10,8 +10,13 @@
         <div class="election-seed-row">
           <span>Seed {{ electionStore.seed }}</span>
           <span>Jitter {{ electionStore.jitterSeed }}</span>
-          <span v-if="isNamingScenario">Naming climate with local model</span>
         </div>
+        <LlmStatusIndicator
+          v-if="isNamingScenario && llmStatus"
+          :status="llmStatus"
+          title="Climate Naming"
+          variant="compact"
+        />
       </div>
       <div class="election-control-actions">
         <button type="button" class="btn-primary" :disabled="isNamingScenario" @click="randomizeElectionClimate">
@@ -44,18 +49,20 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Loader2, RotateCcw, Shuffle } from 'lucide-vue-next'
 import { useElectionStore } from '../../stores/electionStore'
 import { useFormStore } from '../../stores/formStore'
 import { useUiStore } from '../../stores/uiStore'
 import { PARTIES, PARTY_META } from '../../domain/elections'
 import { requestElectionClimateSummary } from '../../domain/elections/narrativePlanner'
+import LlmStatusIndicator from './LlmStatusIndicator.vue'
+import { climateLlmStatus } from './llmStatusCopy'
 import PartyBadge from './PartyBadge.vue'
 
 export default {
   name: 'ElectionScenarioControls',
-  components: { Loader2, PartyBadge, RotateCcw, Shuffle },
+  components: { LlmStatusIndicator, Loader2, PartyBadge, RotateCcw, Shuffle },
   props: {
     currentShares: { type: Object, default: () => ({}) },
     baselineShares: { type: Object, default: () => ({}) },
@@ -64,6 +71,7 @@ export default {
     const electionStore = useElectionStore()
     const formStore = useFormStore()
     const uiStore = useUiStore()
+    const llmStatus = ref(null)
     const isNamingScenario = computed(() => electionStore.scenarioMetadataStatus === 'loading')
 
     const partyShifts = computed(() => {
@@ -90,12 +98,16 @@ export default {
       const trendPackageId = packageDef.trendPackageId
 
       electionStore.setScenarioMetadataLoading(trendPackageId)
+      llmStatus.value = null
 
       try {
         const metadata = await requestElectionClimateSummary({
           trends: packageDef.trends,
           seed: packageDef.seed,
           data: formStore.currentData,
+          onStatus: (status) => {
+            llmStatus.value = climateLlmStatus(status)
+          },
         })
         electionStore.applyScenarioMetadata(metadata, trendPackageId)
       } catch (error) {
@@ -104,7 +116,7 @@ export default {
       }
     }
 
-    return { electionStore, isNamingScenario, partyShifts, randomizeElectionClimate }
+    return { electionStore, isNamingScenario, llmStatus, partyShifts, randomizeElectionClimate }
   },
 }
 </script>

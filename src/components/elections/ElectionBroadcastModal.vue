@@ -25,8 +25,11 @@
             </div>
             
             <div v-if="isLoading" class="broadcast-loading-state">
-              <Loader2 class="broadcast-spin" :size="24" />
-              <p>ENCRYPTED SIGNAL INCOMING...</p>
+              <LlmStatusIndicator
+                :status="llmStatus"
+                title="Broadcast Generator"
+                variant="broadcast"
+              />
             </div>
           </div>
         </div>
@@ -68,14 +71,16 @@
 
 <script>
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
-import { ArrowRight, FastForward, Loader2, Radio, X } from 'lucide-vue-next'
+import { ArrowRight, FastForward, Radio, X } from 'lucide-vue-next'
 import { useUiStore } from '../../stores/uiStore'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { requestElectionBroadcast } from '../../domain/elections/narrativePlanner'
+import LlmStatusIndicator from './LlmStatusIndicator.vue'
+import { broadcastLlmStatus } from './llmStatusCopy'
 
 export default {
   name: 'ElectionBroadcastModal',
-  components: { ArrowRight, FastForward, Loader2, Radio, X },
+  components: { ArrowRight, FastForward, LlmStatusIndicator, Radio, X },
   setup() {
     const uiStore = useUiStore()
     const { results, baselineResults } = useElectionResults()
@@ -87,6 +92,7 @@ export default {
     const currentParagraphText = ref('')
     const isTyping = ref(false)
     const isLoading = ref(false)
+    const llmStatus = ref(null)
     const scrollArea = ref(null)
 
     let typingInterval = null
@@ -107,6 +113,7 @@ export default {
       displayedParagraphs.value = []
       currentParagraphIndex.value = -1
       currentParagraphText.value = ''
+      llmStatus.value = null
 
       try {
         const text = await requestElectionBroadcast({
@@ -114,6 +121,9 @@ export default {
           baselineResults: baselineResults.value,
           scope: uiStore.broadcastScope,
           targetName: uiStore.broadcastTargetName,
+          onStatus: (status) => {
+            llmStatus.value = broadcastLlmStatus(status)
+          },
         })
         fullText.value = text
         paragraphs.value = text.split('\n').filter(p => p.trim())
@@ -201,6 +211,7 @@ export default {
       isFinished,
       isLoading,
       isTyping,
+      llmStatus,
       nextParagraph,
       paragraphs,
       scrollArea,

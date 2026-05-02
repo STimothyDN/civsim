@@ -23,6 +23,10 @@
               <Radio :size="16" />
               Start Election Broadcast
             </button>
+            <button type="button" class="btn-broadcast-start" @click="showElectionTicker('overview')">
+              <Radio :size="16" />
+              Show Election Ticker
+            </button>
           </div>
         </div>
         <div class="overview-hero-calls">
@@ -38,6 +42,13 @@
           </div>
         </div>
       </header>
+
+      <ElectionTickerCard
+        :request-id="tickerRequestId"
+        :scope="tickerScope"
+        :target-name="tickerTargetName"
+        :ticker-key="tickerKey"
+      />
 
       <ElectionScenarioControls
         :current-shares="results.national.assembly.vote_shares"
@@ -201,9 +212,10 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
+import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import { FilePlus2, LayoutDashboard, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
@@ -235,10 +247,13 @@ function countControlLeaders(units, chamber) {
 
 export default {
   name: 'ElectionOverview',
-  components: { ChamberComposition, ElectionScenarioControls, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
+  components: { ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
     const { baselineResults, hasData, results, store } = useElectionResults()
+    const tickerRequestId = ref(0)
+    const tickerScope = ref('overview')
+    const tickerTargetName = ref(null)
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
     const popularVoteLeader = computed(() => leaderFromShares(results.value.national.assembly.vote_shares))
     const regionRows = computed(() => Object.values(results.value.regions).sort((a, b) => b.population - a.population))
@@ -332,6 +347,18 @@ export default {
       }
     }
 
+    const tickerKey = computed(() => [
+      results.value.config.trendPackageId,
+      results.value.config.seed,
+      results.value.config.jitterSeed,
+    ].join('|'))
+
+    function showElectionTicker(scope = 'overview', targetName = null) {
+      tickerScope.value = scope
+      tickerTargetName.value = targetName
+      tickerRequestId.value += 1
+    }
+
     return {
       baselineResults,
       climateDescription,
@@ -352,6 +379,11 @@ export default {
       regionalChartOption,
       results,
       store,
+      showElectionTicker,
+      tickerKey,
+      tickerRequestId,
+      tickerScope,
+      tickerTargetName,
       topProvinceRows,
       topRegionRows,
       uiStore,

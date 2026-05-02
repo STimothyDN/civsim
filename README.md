@@ -20,4 +20,4 @@ Everything runs right in your browser. There's no backend server involved, so yo
 
 *Technical notes: It's built with Vue 3, Vite, and Tailwind. If you want to run it locally, standard Node setup applies (`npm ci` then `npm run dev`).*
 
-For election climate naming and the Election Narrative modal, the app calls LM Studio's OpenAI-compatible endpoint in the browser. Defaults are `http://localhost:1234/v1/chat/completions` and `google/gemma-4-e4b`; override them with `VITE_LMSTUDIO_ENDPOINT` and `VITE_LMSTUDIO_MODEL` if needed.
+For election climate naming, narrative planning, broadcasts, and ticker copy, the app calls LM Studio's native streaming chat endpoint in the browser so the UI can react to model-load, prompt-processing, reasoning, and message events. Defaults are `http://localhost:1234/api/v1/chat`, `qwen/qwen3.5-9b`, and a `262144` token context length; override them with `VITE_LMSTUDIO_ENDPOINT`, `VITE_LMSTUDIO_MODEL`, and `VITE_LMSTUDIO_CONTEXT_LENGTH` if needed.

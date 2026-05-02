@@ -25,6 +25,10 @@
                 <Radio :size="16" />
                 Start National Broadcast
               </button>
+              <button type="button" class="btn-broadcast-start" @click="showElectionTicker('national')">
+                <Radio :size="16" />
+                Show Election Ticker
+              </button>
             </div>
           </div>
         </div>
@@ -41,6 +45,13 @@
           </div>
         </div>
       </header>
+
+      <ElectionTickerCard
+        :request-id="tickerRequestId"
+        :scope="tickerScope"
+        :target-name="tickerTargetName"
+        :ticker-key="tickerKey"
+      />
 
       <ElectionScenarioControls
         :current-shares="results.national.assembly.vote_shares"
@@ -137,11 +148,12 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { FilePlus2, Radio, TriangleAlert, Vote } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
+import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
@@ -153,10 +165,13 @@ import { popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHe
 
 export default {
   name: 'NationalElectionResults',
-  components: { ChamberComposition, ElectionScenarioControls, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio, TriangleAlert, Vote },
+  components: { ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio, TriangleAlert, Vote },
   setup() {
     const uiStore = useUiStore()
     const { baselineResults, hasData, results, store } = useElectionResults()
+    const tickerRequestId = ref(0)
+    const tickerScope = ref('national')
+    const tickerTargetName = ref(null)
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
     const nationalLowerHouseName = lowerHouseName('national')
     const nationalUpperHouseName = upperHouseName('national')
@@ -224,6 +239,18 @@ export default {
 
     const warnings = computed(() => results.value.diagnostics.warnings.slice(0, 5))
 
+    const tickerKey = computed(() => [
+      results.value.config.trendPackageId,
+      results.value.config.seed,
+      results.value.config.jitterSeed,
+    ].join('|'))
+
+    function showElectionTicker(scope = 'national', targetName = null) {
+      tickerScope.value = scope
+      tickerTargetName.value = targetName
+      tickerRequestId.value += 1
+    }
+
     return {
       baselineResults,
       controlCardStyle: winnerControlStyle,
@@ -240,6 +267,11 @@ export default {
       results,
       store,
       summaryCards,
+      showElectionTicker,
+      tickerKey,
+      tickerRequestId,
+      tickerScope,
+      tickerTargetName,
       warnings,
       uiStore,
     }

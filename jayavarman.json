@@ -3707,23 +3707,27 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": "13",
-        "food": "91",
-        "production": "66.1",
-        "gold": "165.3",
-        "culture": "38",
-        "science": "34.6",
-        "faith": "57.6"
+        "amenities": "18",
+        "food": "100",
+        "production": "78.1",
+        "gold": "198.3",
+        "culture": "69.6",
+        "science": "44",
+        "faith": "67"
       },
       "religions": [
         {
           "name": "Zoroastrianism",
           "followers": "28"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "0"
         }
       ],
       "housing": "41",
       "net_amenities": "2",
-      "net_food": "36.1",
+      "net_food": "44.8",
       "counties": [
         {
           "tile_id": "tile_1",
@@ -3759,20 +3763,20 @@
       "is_regional_capital": true,
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Aninditapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Pre Rup",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Beng Melea",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Nagara Jayasri",
+          "distance": 8
         },
         {
           "province_name": "",

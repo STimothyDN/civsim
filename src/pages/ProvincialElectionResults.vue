@@ -25,6 +25,10 @@
                 <Radio :size="16" />
                 Start Provincial Broadcast
               </button>
+              <button type="button" class="btn-broadcast-start" @click="showElectionTicker('provincial', selectedProvince.name)">
+                <Radio :size="16" />
+                Show Election Ticker
+              </button>
             </div>
           </div>
         </div>
@@ -41,6 +45,13 @@
           </div>
         </div>
       </header>
+
+      <ElectionTickerCard
+        :request-id="tickerRequestId"
+        :scope="tickerScope"
+        :target-name="tickerTargetName"
+        :ticker-key="tickerKey"
+      />
 
       <ElectionScenarioControls
         :current-shares="selectedProvince?.assembly?.vote_shares"
@@ -240,13 +251,13 @@
 
 <script>
 import { computed, ref, watch } from 'vue'
-import { Building2, FilePlus2 } from 'lucide-vue-next'
+import { Building2, FilePlus2, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
+import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
-import { Radio } from 'lucide-vue-next'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
@@ -256,10 +267,13 @@ import { partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domai
 
 export default {
   name: 'ProvincialElectionResults',
-  components: { Building2, ChamberComposition, ElectionScenarioControls, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
+  components: { Building2, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
     const selectedIndex = ref(0)
+    const tickerRequestId = ref(0)
+    const tickerScope = ref('provincial')
+    const tickerTargetName = ref(null)
     const { baselineResults, electionStore, hasData, results, store } = useElectionResults()
     const provinceOptions = computed(() => results.value.provinces)
     const provinceCallRows = computed(() => [...results.value.provinces].sort((a, b) => b.provincial_population - a.provincial_population))
@@ -308,6 +322,19 @@ export default {
       })
     })
 
+    const tickerKey = computed(() => [
+      results.value.config.trendPackageId,
+      results.value.config.seed,
+      results.value.config.jitterSeed,
+      selectedProvince.value?.provinceIndex ?? '',
+    ].join('|'))
+
+    function showElectionTicker(scope = 'provincial', targetName = selectedProvince.value?.name || null) {
+      tickerScope.value = scope
+      tickerTargetName.value = targetName
+      tickerRequestId.value += 1
+    }
+
     watch(provinceOptions, (provinces) => {
       if (!provinces.length) {
         selectedIndex.value = 0
@@ -343,8 +370,13 @@ export default {
       selectedProvinceSeatColumns,
       selectedProvince,
       selectedUpperHouseName,
+      showElectionTicker,
       store,
       sumSeats,
+      tickerKey,
+      tickerRequestId,
+      tickerScope,
+      tickerTargetName,
       topParty,
       uiStore,
     }
