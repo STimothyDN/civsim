@@ -90,7 +90,7 @@ export default {
     const scrollArea = ref(null)
 
     let typingInterval = null
-    const TYPING_SPEED = 30 // ms per character
+    const TYPING_SPEED = 12 // ms per character
 
     const hasNextParagraph = computed(() => {
       return currentParagraphIndex.value < paragraphs.value.length - 1
