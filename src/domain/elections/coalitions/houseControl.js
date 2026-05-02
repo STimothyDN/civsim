@@ -1,5 +1,6 @@
 import { PARTIES, PARTY_NAMES } from '../constants/parties'
 import { num, sumObjectValues } from '../normalization/numbers'
+import { trendClimateScore } from '../trends/matchTrend'
 
 export const NATURAL_PARTNERS = {
   yellow: ['red', 'blue', 'purple', 'orange', 'white'],
@@ -8,12 +9,6 @@ export const NATURAL_PARTNERS = {
   blue: ['orange', 'yellow', 'purple', 'white', 'red'],
   white: ['blue', 'orange', 'red', 'yellow', 'purple'],
   purple: ['red', 'yellow', 'blue', 'white', 'orange'],
-}
-
-function trendClimateScore(party, trends = []) {
-  return trends
-    .filter((trend) => trend.party === party)
-    .reduce((sum, trend) => sum + num(trend.magnitude), 0)
 }
 
 function dominantParty(seats = {}) {

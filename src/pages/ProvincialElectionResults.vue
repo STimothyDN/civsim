@@ -242,7 +242,7 @@ import PartyBadge from '../components/elections/PartyBadge.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
-import { lowerHouseName, PARTIES, PARTY_META, formatShare, matchesSelector, upperHouseName, winnerControlStyle } from '../domain/elections'
+import { lowerHouseName, PARTIES, PARTY_META, formatShare, trendHasMatchingEffect, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { provinceFeatureRadarOption } from '../domain/elections/charts/electionChartOptions'
 import { partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
 
@@ -294,9 +294,8 @@ export default {
     const affectedTrends = computed(() => {
       if (!selectedProvince.value) return []
       return electionStore.trends.filter((trend) => {
-        if (trend.level === 'province') return matchesSelector(selectedProvince.value, trend.selector)
-        if (trend.level === 'county') return selectedProvince.value.counties.some((county) => matchesSelector(county, trend.selector))
-        return false
+        if (trendHasMatchingEffect(trend, selectedProvince.value, 'province')) return true
+        return selectedProvince.value.counties.some((county) => trendHasMatchingEffect(trend, county, 'county'))
       })
     })
 

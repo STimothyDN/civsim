@@ -10,6 +10,7 @@ import {
   matchesSelector,
   scoresToVoteShares,
   simulateElection,
+  trendEffect,
 } from './index'
 import { determineHouseControl } from './coalitions/houseControl'
 import { calculateProvincePartyScores } from './scoring/provinceScores'
@@ -138,6 +139,10 @@ describe('election domain', () => {
 
     expect(Math.abs(sum(shares) - 1)).toBeLessThan(0.000001)
     expect(trendsA).toEqual(trendsB)
+    expect(trendsA.some((trend) => trend.complexity === 'simple')).toBe(true)
+    expect(trendsA.some((trend) => trend.complexity === 'compound' || trend.complexity === 'storyline')).toBe(true)
+    expect(trendsA.every((trend) => Array.isArray(trend.effects) && trend.effects.length > 0)).toBe(true)
+    expect(trendsA.some((trend) => trend.narrative?.hook)).toBe(true)
   })
 
   it('matches trend selectors against feature indices', () => {
@@ -145,6 +150,56 @@ describe('election domain', () => {
       { group: 'Federation of American Provinces', political_features: { industrial_index: 0.7 } },
       { groupIncludes: 'American', minIndustrialIndex: 0.6 }
     )).toBe(true)
+
+    expect(matchesSelector(
+      {
+        name: 'Harbor Ward',
+        group: 'Federation of American Provinces',
+        terrain: 'Coast',
+        political_features: { appeal_index: 0.7 },
+      },
+      {
+        all: [
+          { groupIncludes: ['American'] },
+          { terrains: ['Coast'] },
+          { minFeatures: { feature: 'appeal_index', value: 0.6 } },
+        ],
+      }
+    )).toBe(true)
+  })
+
+  it('applies multi-effect trends with weighting, suppression, and interactions', () => {
+    const industrialCounty = {
+      group: 'Capital Region',
+      political_features: { industrial_index: 1, worker_index: 1 },
+    }
+    const laborTrend = {
+      id: 'labor',
+      tags: ['labor'],
+      effects: [
+        {
+          level: 'county',
+          party: 'orange',
+          selector: { minIndustrialIndex: 0.5 },
+          magnitude: 0.2,
+          weightBy: { feature: 'industrial_index', minMultiplier: 1, maxMultiplier: 2 },
+          interactions: [{ withTags: ['grievance'], multiplier: 1.5 }],
+        },
+      ],
+    }
+    const grievanceTrend = {
+      id: 'grievance',
+      tags: ['grievance'],
+      effects: [{ level: 'county', party: 'orange', selector: { minIndustrialIndex: 0.5 }, magnitude: 0.1 }],
+    }
+    const establishmentDrag = {
+      id: 'drag',
+      effects: [{ level: 'county', party: 'yellow', selector: {}, magnitude: 0.2, mode: 'suppress' }],
+    }
+
+    expect(trendEffect(industrialCounty, 'orange', 'county', [laborTrend])).toBeCloseTo(0.4)
+    expect(trendEffect(industrialCounty, 'orange', 'county', [laborTrend, grievanceTrend])).toBeCloseTo(0.7)
+    expect(trendEffect(industrialCounty, 'yellow', 'county', [establishmentDrag])).toBeCloseTo(-0.2)
   })
 
   it('simulates provincial, regional, and national chambers from province rows', () => {
