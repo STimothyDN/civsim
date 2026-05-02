@@ -23,7 +23,8 @@ export const BASELINE_ELECTION_CONFIG = {
   seed: 'baseline',
   jitterSeed: 'baseline',
   trendPackageId: 'baseline',
+  scenarioName: 'Baseline Election Climate',
+  scenarioDescription: 'No randomized climate trends are active.',
   trends: [],
   volatility: DEFAULT_VOLATILITY,
 }
-

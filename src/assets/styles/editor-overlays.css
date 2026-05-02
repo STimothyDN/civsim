@@ -221,6 +221,137 @@
   border-color: var(--accent);
 }
 
+/* ===== Election Narrative Modal ===== */
+.narrative-modal {
+  width: min(820px, 95vw);
+}
+
+.narrative-modal .modal-header {
+  align-items: flex-start;
+}
+
+.narrative-modal .modal-header .eyebrow {
+  margin-bottom: 4px;
+}
+
+.narrative-form {
+  display: grid;
+  gap: 14px;
+}
+
+.narrative-field {
+  display: grid;
+  gap: 8px;
+}
+
+.narrative-field span {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.narrative-field textarea {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  padding: 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font: inherit;
+  line-height: 1.55;
+}
+
+.narrative-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.narrative-field textarea:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.narrative-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.narrative-warning {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-sm);
+  color: #f87171;
+  font-size: 0.88rem;
+}
+
+.narrative-status-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.narrative-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
+.narrative-status-item--success {
+  color: #34d399;
+  border-color: rgba(52,211,153,0.3);
+  background: rgba(52,211,153,0.08);
+}
+
+.narrative-status-item--error {
+  color: #f87171;
+  border-color: rgba(229,69,69,0.3);
+  background: rgba(229,69,69,0.08);
+}
+
+.narrative-spin {
+  animation: narrativeSpin 0.9s linear infinite;
+}
+
+@keyframes narrativeSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.narrative-result {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 14px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.narrative-result h3 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 1.05rem;
+}
+
+.narrative-result p:not(.eyebrow) {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
 /* ===== Toast ===== */
 .toast {
   position: fixed;
@@ -286,4 +417,3 @@
   padding: 5px 10px;
   font-size: 0.8rem;
 }
-

@@ -7,6 +7,7 @@ import {
   apportionModifiedSainteLague,
   apportionSainteLague,
   generateRandomTrendPackage,
+  generateTrendPackageFromSelections,
   matchesSelector,
   scoresToVoteShares,
   simulateElection,
@@ -200,6 +201,22 @@ describe('election domain', () => {
     expect(trendEffect(industrialCounty, 'orange', 'county', [laborTrend])).toBeCloseTo(0.4)
     expect(trendEffect(industrialCounty, 'orange', 'county', [laborTrend, grievanceTrend])).toBeCloseTo(0.7)
     expect(trendEffect(industrialCounty, 'yellow', 'county', [establishmentDrag])).toBeCloseTo(-0.2)
+  })
+
+  it('builds narrative trend packages from selected template ids', () => {
+    const packageDef = generateTrendPackageFromSelections({
+      seed: 'narrative-test',
+      selections: [
+        { templateId: 'food-price-crisis', intensity: 0.75, reason: 'cost of living election' },
+        { templateId: 'rail-opening', intensity: 0.4, reason: 'incumbent infrastructure counterpoint' },
+      ],
+      volatility: { national: 0.06, region: 0.1, province: 0.15, county: 0.25 },
+    })
+
+    expect(packageDef.trends).toHaveLength(2)
+    expect(packageDef.trends[0].effects.length).toBeGreaterThan(1)
+    expect(packageDef.trends[0].narrative.reason).toBe('cost of living election')
+    expect(packageDef.volatility.county).toBe(0.25)
   })
 
   it('simulates provincial, regional, and national chambers from province rows', () => {

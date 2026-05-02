@@ -64,8 +64,8 @@
         </article>
         <article class="overview-call-card">
           <span>Election Climate</span>
-          <strong>{{ results.config.trends.length }}</strong>
-          <small>{{ results.config.trendPackageId }}</small>
+          <strong>{{ climateName }}</strong>
+          <small>{{ climateDescription }}</small>
         </article>
       </section>
 
@@ -261,9 +261,13 @@ export default {
       {
         label: 'Climate Signals',
         value: formatNumber(results.value.config.trends.length),
-        detail: results.value.config.trendPackageId,
+        detail: results.value.config.scenarioName || results.value.config.trendPackageId,
       },
     ])
+    const climateName = computed(() => results.value.config.scenarioName || 'Election Climate')
+    const climateDescription = computed(() => (
+      results.value.config.scenarioDescription || `${formatNumber(results.value.config.trends.length)} climate signals`
+    ))
     const controlBoards = computed(() => [
       {
         eyebrow: 'Regional Map',
@@ -322,6 +326,8 @@ export default {
 
     return {
       baselineResults,
+      climateDescription,
+      climateName,
       controlBoards,
       controlCardStyle: winnerControlStyle,
       countryName,

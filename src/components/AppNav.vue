@@ -13,28 +13,41 @@
       </router-link>
     </div>
 
-    <button
-      type="button"
-      class="btn-recalculate"
-      @click="recalculate"
-      title="Recalculate all jitter-based values across all pages"
-    >
-      <RefreshCw class="recalc-icon" :size="15" />
-      <span>Recalculate</span>
-    </button>
+    <div class="app-nav-actions">
+      <button
+        type="button"
+        class="btn-narrative"
+        @click="openNarrativeModal"
+        title="Use a local LLM to shape the election climate"
+      >
+        <Sparkles :size="15" />
+        <span>Election Narrative</span>
+      </button>
+      <button
+        type="button"
+        class="btn-recalculate"
+        @click="recalculate"
+        title="Recalculate all jitter-based values across all pages"
+      >
+        <RefreshCw class="recalc-icon" :size="15" />
+        <span>Recalculate</span>
+      </button>
+    </div>
   </nav>
 </template>
 
 <script>
 import { markRaw } from 'vue'
-import { Building2, ChartNoAxesColumnIncreasing, Home, LayoutDashboard, Map, RefreshCw, Vote } from 'lucide-vue-next'
+import { Building2, ChartNoAxesColumnIncreasing, Home, LayoutDashboard, Map, RefreshCw, Sparkles, Vote } from 'lucide-vue-next'
 import { useFormStore } from '../stores/formStore'
+import { useUiStore } from '../stores/uiStore'
 
 export default {
   name: 'AppNav',
-  components: { RefreshCw },
+  components: { RefreshCw, Sparkles },
   setup() {
     const store = useFormStore()
+    const uiStore = useUiStore()
 
     const navLinks = [
       { to: '/', label: 'Home', icon: markRaw(Home) },
@@ -49,7 +62,11 @@ export default {
       store.recalculate()
     }
 
-    return { navLinks, recalculate }
+    function openNarrativeModal() {
+      uiStore.openElectionNarrativeModal()
+    }
+
+    return { navLinks, openNarrativeModal, recalculate }
   }
 }
 </script>

@@ -128,11 +128,23 @@
   gap: 16px;
 }
 
+.election-scenario-copy {
+  min-width: 0;
+}
+
 .election-scenario-main h3,
 .election-panel-heading h3 {
   margin: 0;
   font-family: 'Cinzel', serif;
   font-size: 1.04rem;
+}
+
+.election-scenario-description {
+  max-width: 780px;
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.45;
 }
 
 .election-seed-row,
@@ -163,6 +175,16 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.election-spin {
+  animation: electionSpin 0.9s linear infinite;
+}
+
+@keyframes electionSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .trend-chip-list {
@@ -846,4 +868,3 @@
 .election-call-card-chambers b {
   font-size: 0.82rem;
 }
-

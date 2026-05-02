@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import NationalElectionResults from './NationalElectionResults.vue'
 import ElectionOverview from './ElectionOverview.vue'
@@ -97,6 +97,10 @@ function mountPage(component, withData = true) {
 }
 
 describe('election result pages', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('renders a national empty state', () => {
     const { wrapper } = mountPage(NationalElectionResults, false)
 
@@ -104,6 +108,41 @@ describe('election result pages', () => {
   })
 
   it('renders national results and randomizes the election climate', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: '',
+                reasoning_content: 'Thinking through the climate...',
+              },
+              finish_reason: 'length',
+            },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  scenario: {
+                    scenario_name: 'Breadline Backlash',
+                    scenario_description: 'Cost pressures and local unrest define the randomized climate.',
+                  },
+                }),
+              },
+            },
+          ],
+        }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
     const { wrapper, electionStore } = mountPage(NationalElectionResults)
     await wrapper.vm.$nextTick()
 
@@ -113,7 +152,12 @@ describe('election result pages', () => {
     expect(wrapper.text()).toContain('Divinus Sol')
 
     await wrapper.get('.btn-primary').trigger('click')
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(electionStore.trends.length).toBeGreaterThan(0)
+    expect(electionStore.scenarioName).toBe('Breadline Backlash')
+    expect(wrapper.text()).toContain('Breadline Backlash')
   })
 
   it('renders the election overview board', async () => {

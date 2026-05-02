@@ -1,4 +1,4 @@
-import { createSeededRng, randomFloat, randomInt, shortId } from '../randomness/seededRandom'
+import { createSeededRng, hashStringToUint32, randomFloat, randomInt, shortId } from '../randomness/seededRandom'
 import { RANDOM_TREND_TEMPLATES, COMPOUND, SIMPLE, STORYLINE } from './templates'
 
 export { RANDOM_TREND_TEMPLATES }
@@ -75,6 +75,82 @@ function materializeEffects(template, baseMagnitude, rng) {
     selector: effect.selector || template.selector || {},
     magnitude: resolveEffectMagnitude(effect, baseMagnitude, rng),
   }))
+}
+
+function clampIntensity(value, fallback = 0.55) {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return fallback
+  return Math.max(0, Math.min(1, number))
+}
+
+function magnitudeForSelection(template, selection) {
+  const [minMagnitude, maxMagnitude] = template.magnitudeRange
+  const intensity = clampIntensity(selection?.intensity)
+  const scale = Number.isFinite(Number(selection?.magnitudeScale)) ? Number(selection.magnitudeScale) : 1
+  return (minMagnitude + (maxMagnitude - minMagnitude) * intensity) * Math.max(0.25, Math.min(1.75, scale))
+}
+
+function trendIdForSelection(template, selection, index, rng) {
+  const suffix = selection?.idSuffix || shortId(rng)
+  return `${template.id}-${index + 1}-${suffix}`
+}
+
+export function generateTrendPackageFromSelections({
+  selections = [],
+  seed = 'narrative-election',
+  jitterSeed = seed,
+  id = `narrative-${Math.abs(hashStringToUint32(seed)).toString(36)}`,
+  source = 'narrative',
+  title = 'Election Narrative',
+  summary = '',
+  volatility = null,
+  templates = RANDOM_TREND_TEMPLATES,
+} = {}) {
+  const rng = createSeededRng(seed)
+  const templateMap = new Map(templates.map((template) => [template.id, template]))
+  const selectedTrends = selections
+    .map((selection, index) => {
+      const template = templateMap.get(selection?.templateId)
+      if (!template) return null
+
+      const magnitude = magnitudeForSelection(template, selection)
+      const effects = materializeEffects(template, magnitude, rng)
+      const primaryEffect = effects.find((effect) => effect.mode !== 'suppress') || effects[0]
+
+      return {
+        id: trendIdForSelection(template, selection, index, rng),
+        templateId: template.id,
+        label: selection?.label || template.label,
+        description: template.description || '',
+        complexity: template.complexity || SIMPLE,
+        family: template.family || 'general',
+        scope: template.scope || [template.level],
+        tags: template.tags || [],
+        narrative: {
+          ...(template.narrative || {}),
+          reason: selection?.reason || '',
+        },
+        level: primaryEffect.level,
+        party: primaryEffect.party,
+        selector: primaryEffect.selector || {},
+        magnitude,
+        effects,
+        interactions: template.interactions || [],
+        source,
+      }
+    })
+    .filter(Boolean)
+
+  return {
+    id,
+    title,
+    summary,
+    seed,
+    jitterSeed,
+    trendPackageId: id,
+    trends: selectedTrends,
+    ...(volatility ? { volatility } : {}),
+  }
 }
 
 export function generateRandomTrendPackage({ seed, minTrends = 4, maxTrends = 8, templates = RANDOM_TREND_TEMPLATES } = {}) {
