@@ -81,6 +81,16 @@ const FEATURE_ALLOWLIST = [
   'mine_or_corporation_index',
   'neighborhood_index',
   'religious_minority_index',
+  // New features from normalization update
+  'economic_diversity_index',
+  'religious_homogeneity_index',
+  'development_index',
+  'provincial_power_index',
+  'isolation_index',
+  'yield_diversity_index',
+  'improved_status_index',
+  'resource_development_index',
+  'cultural_output_index',
 ]
 const SELECTOR_SHORTCUTS = [
   'minIndustrialIndex',
@@ -98,6 +108,11 @@ const SELECTOR_SHORTCUTS = [
   'minInfrastructureIndex',
   'minCoastalIndex',
   'minMaritimeIndex',
+  // New feature shortcuts
+  'minEconomicDiversityIndex',
+  'minDevelopmentIndex',
+  'minImprovedStatusIndex',
+  'minCulturalOutputIndex',
   'minMountainIndex',
   'minWildernessIndex',
   'minResidentialIndex',
@@ -124,6 +139,13 @@ class ModelOutputError extends Error {
     this.name = 'ModelOutputError'
     this.code = code
   }
+}
+
+function stripThinkBlocks(text) {
+  return String(text || '')
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+    .trim()
 }
 
 function truncate(value, length = MAX_TEMPLATE_DESCRIPTION) {
@@ -1422,10 +1444,15 @@ function parseSseBlock(block) {
   }
 
   const data = dataLines.join('\n').trim()
-  return {
-    event,
-    payload: data ? JSON.parse(data) : {},
+  let payload = {}
+  if (data) {
+    try {
+      payload = JSON.parse(data)
+    } catch {
+      payload = { _raw: data }
+    }
   }
+  return { event, payload }
 }
 
 function progressForNativeEvent(eventType, payload = {}) {
@@ -1808,7 +1835,7 @@ export async function requestElectionBroadcast({
     detail: 'Formatting paragraphs for the transmission screen.',
   })
 
-  return content
+  return stripThinkBlocks(content)
 }
 
 export async function requestElectionTicker({
@@ -1844,5 +1871,5 @@ export async function requestElectionTicker({
     detail: 'Ready to type onto the election ticker.',
   })
 
-  return content.replace(/\s+/g, ' ').trim()
+  return stripThinkBlocks(content).replace(/\s+/g, ' ').trim()
 }

@@ -132,7 +132,7 @@ export default {
           },
         })
         fullText.value = text
-        paragraphs.value = text.split('\n').filter(p => p.trim())
+        paragraphs.value = text.split(/\n\s*\n/).map(p => p.replace(/\n/g, ' ').trim()).filter(p => p)
         isLoading.value = false
         await nextTick()
         nextParagraph()

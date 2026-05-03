@@ -32,7 +32,9 @@ function coalitionPartnerScore(leaderParty, partnerParty, seats = {}, trends = [
   const seatScore = num(seats[partnerParty]) / totalSeats
   const climateScore = trendClimateScore(partnerParty, trends)
 
-  return naturalScore * 1.35 + seatScore * 1.1 + climateScore * 0.8
+  // Trend effect DOUBLED AGAIN for seismic coalition shifts (1.6 -> 3.2)
+  // Total 4x increase from original (0.8 -> 3.2)
+  return naturalScore * 1.35 + seatScore * 1.1 + climateScore * 3.2
 }
 
 export function determineHouseControl(seats = {}, trends = [], partyNames = PARTY_NAMES) {

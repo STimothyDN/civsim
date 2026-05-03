@@ -351,6 +351,131 @@ describe('narrativePlanner LLM prompts', () => {
     expect(userPayload.focus.examples[0].assembly.strongestSwing).toMatchObject({ party: 'yellow', points: 9 })
   })
 
+  it('sends regional scope and targetName to the broadcast prompt', async () => {
+    mockChatResponse('Capital Region assembly is called for Divinus Sol.\n\nThe regional math is clear.\n\nProvinces held the line.\n\nSwings were contained.\n\nThe region remains stable.')
+
+    const text = await requestElectionBroadcast({
+      results: sampleResults(),
+      baselineResults: sampleBaselineResults(),
+      scope: 'regional',
+      targetName: 'Capital Region',
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    const body = lastRequestBody()
+    const systemContent = body.system_prompt
+    const userPayload = JSON.parse(body.input)
+
+    expect(systemContent).toContain('Capital Region')
+    expect(systemContent).toContain('Stay inside Capital Region')
+    expect(userPayload.scope).toBe('regional')
+    expect(userPayload.scopeBoundary).toContain('Capital Region')
+    expect(userPayload.national).toBeUndefined()
+    expect(userPayload.focus.type).toBe('regional')
+    expect(userPayload.focus.region.name).toBe('Capital Region')
+    expect(text).toContain('Capital Region assembly')
+  })
+
+  it('sends provincial scope and targetName to the broadcast prompt', async () => {
+    mockChatResponse('Angkor Thom council is called.\n\nThe county math follows.\n\nRail Works swung hard.\n\nThe margin is narrow.\n\nThe province is stable.')
+
+    const text = await requestElectionBroadcast({
+      results: sampleResults(),
+      baselineResults: sampleBaselineResults(),
+      scope: 'provincial',
+      targetName: 'Angkor Thom',
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    const body = lastRequestBody()
+    const systemContent = body.system_prompt
+    const userPayload = JSON.parse(body.input)
+
+    expect(systemContent).toContain('Angkor Thom')
+    expect(systemContent).toContain('Stay inside Angkor Thom')
+    expect(userPayload.scope).toBe('provincial')
+    expect(userPayload.scopeBoundary).toContain('Angkor Thom')
+    expect(userPayload.national).toBeUndefined()
+    expect(userPayload.focus.type).toBe('provincial')
+    expect(userPayload.focus.province.name).toBe('Angkor Thom')
+    expect(userPayload.focus.counties[0].name).toBe('Rail Works')
+    expect(text).toContain('Angkor Thom council')
+  })
+
+  it('strips think blocks from broadcast and ticker responses', async () => {
+    mockChatResponse('<think>\nInternal reasoning about the election.\n</think>\nThe empire has voted.\n\nThe numbers are in.\n\nDivinus Sol leads.\n\nThe count is final.\n\nThe mandate holds.')
+
+    const broadcastText = await requestElectionBroadcast({
+      results: sampleResults(),
+      baselineResults: sampleBaselineResults(),
+      scope: 'national',
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    expect(broadcastText).not.toContain('<think>')
+    expect(broadcastText).not.toContain('Internal reasoning')
+    expect(broadcastText).toContain('The empire has voted')
+
+    vi.restoreAllMocks()
+    mockChatResponse('<think>reasoning</think> Divinus Sol holds the board.')
+
+    const tickerText = await requestElectionTicker({
+      results: sampleResults(),
+      baselineResults: sampleBaselineResults(),
+      scope: 'national',
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    expect(tickerText).not.toContain('<think>')
+    expect(tickerText).not.toContain('reasoning')
+    expect(tickerText).toBe('Divinus Sol holds the board.')
+  })
+
+  it('survives malformed JSON in an SSE data line without crashing the stream', async () => {
+    const encoder = new TextEncoder()
+    const corruptBlock = 'event: message\ndata: not-valid-json\n\n'
+    const goodEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`
+    const streamText = [
+      goodEvent('chat.start', { model_instance_id: 'qwen/qwen3.5-9b' }),
+      corruptBlock,
+      goodEvent('message.start', {}),
+      goodEvent('message.delta', { content: 'Divinus Sol projected.' }),
+      goodEvent('message.end', {}),
+      goodEvent('chat.end', {
+        result: {
+          model_instance_id: 'qwen/qwen3.5-9b',
+          output: [{ type: 'message', content: 'Divinus Sol projected.' }],
+          stats: { input_tokens: 50, total_output_tokens: 10 },
+        },
+      }),
+    ].join('')
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(streamText))
+          controller.close()
+        },
+      }),
+      text: async () => streamText,
+    })
+
+    const text = await requestElectionBroadcast({
+      results: sampleResults(),
+      baselineResults: sampleBaselineResults(),
+      scope: 'national',
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    expect(text).toBe('Divinus Sol projected.')
+  })
+
   it('uses a compact one-paragraph request for election tickers', async () => {
     mockChatResponse('Divinus Sol is holding the national board as rail politics keeps the capital steady.')
     const statuses = []

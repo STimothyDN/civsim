@@ -28,7 +28,8 @@ export const STORY_TREND_TEMPLATES = [
         level: 'province',
         party: 'yellow',
         selector: { minImperialCoreIndex: 0.55 },
-        magnitudeFactor: 0.95,
+        // Reduced magnitudeFactor due to yellow party weakening (0.95 -> 0.75)
+        magnitudeFactor: 0.75,
         weightBy: { feature: 'imperial_core_index', minMultiplier: 0.9, maxMultiplier: 1.35 },
       },
       {
@@ -872,6 +873,93 @@ export const STORY_TREND_TEMPLATES = [
         party: 'blue',
         selector: { minFeatures: { feature: 'urban_index', value: 0.55 } },
         magnitudeFactor: 0.3,
+      },
+    ],
+  },
+  // --- NEW TREND: Economic Diversity Campaign (post-scoring rebalance) ---
+  {
+    id: 'economic-diversity-campaign',
+    label: 'Economic Diversity Campaign',
+    description: 'Orange leverages diverse local economies against centralized control, rallying workers from industrial, agrarian, and commercial districts alike.',
+    complexity: STORYLINE,
+    family: 'labor',
+    scope: ['national', 'province', 'county'],
+    level: 'county',
+    party: 'orange',
+    magnitudeRange: [0.18, 0.4],
+    tags: ['labor', 'economy', 'anti-establishment', 'diversity'],
+    selectionWeight: 0.9,
+    narrative: narrative(
+      'Workers from different economic backgrounds unite against centralized economic planning.',
+      ['economic diversity', 'cross-sector labor'],
+      ['Industrial zones organize first.', 'Agrarian counties join the coalition.', 'Commercial districts add middle-class support.']
+    ),
+    interactions: [
+      { withTags: ['labor'], levels: ['county'], multiplier: 1.15 },
+      { withTags: ['economy'], levels: ['national'], multiplier: 1.1 },
+    ],
+    effects: [
+      {
+        id: 'diverse-orange-surge',
+        level: 'county',
+        party: 'orange',
+        selector: { minFeatures: { feature: 'economic_diversity_index', value: 0.45 } },
+        weightBy: { feature: 'economic_diversity_index', minMultiplier: 0.9, maxMultiplier: 1.5 },
+      },
+      {
+        id: 'industrial-worker-orange-boost',
+        level: 'county',
+        party: 'orange',
+        selector: { minIndustrialIndex: 0.5 },
+        magnitudeFactor: 0.85,
+        weightBy: { feature: 'worker_index', minMultiplier: 0.85, maxMultiplier: 1.4 },
+      },
+      {
+        id: 'yellow-centralization-drag',
+        level: 'national',
+        party: 'yellow',
+        mode: 'suppress',
+        magnitudeFactor: 0.3,
+      },
+    ],
+  },
+  // --- NEW TREND: Development Divides (uses new development_index feature) ---
+  {
+    id: 'development-divides',
+    label: 'Development Divides',
+    description: 'Highly developed provinces demand reform while underdeveloped regions cling to traditional stability.',
+    complexity: COMPOUND,
+    family: 'modernization',
+    scope: ['province', 'county'],
+    level: 'province',
+    party: 'blue',
+    magnitudeRange: [0.14, 0.32],
+    tags: ['modernization', 'development', 'reform'],
+    selectionWeight: 0.9,
+    narrative: narrative(
+      'The gap between developed and developing regions becomes the central political cleavage.',
+      ['development gap', 'modernization politics'],
+      ['Developed provinces embrace reform.', 'Traditional regions resist change.', 'Economic diversity creates new alliances.']
+    ),
+    interactions: [
+      { withTags: ['modernization'], levels: ['province'], multiplier: 1.15 },
+      { withTags: ['stability'], levels: ['province'], multiplier: 0.9 },
+    ],
+    effects: [
+      {
+        id: 'developed-blue-push',
+        level: 'province',
+        party: 'blue',
+        selector: { minFeatures: { feature: 'development_index', value: 0.55 } },
+        weightBy: { feature: 'development_index', minMultiplier: 0.9, maxMultiplier: 1.45 },
+      },
+      {
+        id: 'developing-red-stability',
+        level: 'province',
+        party: 'red',
+        selector: { maxFeatures: { feature: 'development_index', value: 0.4 } },
+        magnitudeFactor: 0.75,
+        weightBy: { feature: 'traditionalist_index', minMultiplier: 0.85, maxMultiplier: 1.35 },
       },
     ],
   },
