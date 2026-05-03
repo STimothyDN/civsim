@@ -98,9 +98,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 30262807,
+      "provincial_population": 21082949,
       "assemblypeople": 30,
-      "prelates": 9,
+      "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -1661,9 +1661,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 27198898,
+      "provincial_population": 35538933,
       "assemblypeople": 33,
-      "prelates": 8,
+      "prelates": 9,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -1754,9 +1754,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 25274561,
+      "provincial_population": 21419437,
       "assemblypeople": 28,
-      "prelates": 8,
+      "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -1851,7 +1851,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 28263776,
+      "provincial_population": 25176566,
       "assemblypeople": 29,
       "prelates": 8,
       "dominant_religion": "Zoroastrianism"
@@ -1944,7 +1944,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 17395756,
+      "provincial_population": 21070270,
       "assemblypeople": 27,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -2033,7 +2033,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 13054436,
+      "provincial_population": 12390945,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -2122,7 +2122,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1523466,
+      "provincial_population": 1403753,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -2211,7 +2211,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2285803,
+      "provincial_population": 1867585,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -2300,7 +2300,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1719800,
+      "provincial_population": 1813600,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -3701,9 +3701,9 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 37502657,
+      "provincial_population": 32594871,
       "assemblypeople": 36,
-      "prelates": 10,
+      "prelates": 9,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -4806,7 +4806,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 36143039,
+      "provincial_population": 32732909,
       "assemblypeople": 32,
       "prelates": 9,
       "dominant_religion": "Zoroastrianism"
@@ -4824,23 +4824,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": "13",
-        "food": "83",
-        "production": "66.1",
-        "gold": "178.5",
-        "culture": "31",
-        "science": "42.7",
-        "faith": "24.3"
+        "amenities": "19",
+        "food": "88",
+        "production": "108.7",
+        "gold": "217.5",
+        "culture": "64.7",
+        "science": "54.4",
+        "faith": "29.6"
       },
       "religions": [
         {
           "name": "Zoroastrianism",
-          "followers": "24"
+          "followers": "28"
         }
       ],
       "housing": "43",
       "net_amenities": "3",
-      "net_food": "43.2",
+      "net_food": "55.6",
       "counties": [
         {
           "name": "",
@@ -4874,30 +4874,30 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Antium",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vimayapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Velitrae",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Palmyra",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Pre Rup",
+          "distance": 8
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 32646608,
+      "provincial_population": 22627729,
       "assemblypeople": 31,
-      "prelates": 9,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -4988,7 +4988,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 15904939,
+      "provincial_population": 16392083,
       "assemblypeople": 23,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -5081,7 +5081,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 15675262,
+      "provincial_population": 16710594,
       "assemblypeople": 23,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -5174,7 +5174,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 17423585,
+      "provincial_population": 17515175,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -5192,23 +5192,23 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "5",
+        "food": "19",
+        "production": "35",
+        "gold": "91",
+        "culture": "10.9",
+        "science": "2.5",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "5"
         }
       ],
       "housing": "13.5",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "12.4",
       "counties": [
         {
           "name": "",
@@ -5242,31 +5242,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Amarendrapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phetchaburi",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Banteay Kdei",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rajavihara",
+          "distance": 13
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Shrestapura",
+          "distance": 14
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 461684,
+      "provincial_population": 398830,
       "assemblypeople": 5,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Mediolanum",
@@ -5281,23 +5281,23 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "10",
+        "food": "36",
+        "production": "64.7",
+        "gold": "112",
+        "culture": "14.9",
+        "science": "4.1",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "7"
         }
       ],
       "housing": "11.5",
       "net_amenities": "6",
-      "net_food": null,
+      "net_food": "31.8",
       "counties": [
         {
           "name": "",
@@ -5331,31 +5331,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Puteoli",
+          "distance": 3
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lugdunum",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Preah Vihear",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ostia",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ravenna",
+          "distance": 9
         }
       ],
-      "original_country": "",
-      "provincial_population": 852563,
+      "original_country": "Rome",
+      "provincial_population": 813305,
       "assemblypeople": 7,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Antium",
@@ -5370,23 +5370,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "7",
+        "food": "28",
+        "production": "53.7",
+        "gold": "83.7",
+        "culture": "12.6",
+        "science": "3.8",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "7"
         }
       ],
       "housing": "15",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "18.8",
       "counties": [
         {
           "name": "",
@@ -5420,31 +5420,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cumae",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Palmyra",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Wat",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Velitrae",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Brundisium",
+          "distance": 8
         }
       ],
-      "original_country": "",
-      "provincial_population": 840644,
+      "original_country": "Rome",
+      "provincial_population": 935101,
       "assemblypeople": 7,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Ban Lung",
@@ -5459,23 +5459,23 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "7",
+        "food": "23.6",
+        "production": "40",
+        "gold": "103.5",
+        "culture": "12.3",
+        "science": "4.5",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "7"
         }
       ],
       "housing": "12.5",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "23.6",
       "counties": [
         {
           "name": "",
@@ -5509,31 +5509,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Taumutu",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Dviradapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Indrapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bhavapura",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kapiti",
+          "distance": 12
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1499530,
+      "provincial_population": 1596617,
       "assemblypeople": 9,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Isanapura",
@@ -5548,23 +5548,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "8",
+        "food": "26",
+        "production": "29.6",
+        "gold": "103.5",
+        "culture": "13.3",
+        "science": "4.9",
+        "faith": "9.8"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "8"
         }
       ],
       "housing": "15",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "11.8",
       "counties": [
         {
           "name": "",
@@ -5598,31 +5598,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Siem Reap",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Muang Tam",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Shrestapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rajavihara",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Banteay Kdei",
+          "distance": 9
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1480843,
+      "provincial_population": 1465529,
       "assemblypeople": 9,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Muang Tam",
@@ -5637,23 +5637,23 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "7",
+        "food": "38",
+        "production": "35",
+        "gold": "88.1",
+        "culture": "12.6",
+        "science": "6",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "8"
         }
       ],
       "housing": "13",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "24.9",
       "counties": [
         {
           "name": "",
@@ -5687,31 +5687,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Siem Reap",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isanapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Shrestapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Preah Vihear",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vyadhapura",
+          "distance": 10
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2446747,
+      "provincial_population": 2140215,
       "assemblypeople": 10,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Shrestapura",
@@ -5726,23 +5726,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "8",
+        "food": "48",
+        "production": "58",
+        "gold": "102",
+        "culture": "21.2",
+        "science": "7.6",
+        "faith": "23"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "10"
         }
       ],
       "housing": "25.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "41.5",
       "counties": [
         {
           "name": "",
@@ -5776,31 +5776,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Preah Vihear",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Banteay Kdei",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isanapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Muang Tam",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Siem Reap",
+          "distance": 9
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2387833,
+      "provincial_population": 2132076,
       "assemblypeople": 10,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Amarendrapura",
@@ -5815,23 +5815,23 @@
       "growth_percentage": "50",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "8",
+        "food": "39",
+        "production": "55",
+        "gold": "140.2",
+        "culture": "14.1",
+        "science": "5.5",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "9"
         }
       ],
       "housing": "12.5",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "11.7",
       "counties": [
         {
           "name": "",
@@ -5865,31 +5865,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lavodayapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phetchaburi",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Banteay Kdei",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rajavihara",
+          "distance": 12
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Borei",
+          "distance": 14
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2689063,
+      "provincial_population": 2790475,
       "assemblypeople": 11,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Chaiya",
@@ -5975,7 +5975,7 @@
         }
       ],
       "original_country": "",
-      "provincial_population": 2400488,
+      "provincial_population": 2459156,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -5993,23 +5993,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "9",
+        "food": "45",
+        "production": "44.5",
+        "gold": "37.5",
+        "culture": "20.9",
+        "science": "7.1",
+        "faith": "23"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "9"
         }
       ],
       "housing": "13.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "34.1",
       "counties": [
         {
           "name": "",
@@ -6043,31 +6043,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isanapura",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Muang Tam",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Shrestapura",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rajavihara",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Banteay Kdei",
+          "distance": 13
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2176812,
+      "provincial_population": 2838116,
       "assemblypeople": 11,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Brundisium",
@@ -6082,23 +6082,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "9",
+        "food": "42",
+        "production": "55.3",
+        "gold": "115.5",
+        "culture": "14.4",
+        "science": "6.5",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "12"
         }
       ],
       "housing": "18.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "26.4",
       "counties": [
         {
           "name": "",
@@ -6132,31 +6132,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Palmyra",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bhavapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ravenna",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Antium",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cumae",
+          "distance": 9
         }
       ],
-      "original_country": "",
-      "provincial_population": 3247228,
+      "original_country": "Rome",
+      "provincial_population": 3099018,
       "assemblypeople": 12,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Aninditapura",
@@ -6242,7 +6242,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 4905172,
+      "provincial_population": 4290406,
       "assemblypeople": 14,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -6260,23 +6260,23 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "13",
+        "food": "44",
+        "production": "67.5",
+        "gold": "120.1",
+        "culture": "61.8",
+        "science": "52.7",
+        "faith": "20.3"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "16"
         }
       ],
       "housing": "21.5",
       "net_amenities": "5",
-      "net_food": null,
+      "net_food": "17.3",
       "counties": [
         {
           "name": "",
@@ -6310,31 +6310,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rome",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Antium",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Palmyra",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Arretium",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ostia",
+          "distance": 7
         }
       ],
-      "original_country": "",
-      "provincial_population": 6958430,
+      "original_country": "Rome",
+      "provincial_population": 5943379,
       "assemblypeople": 16,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Palmyra",
@@ -6349,23 +6349,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "11",
+        "food": "77",
+        "production": "97.1",
+        "gold": "174",
+        "culture": "22.2",
+        "science": "8.7",
+        "faith": "0"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "16"
         }
       ],
       "housing": "22.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "66",
       "counties": [
         {
           "name": "",
@@ -6399,31 +6399,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Antium",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Brundisium",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cumae",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ravenna",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Wat",
+          "distance": 7
         }
       ],
-      "original_country": "",
-      "provincial_population": 5887199,
+      "original_country": "Rome",
+      "provincial_population": 5582087,
       "assemblypeople": 16,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Ostia",
@@ -6438,23 +6438,27 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "19",
+        "food": "41",
+        "production": "83.6",
+        "gold": "51.2",
+        "culture": "86.1",
+        "science": "24",
+        "faith": "51.5"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "11"
+        },
+        {
+          "name": "Taoism",
+          "followers": "4"
         }
       ],
       "housing": "28",
       "net_amenities": "11",
-      "net_food": null,
+      "net_food": "13",
       "counties": [
         {
           "name": "",
@@ -6488,31 +6492,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rome",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Arretium",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Puteoli",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Yasodharapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Preah Vihear",
+          "distance": 6
         }
       ],
-      "original_country": "",
-      "provincial_population": 7148826,
+      "original_country": "Rome",
+      "provincial_population": 6456121,
       "assemblypeople": 16,
       "prelates": 5,
-      "dominant_religion": "None"
+      "dominant_religion": "Taoism"
     },
     {
       "name": "Beng Melea",
@@ -6598,7 +6602,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 6424987,
+      "provincial_population": 6749261,
       "assemblypeople": 17,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -6687,7 +6691,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 6372178,
+      "provincial_population": 5992492,
       "assemblypeople": 17,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -6705,23 +6709,27 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "17",
+        "food": "48",
+        "production": "88.4",
+        "gold": "151.4",
+        "culture": "32.9",
+        "science": "45.8",
+        "faith": "33.5"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "18"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "0"
         }
       ],
       "housing": "25",
       "net_amenities": "8",
-      "net_food": null,
+      "net_food": "18.8",
       "counties": [
         {
           "name": "",
@@ -6755,31 +6763,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isvarapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kompong Svay",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kapiti",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Indrapura",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Chaturmukha",
+          "distance": 10
         }
       ],
-      "original_country": "",
-      "provincial_population": 8815947,
+      "original_country": "Spain",
+      "provincial_population": 7658113,
       "assemblypeople": 18,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Phetchaburi",
@@ -6794,23 +6802,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "13",
+        "food": "63",
+        "production": "47.2",
+        "gold": "94.5",
+        "culture": "32.9",
+        "science": "13.1",
+        "faith": "29.6"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "17"
         }
       ],
       "housing": "25.5",
       "net_amenities": "4",
-      "net_food": null,
+      "net_food": "39.6",
       "counties": [
         {
           "name": "",
@@ -6844,31 +6852,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Amarendrapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lavodayapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rajavihara",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Banteay Kdei",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Borei",
+          "distance": 9
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 7539573,
+      "provincial_population": 8281459,
       "assemblypeople": 18,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Ravenna",
@@ -6883,23 +6891,27 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "11",
+        "food": "69",
+        "production": "63.2",
+        "gold": "106.9",
+        "culture": "25.7",
+        "science": "13",
+        "faith": "24"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "18"
+        },
+        {
+          "name": "Taoism",
+          "followers": "0"
         }
       ],
       "housing": "28",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "41.1",
       "counties": [
         {
           "name": "",
@@ -6933,31 +6945,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lugdunum",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rome",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cumae",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Palmyra",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Brundisium",
+          "distance": 7
         }
       ],
-      "original_country": "",
-      "provincial_population": 8427169,
+      "original_country": "Rome",
+      "provincial_population": 8409024,
       "assemblypeople": 18,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Rome",
@@ -6972,23 +6984,27 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "18",
+        "food": "70",
+        "production": "102",
+        "gold": "114.7",
+        "culture": "107.1",
+        "science": "48",
+        "faith": "54"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "10"
+        },
+        {
+          "name": "Taoism",
+          "followers": "7"
         }
       ],
       "housing": "34",
       "net_amenities": "9",
-      "net_food": null,
+      "net_food": "49.1",
       "counties": [
         {
           "name": "",
@@ -7022,31 +7038,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cumae",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Arretium",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ostia",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lugdunum",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Puteoli",
+          "distance": 6
         }
       ],
-      "original_country": "",
-      "provincial_population": 9366188,
+      "original_country": "Rome",
+      "provincial_population": 8111275,
       "assemblypeople": 18,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Taoism"
     },
     {
       "name": "Angkor Borei",
@@ -7061,23 +7077,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "13",
+        "food": "58",
+        "production": "51.2",
+        "gold": "63.7",
+        "culture": "30.2",
+        "science": "13.7",
+        "faith": "20.8"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "18"
         }
       ],
       "housing": "22.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "29.4",
       "counties": [
         {
           "name": "",
@@ -7111,31 +7127,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rajavihara",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phanom Rung",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phetchaburi",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isanapura",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Siem Reap",
+          "distance": 12
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 10225925,
+      "provincial_population": 7455538,
       "assemblypeople": 19,
-      "prelates": 6,
-      "dominant_religion": "None"
+      "prelates": 5,
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Phanom Rung",
@@ -7150,23 +7166,27 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "13",
+        "food": "75",
+        "production": "67.5",
+        "gold": "111",
+        "culture": "32.7",
+        "science": "25.8",
+        "faith": "23"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "17"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "2"
         }
       ],
       "housing": "24.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "54.2",
       "counties": [
         {
           "name": "",
@@ -7200,31 +7220,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Borei",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rajavihara",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Siem Reap",
+          "distance": 11
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isanapura",
+          "distance": 14
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phetchaburi",
+          "distance": 14
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 7746918,
+      "provincial_population": 10264263,
       "assemblypeople": 19,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Sikhism"
     },
     {
       "name": "Banteay Kdei",
@@ -7239,23 +7259,23 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "12",
+        "food": "63",
+        "production": "42.5",
+        "gold": "93.7",
+        "culture": "31",
+        "science": "23",
+        "faith": "33"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "18"
         }
       ],
       "housing": "27",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "31.1",
       "counties": [
         {
           "name": "",
@@ -7289,31 +7309,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Shrestapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lavodayapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phetchaburi",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isanapura",
+          "distance": 9
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Amarendrapura",
+          "distance": 11
         }
       ],
       "original_country": "",
-      "provincial_population": 10498240,
+      "provincial_population": 11682226,
       "assemblypeople": 20,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Bhavapura",
@@ -7328,23 +7348,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "13",
+        "food": "55",
+        "production": "80.3",
+        "gold": "151.5",
+        "culture": "33.7",
+        "science": "28.5",
+        "faith": "53.8"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "18"
         }
       ],
       "housing": "29",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "27.6",
       "counties": [
         {
           "name": "",
@@ -7378,31 +7398,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Taumutu",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Brundisium",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Dviradapura",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vimayapura",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Palmyra",
+          "distance": 10
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 9706451,
+      "provincial_population": 9290975,
       "assemblypeople": 20,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Puteoli",
@@ -7417,23 +7437,27 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "15",
+        "food": "50",
+        "production": "45",
+        "gold": "90.6",
+        "culture": "31.6",
+        "science": "28",
+        "faith": "1"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "21"
+        },
+        {
+          "name": "Taoism",
+          "followers": "0"
         }
       ],
       "housing": "25.5",
       "net_amenities": "4",
-      "net_food": null,
+      "net_food": "10.7",
       "counties": [
         {
           "name": "",
@@ -7467,31 +7491,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Mediolanum",
+          "distance": 3
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ostia",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Preah Vihear",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Lugdunum",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rome",
+          "distance": 6
         }
       ],
-      "original_country": "",
-      "provincial_population": 12306918,
+      "original_country": "Rome",
+      "provincial_population": 10975435,
       "assemblypeople": 21,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Arretium",
@@ -7506,23 +7530,27 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "16",
+        "food": "61",
+        "production": "125.5",
+        "gold": "174.1",
+        "culture": "134.7",
+        "science": "51",
+        "faith": "63.5"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "17"
+        },
+        {
+          "name": "Taoism",
+          "followers": "3"
         }
       ],
       "housing": "28.5",
       "net_amenities": "5",
-      "net_food": null,
+      "net_food": "27.4",
       "counties": [
         {
           "name": "",
@@ -7556,31 +7584,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rome",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ostia",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cumae",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Yasodharapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Puteoli",
+          "distance": 8
         }
       ],
-      "original_country": "",
-      "provincial_population": 10585380,
+      "original_country": "Rome",
+      "provincial_population": 10545995,
       "assemblypeople": 21,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Taoism"
     },
     {
       "name": "Lugdunum",
@@ -7595,23 +7623,27 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "15",
+        "food": "75",
+        "production": "77.5",
+        "gold": "97.5",
+        "culture": "72.2",
+        "science": "32.4",
+        "faith": "31.8"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "20"
+        },
+        {
+          "name": "Taoism",
+          "followers": "1"
         }
       ],
       "housing": "36.5",
       "net_amenities": "4",
-      "net_food": null,
+      "net_food": "44.4",
       "counties": [
         {
           "name": "",
@@ -7645,31 +7677,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ravenna",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Rome",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Puteoli",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ostia",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Mediolanum",
+          "distance": 6
         }
       ],
-      "original_country": "",
-      "provincial_population": 11423285,
+      "original_country": "Rome",
+      "provincial_population": 10773588,
       "assemblypeople": 21,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Nagara Jayasri",
@@ -7755,7 +7787,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 13699558,
+      "provincial_population": 11822419,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -7764,7 +7796,7 @@
       "name": "Kompong Svay",
       "city_id": 45,
       "is_national_capital": false,
-      "is_regional_capital": false,
+      "is_regional_capital": true,
       "is_founded": true,
       "is_joined": false,
       "is_conquered": false,
@@ -7773,23 +7805,27 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "16",
+        "food": "74",
+        "production": "108.7",
+        "gold": "158.3",
+        "culture": "75.8",
+        "science": "63.4",
+        "faith": "33.5"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "21"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "0"
         }
       ],
       "housing": "29",
       "net_amenities": "5",
-      "net_food": null,
+      "net_food": "46.2",
       "counties": [
         {
           "name": "",
@@ -7823,31 +7859,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bilbao",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kapiti",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Chaturmukha",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Indrapura",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isvarapura",
+          "distance": 8
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 12743887,
+      "provincial_population": 13686881,
       "assemblypeople": 22,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Rajavihara",
@@ -7862,23 +7898,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "15",
+        "food": "76",
+        "production": "93.1",
+        "gold": "212.2",
+        "culture": "58.2",
+        "science": "37.5",
+        "faith": "27.5"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "20"
         }
       ],
       "housing": "31",
       "net_amenities": "4",
-      "net_food": null,
+      "net_food": "46.8",
       "counties": [
         {
           "name": "",
@@ -7912,31 +7948,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Borei",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phanom Rung",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Phetchaburi",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isanapura",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Siem Reap",
+          "distance": 10
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 13806498,
+      "provincial_population": 11652364,
       "assemblypeople": 22,
       "prelates": 6,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Taumutu",
@@ -7951,23 +7987,23 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "15",
+        "food": "92",
+        "production": "117.4",
+        "gold": "190.5",
+        "culture": "46.7",
+        "science": "23.6",
+        "faith": "27.5"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "22"
         }
       ],
       "housing": "31",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "67.8",
       "counties": [
         {
           "name": "",
@@ -8001,31 +8037,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bhavapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ban Lung",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Dviradapura",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vimayapura",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Brundisium",
+          "distance": 11
         }
       ],
-      "original_country": "",
-      "provincial_population": 11451753,
+      "original_country": "Maori",
+      "provincial_population": 16033769,
       "assemblypeople": 23,
-      "prelates": 6,
-      "dominant_religion": "None"
+      "prelates": 7,
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Indrapura",
@@ -8040,23 +8076,27 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "17",
+        "food": "67",
+        "production": "111.6",
+        "gold": "268.7",
+        "culture": "47.7",
+        "science": "49.7",
+        "faith": "63.5"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "21"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "0"
         }
       ],
       "housing": "32",
       "net_amenities": "5",
-      "net_food": null,
+      "net_food": "32.5",
       "counties": [
         {
           "name": "",
@@ -8090,31 +8130,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kapiti",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isvarapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ban Lung",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kompong Svay",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bilbao",
+          "distance": 10
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 16009401,
+      "provincial_population": 16385286,
       "assemblypeople": 23,
       "prelates": 7,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Chaturmukha",
@@ -8129,23 +8169,27 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "14",
+        "food": "62",
+        "production": "98.7",
+        "gold": "134.3",
+        "culture": "34.7",
+        "science": "39",
+        "faith": "47"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "22"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "1"
         }
       ],
       "housing": "27.5",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "18.8",
       "counties": [
         {
           "name": "",
@@ -8179,31 +8223,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kompong Svay",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bilbao",
+          "distance": 10
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kapiti",
+          "distance": 12
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isvarapura",
+          "distance": 15
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Chaiya",
+          "distance": 16
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 17068753,
+      "provincial_population": 18232421,
       "assemblypeople": 24,
       "prelates": 7,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Velitrae",
@@ -8218,23 +8262,27 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "16",
+        "food": "82",
+        "production": "31.2",
+        "gold": "78.7",
+        "culture": "56.2",
+        "science": "33.5",
+        "faith": "59.3"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "25"
+        },
+        {
+          "name": "Taoism",
+          "followers": "0"
         }
       ],
       "housing": "29.5",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "43",
       "counties": [
         {
           "name": "",
@@ -8268,31 +8316,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Pre Rup",
+          "distance": 4
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Wat",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Antium",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Cumae",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Arretium",
+          "distance": 9
         }
       ],
-      "original_country": "",
-      "provincial_population": 17067593,
+      "original_country": "Rome",
+      "provincial_population": 16974779,
       "assemblypeople": 25,
       "prelates": 7,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Dviradapura",
@@ -8307,23 +8355,23 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "15",
+        "food": "87",
+        "production": "57.5",
+        "gold": "168.6",
+        "culture": "36.5",
+        "science": "13",
+        "faith": "28"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "24"
         }
       ],
       "housing": "30.5",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "54.6",
       "counties": [
         {
           "name": "",
@@ -8357,31 +8405,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Taumutu",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ban Lung",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Vimayapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bhavapura",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Indrapura",
+          "distance": 11
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 19942757,
+      "provincial_population": 16323533,
       "assemblypeople": 26,
       "prelates": 7,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Kapiti",
@@ -8396,23 +8444,27 @@
       "growth_percentage": "120",
       "happiness_percentage": "120",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "19",
+        "food": "81",
+        "production": "108.7",
+        "gold": "252.7",
+        "culture": "86.1",
+        "science": "55.1",
+        "faith": "34.7"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "13"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "12"
         }
       ],
       "housing": "38.5",
       "net_amenities": "6",
-      "net_food": null,
+      "net_food": "44.8",
       "counties": [
         {
           "name": "",
@@ -8446,38 +8498,38 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kompong Svay",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bilbao",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Isvarapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Indrapura",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ban Lung",
+          "distance": 12
         }
       ],
-      "original_country": "",
-      "provincial_population": 18170050,
+      "original_country": "Maori",
+      "provincial_population": 20237248,
       "assemblypeople": 26,
       "prelates": 7,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Isvarapura",
       "city_id": 53,
       "is_national_capital": false,
-      "is_regional_capital": true,
-      "is_founded": false,
+      "is_regional_capital": false,
+      "is_founded": true,
       "is_joined": false,
       "is_conquered": false,
       "population": "29",
@@ -8485,23 +8537,27 @@
       "growth_percentage": "110",
       "happiness_percentage": "110",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "18",
+        "food": "90",
+        "production": "91.7",
+        "gold": "159.7",
+        "culture": "42.7",
+        "science": "61",
+        "faith": "33"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "28"
+        },
+        {
+          "name": "Sikhism",
+          "followers": "0"
         }
       ],
       "housing": "35",
       "net_amenities": "3",
-      "net_food": null,
+      "net_food": "46.3",
       "counties": [
         {
           "name": "",
@@ -8535,31 +8591,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bilbao",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kapiti",
+          "distance": 5
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Indrapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Kompong Svay",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Ban Lung",
+          "distance": 15
         }
       ],
-      "original_country": "",
-      "provincial_population": 20260030,
+      "original_country": "Khmer Empire",
+      "provincial_population": 26293108,
       "assemblypeople": 29,
-      "prelates": 7,
-      "dominant_religion": "None"
+      "prelates": 8,
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Vimayapura",
@@ -8574,23 +8630,23 @@
       "growth_percentage": "100",
       "happiness_percentage": "100",
       "yields": {
-        "amenities": null,
-        "food": null,
-        "production": null,
-        "gold": null,
-        "culture": null,
-        "science": null,
-        "faith": null
+        "amenities": "17",
+        "food": "90",
+        "production": "63.7",
+        "gold": "247.7",
+        "culture": "50.5",
+        "science": "30",
+        "faith": "31"
       },
       "religions": [
         {
-          "name": "",
-          "followers": null
+          "name": "Zoroastrianism",
+          "followers": "28"
         }
       ],
       "housing": "34.5",
       "net_amenities": "2",
-      "net_food": null,
+      "net_food": "40.2",
       "counties": [
         {
           "name": "",
@@ -8624,31 +8680,31 @@
       "notes": "",
       "closest_provinces": [
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Angkor Wat",
+          "distance": 6
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Dviradapura",
+          "distance": 7
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Bhavapura",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Antium",
+          "distance": 8
         },
         {
-          "province_name": "",
-          "distance": null
+          "province_name": "Brundisium",
+          "distance": 9
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 28904566,
+      "provincial_population": 29080625,
       "assemblypeople": 30,
       "prelates": 8,
-      "dominant_religion": "None"
+      "dominant_religion": "Zoroastrianism"
     },
     {
       "name": "Cincinnati",
@@ -8738,7 +8794,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 19055319,
+      "provincial_population": 16114625,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -8747,63 +8803,63 @@
   "province_groups": [
     {
       "name": "Capital Region",
-      "regional_population": 87911897,
+      "regional_population": 90083097,
       "assemblypeople": 111,
-      "prelates": 30
+      "prelates": 29
     },
     {
       "name": "Roraima Land",
-      "regional_population": 59067406,
+      "regional_population": 51680941,
       "assemblypeople": 85,
-      "prelates": 31
+      "prelates": 30
     },
     {
       "name": "Federation of American Provinces",
-      "regional_population": 105561762,
+      "regional_population": 99327348,
       "assemblypeople": 132,
-      "prelates": 38
+      "prelates": 37
     },
     {
       "name": "Provinces of Western Pannotia and the Bering Sea",
-      "regional_population": 69945422,
+      "regional_population": 64046643,
       "assemblypeople": 113,
       "prelates": 35
     },
     {
       "name": "Union of the Free Adriatic Provinces",
-      "regional_population": 102652135,
+      "regional_population": 93356631,
       "assemblypeople": 130,
       "prelates": 36
     },
     {
       "name": "Royal Provinces of the Western Romaioi",
-      "regional_population": 44586474,
+      "regional_population": 43080359,
       "assemblypeople": 97,
       "prelates": 33
     },
     {
       "name": "Eastern Roman Provinces",
-      "regional_population": 49524949,
+      "regional_population": 45538748,
       "assemblypeople": 101,
       "prelates": 34
     },
     {
       "name": "Imperial Avalonia",
-      "regional_population": 22141222,
+      "regional_population": 23447467,
       "assemblypeople": 76,
       "prelates": 36
     },
     {
       "name": "Confederation of Eastern Avalonian Provinces",
-      "regional_population": 39318914,
+      "regional_population": 37653624,
       "assemblypeople": 78,
-      "prelates": 24
+      "prelates": 23
     },
     {
       "name": "Union of the Free Gondwanan Provinces",
-      "regional_population": 94567598,
+      "regional_population": 104089674,
       "assemblypeople": 151,
-      "prelates": 45
+      "prelates": 46
     }
   ],
   "global_religions": [

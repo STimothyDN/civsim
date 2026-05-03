@@ -1,4 +1,5 @@
 import { clamp01, norm, num } from '../normalization/numbers'
+import { NORMALIZATION_MAX, coefficientOfVariation, hhiIndex } from '../normalization/dataStats'
 
 const LISTED_RELIGION_FOLLOWER_FLOOR = 0.25
 
@@ -127,19 +128,53 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
   const loyaltyIndex = norm(province?.loyalty, 50)
   const happinessIndex = norm(province?.happiness_percentage, 120)
   const growthIndex = norm(province?.growth_percentage, 120)
-  const amenityIndex = norm(province?.net_amenities, 10)
-  const foodIndex = norm(num(province?.yields?.food) / civPopulation, 4)
-  const productionIndex = norm(num(province?.yields?.production) / civPopulation, 5)
-  const goldIndex = norm(num(province?.yields?.gold) / civPopulation, 10)
-  const cultureIndex = norm(num(province?.yields?.culture) / civPopulation, 6)
-  const scienceIndex = norm(num(province?.yields?.science) / civPopulation, 5)
-  const faithIndex = norm(num(province?.yields?.faith) / civPopulation, 5)
+  const amenityIndex = norm(province?.net_amenities, NORMALIZATION_MAX.net_amenities)
+  const foodIndex = norm(num(province?.yields?.food) / civPopulation, NORMALIZATION_MAX.food_per_capita)
+  const productionIndex = norm(num(province?.yields?.production) / civPopulation, NORMALIZATION_MAX.production_per_capita)
+  const goldIndex = norm(num(province?.yields?.gold) / civPopulation, NORMALIZATION_MAX.gold_per_capita)
+  const cultureIndex = norm(num(province?.yields?.culture) / civPopulation, NORMALIZATION_MAX.culture_per_capita)
+  const scienceIndex = norm(num(province?.yields?.science) / civPopulation, NORMALIZATION_MAX.science_per_capita)
+  const faithIndex = norm(num(province?.yields?.faith) / civPopulation, NORMALIZATION_MAX.faith_per_capita)
   const origin = originalCountry(province)
   const imperialOriginIndex = isImperialOrigin(province, country) ? 1 : 0
   const foreignOriginIndex = imperialOriginIndex ? 0 : 1
   const americanIdentityIndex = groupIncludes(province, 'American') || textIncludes(origin, 'American') || textIncludes(origin, 'United States') ? 1 : 0
   const romanIdentityIndex = groupIncludes(province, 'Roman') || textIncludes(origin, 'Roman') ? 1 : 0
   const connectivity = provinceConnectivity(province)
+
+  // Calculate economic diversity index based on yield variation
+  const yieldValues = [
+    num(province?.yields?.food),
+    num(province?.yields?.production),
+    num(province?.yields?.gold),
+    num(province?.yields?.culture),
+    num(province?.yields?.science),
+    num(province?.yields?.faith),
+  ]
+  const economicDiversityIndex = clamp01(coefficientOfVariation(yieldValues))
+
+  // Calculate religious homogeneity using HHI
+  const religionFollowersList = Object.values(followersByReligion || {})
+  const religiousHomogeneityIndex = clamp01(hhiIndex(religionFollowersList))
+
+  // Calculate development index as composite of infrastructure, culture, science
+  const developmentIndex = clamp01(
+    0.35 * (cultureIndex + scienceIndex) / 2 +
+    0.3 * amenityIndex +
+    0.2 * happinessIndex +
+    0.15 * goldIndex
+  )
+
+  // Calculate provincial power index from military and production indicators
+  const provincialPowerIndex = clamp01(
+    0.4 * productionIndex +
+    0.25 * goldIndex +
+    0.2 * foodIndex +
+    0.15 * (province?.assemblypeople ? province.assemblypeople / 50 : 0)
+  )
+
+  // Calculate isolation index as inverse of connectivity
+  const isolationIndex = clamp01(1 - connectivity.connectedness_index)
 
   let imperialCoreIndex = clamp01(
     0.25 * (province?.is_national_capital ? 1 : 0) +
@@ -178,6 +213,12 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
     culture_index: cultureIndex,
     science_index: scienceIndex,
     faith_index: faithIndex,
+    // New features
+    economic_diversity_index: economicDiversityIndex,
+    religious_homogeneity_index: religiousHomogeneityIndex,
+    development_index: developmentIndex,
+    provincial_power_index: provincialPowerIndex,
+    isolation_index: isolationIndex,
   }
 }
 
@@ -247,5 +288,11 @@ export function calculateProvinceFeatures(province, country = {}, counties = [],
     leisure_tourism_index: aggregated.leisure_tourism_index,
     civic_monument_index: aggregated.civic_monument_index,
     terrain_habitation_index: aggregated.terrain_habitation_index,
+    // Pass through new base features
+    economic_diversity_index: base.economic_diversity_index,
+    religious_homogeneity_index: base.religious_homogeneity_index,
+    development_index: base.development_index,
+    provincial_power_index: base.provincial_power_index,
+    isolation_index: base.isolation_index,
   }
 }

@@ -483,7 +483,8 @@ describe('election domain', () => {
     expect(control.status).toBe('minority-government')
     expect(control.leaderParty).toBe('yellow')
     expect(control.seats).toBeGreaterThanOrEqual(control.majority)
-    expect(control.supportParties[0]).toBe('red')
+    // Yellow now prioritizes orange as partner after being weakened
+    expect(control.supportParties[0]).toBe('orange')
   })
 
   it('keeps Solidarity and Lotus minor outside their natural regions', () => {

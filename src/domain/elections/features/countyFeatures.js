@@ -1,4 +1,5 @@
 import { clamp01, countTrue, hasAnyFeature, norm, num } from '../normalization/numbers'
+import { NORMALIZATION_MAX, coefficientOfVariation } from '../normalization/dataStats'
 
 const FOOD_RESOURCES = ['Rice', 'Wheat', 'Maize', 'Bananas']
 const STRATEGIC_RESOURCES = ['Iron', 'Coal', 'Oil', 'Uranium', 'Niter', 'Aluminum']
@@ -31,12 +32,12 @@ function boolIndex(value) {
 
 function countyYieldIndices(county) {
   return {
-    food_index: norm(county?.yields?.food, 8),
-    production_index: norm(county?.yields?.production, 12),
-    gold_index: norm(county?.yields?.gold, 24),
-    culture_index: norm(county?.yields?.culture, 15),
-    science_index: norm(county?.yields?.science, 12),
-    faith_index: norm(county?.yields?.faith, 12),
+    food_index: norm(county?.yields?.food, NORMALIZATION_MAX.county_food),
+    production_index: norm(county?.yields?.production, NORMALIZATION_MAX.county_production),
+    gold_index: norm(county?.yields?.gold, NORMALIZATION_MAX.county_gold),
+    culture_index: norm(county?.yields?.culture, NORMALIZATION_MAX.county_culture),
+    science_index: norm(county?.yields?.science, NORMALIZATION_MAX.county_science),
+    faith_index: norm(county?.yields?.faith, NORMALIZATION_MAX.county_faith),
   }
 }
 
@@ -65,7 +66,7 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   const strategicResourceIndex = STRATEGIC_RESOURCES.includes(resource) ? 1 : 0
   const appealIndex = county?.appeal === null || county?.appeal === undefined || county?.appeal === ''
     ? 0.35
-    : norm(county.appeal, 8)
+    : norm(county.appeal, NORMALIZATION_MAX.appeal)
   const preserveOrParkIndex = ['Preserve', 'National Park'].includes(name) ? 1 : 0
   const coastTerrainIndex = terrainIncludes(county, 'Coast') ? 1 : 0
   const oceanTerrainIndex = terrainIncludes(county, 'Ocean') ? 1 : 0
@@ -266,6 +267,41 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     0.08 * wildernessIndex
   )
 
+  // Calculate yield diversity index
+  const yieldValues = [
+    num(yields.food_index),
+    num(yields.production_index),
+    num(yields.gold_index),
+    num(yields.culture_index),
+    num(yields.science_index),
+    num(yields.faith_index),
+  ]
+  const yieldDiversityIndex = clamp01(coefficientOfVariation(yieldValues.filter(v => v > 0)))
+
+  // Calculate improved status index based on buildings and improvements
+  const buildingCount = Object.keys(buildings).length
+  const hasImprovement = name ? 1 : 0
+  const improvedStatusIndex = clamp01(
+    0.5 * hasImprovement +
+    0.3 * norm(buildingCount, 6) +
+    0.2 * (county?.has_railroad ? 1 : 0)
+  )
+
+  // Calculate resource development index
+  const resourceDevelopmentIndex = clamp01(
+    (strategicResourceIndex ? 1 : 0) +
+    (resource ? 0.5 : 0)
+  )
+
+  // Calculate cultural output index
+  const greatWorkCount = Object.keys(greatWorks).length
+  const culturalOutputIndex = clamp01(
+    0.4 * yields.culture_index +
+    0.3 * (name === 'Theater Square' ? 1 : 0) +
+    0.2 * norm(greatWorkCount, 6) +
+    0.1 * (civicMonumentIndex > 0.5 ? 1 : 0)
+  )
+
   return {
     county_population: Math.max(0, Math.round(num(county?.county_population))),
     county_population_share: clamp01(county?.county_population_share),
@@ -293,6 +329,11 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     leisure_tourism_index: leisureTourismIndex,
     civic_monument_index: civicMonumentIndex,
     terrain_habitation_index: terrainHabitationIndex,
+    // New features
+    yield_diversity_index: yieldDiversityIndex,
+    improved_status_index: improvedStatusIndex,
+    resource_development_index: resourceDevelopmentIndex,
+    cultural_output_index: culturalOutputIndex,
     ...yields,
     distance_index: distanceIndex,
     citizens_working_index: citizensWorkingIndex,

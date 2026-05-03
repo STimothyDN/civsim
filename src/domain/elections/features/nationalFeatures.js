@@ -41,6 +41,12 @@ export function calculateNationalFeatures(provinces = []) {
     'culture_index',
     'science_index',
     'faith_index',
+    // New features
+    'economic_diversity_index',
+    'religious_homogeneity_index',
+    'development_index',
+    'provincial_power_index',
+    'isolation_index',
   ]
 
   const features = featureNames.reduce((result, featureName) => {

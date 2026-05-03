@@ -3,12 +3,18 @@ import { num, sumObjectValues } from '../normalization/numbers'
 import { trendClimateScore } from '../trends/matchTrend'
 
 export const NATURAL_PARTNERS = {
-  yellow: ['red', 'blue', 'purple', 'orange', 'white'],
-  orange: ['blue', 'red', 'white', 'yellow', 'purple'],
-  red: ['yellow', 'purple', 'white', 'orange', 'blue'],
-  blue: ['orange', 'yellow', 'purple', 'white', 'red'],
-  white: ['blue', 'orange', 'red', 'yellow', 'purple'],
-  purple: ['red', 'yellow', 'blue', 'white', 'orange'],
+  // Yellow weakened: now more open to pragmatic partnerships with orange
+  yellow: ['orange', 'red', 'blue', 'purple', 'white'],
+  // Orange strengthened: more central to coalition building
+  orange: ['blue', 'yellow', 'red', 'white', 'purple'],
+  // Red: slightly more open to orange as it's gained strength
+  red: ['purple', 'yellow', 'orange', 'white', 'blue'],
+  // Blue: yellow less attractive, orange more attractive
+  blue: ['orange', 'purple', 'yellow', 'white', 'red'],
+  // White: yellow less central, orange/blue more viable
+  white: ['blue', 'orange', 'red', 'purple', 'yellow'],
+  // Purple strengthened (especially in Roman provinces): elevated position
+  purple: ['red', 'blue', 'yellow', 'white', 'orange'],
 }
 
 function dominantParty(seats = {}) {

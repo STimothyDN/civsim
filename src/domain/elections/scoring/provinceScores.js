@@ -22,9 +22,10 @@ export function calculateProvincePartyScores(province) {
   const frontierIndex = f(province, 'frontier_index')
   const connectednessIndex = f(province, 'connectedness_index')
   const whiteDiasporaScore =
-    PARTY_FLOORS.white +
-    0.03 * f(province, 'commerce_index') +
-    0.025 * f(province, 'localist_index') +
+    PARTY_FLOORS.white -
+    0.01 +
+    0.025 * f(province, 'commerce_index') +
+    0.02 * f(province, 'localist_index') +
     0.015 * conqueredPenalty +
     0.015 * maritimeIndex +
     0.015 * wildernessIndex +
@@ -32,88 +33,97 @@ export function calculateProvincePartyScores(province) {
     0.02 * frontierIndex
   const purpleDiasporaScore =
     PARTY_FLOORS.purple +
-    0.04 * f(province, 'spiritual_index') +
-    0.035 * f(province, 'faith_index') +
-    0.025 * f(province, 'minority_religion_share') +
-    0.02 * f(province, 'restorationist_index') +
-    0.02 * wildernessIndex +
-    0.01 * mountainIndex +
+    0.01 +
+    0.045 * f(province, 'spiritual_index') +
+    0.04 * f(province, 'faith_index') +
+    0.03 * f(province, 'minority_religion_share') +
+    0.025 * f(province, 'restorationist_index') +
+    0.025 * wildernessIndex +
+    0.015 * mountainIndex +
     0.02 * foreignOriginIndex
   const whiteNaturalScore =
-    PARTY_FLOORS.white +
-    0.85 * americanIdentityIndex +
+    PARTY_FLOORS.white -
+    0.01 +
+    0.8 * americanIdentityIndex +
     0.2 * conqueredAmericanIndex +
-    0.075 * f(province, 'commerce_index') +
-    0.075 * f(province, 'localist_index') +
-    0.035 * maritimeIndex +
+    0.07 * f(province, 'commerce_index') +
+    0.07 * f(province, 'localist_index') +
+    0.03 * maritimeIndex +
     0.025 * wildernessIndex
   const purpleNaturalScore =
     PARTY_FLOORS.purple +
-    0.475 * taoistShare +
-    0.3 * f(province, 'restorationist_index') +
-    0.225 * f(province, 'spiritual_index') +
-    0.15 * f(province, 'faith_index') +
-    0.125 * f(province, 'minority_religion_share') +
-    0.125 * romanIdentityIndex +
-    0.035 * wildernessIndex +
-    0.025 * mountainIndex
+    0.015 +
+    0.5 * taoistShare +
+    0.35 * f(province, 'restorationist_index') +
+    0.25 * f(province, 'spiritual_index') +
+    0.18 * f(province, 'faith_index') +
+    0.15 * f(province, 'minority_religion_share') +
+    0.25 * romanIdentityIndex +
+    0.04 * wildernessIndex +
+    0.03 * mountainIndex
   const isAmericanBase = americanIdentityIndex >= 0.5
   const isLotusBase = romanIdentityIndex >= 0.5 || taoistShare >= 0.05
 
   return {
     yellow:
-      0.1 +
-      0.425 * f(province, 'imperial_core_index') +
-      0.275 * f(province, 'cultural_elite_index') +
-      0.225 * f(province, 'state_religion_share') +
-      0.175 * f(province, 'science_index') +
-      0.175 * f(province, 'culture_index') +
-      0.15 * f(province, 'loyalty_index') +
-      0.08 * civicMonumentIndex +
+      0.075 +
+      0.32 * f(province, 'imperial_core_index') +
+      0.22 * f(province, 'cultural_elite_index') +
+      0.17 * f(province, 'state_religion_share') +
+      0.13 * f(province, 'science_index') +
+      0.13 * f(province, 'culture_index') +
+      0.09 * f(province, 'development_index') +
+      0.08 * f(province, 'provincial_power_index') +
+      0.1 * f(province, 'loyalty_index') +
+      0.06 * f(province, 'religious_homogeneity_index') +
+      0.06 * civicMonumentIndex +
       0.04 * residentialIndex +
-      0.08 * f(province, 'infrastructure_index') +
-      0.06 * connectednessIndex -
-      0.175 * conqueredPenalty -
+      0.05 * connectednessIndex -
+      0.2 * conqueredPenalty -
       0.1 * f(province, 'localist_index') -
       0.08 * foreignOriginIndex -
       0.04 * frontierIndex,
 
     orange:
-      0.1 +
-      0.35 * f(province, 'industrial_index') +
-      0.275 * f(province, 'production_index') +
-      0.225 * f(province, 'urbanization_index') +
-      0.2 * f(province, 'worker_grievance_index') +
-      0.08 * extractiveIndex +
-      0.05 * maritimeIndex +
-      0.125 * f(province, 'commerce_index') -
-      0.075 * f(province, 'faith_index'),
+      0.105 +
+      0.34 * f(province, 'industrial_index') +
+      0.24 * f(province, 'production_index') +
+      0.19 * f(province, 'urbanization_index') +
+      0.16 * f(province, 'worker_grievance_index') +
+      0.13 * f(province, 'economic_diversity_index') +
+      0.09 * extractiveIndex +
+      0.06 * maritimeIndex +
+      0.1 * f(province, 'commerce_index') -
+      0.06 * f(province, 'faith_index'),
 
     red:
       0.1 +
-      0.35 * f(province, 'agrarian_index') +
-      0.25 * f(province, 'military_index') +
-      0.2 * f(province, 'rural_index') +
-      0.175 * f(province, 'food_index') +
-      0.15 * f(province, 'traditionalist_index') +
+      0.3 * f(province, 'agrarian_index') +
+      0.22 * f(province, 'military_index') +
+      0.18 * f(province, 'rural_index') +
+      0.14 * f(province, 'food_index') +
+      0.12 * f(province, 'traditionalist_index') +
+      0.1 * f(province, 'isolation_index') +
       0.08 * wildernessIndex +
       0.04 * mountainIndex -
-      0.1 * f(province, 'urbanization_index'),
+      0.08 * f(province, 'urbanization_index'),
 
     blue:
       0.1 +
-      0.275 * f(province, 'intellectual_index') +
-      0.25 * f(province, 'spiritual_index') +
-      0.225 * f(province, 'commerce_index') +
-      0.175 * f(province, 'appeal_index') +
-      0.15 * f(province, 'minority_religion_share') +
-      0.15 * f(province, 'localist_index') +
-      0.07 * residentialIndex +
-      0.06 * leisureTourismIndex +
+      0.25 * f(province, 'intellectual_index') +
+      0.2 * f(province, 'spiritual_index') +
+      0.18 * f(province, 'commerce_index') +
+      0.14 * f(province, 'appeal_index') +
+      0.12 * f(province, 'minority_religion_share') +
+      0.12 * f(province, 'economic_diversity_index') +
+      0.1 * f(province, 'localist_index') +
+      0.08 * f(province, 'cultural_output_index') +
+      0.06 * residentialIndex +
+      0.05 * leisureTourismIndex +
       0.04 * maritimeIndex -
-      0.075 * f(province, 'imperial_core_index') +
-      0.08 * foreignOriginIndex +
-      0.05 * frontierIndex,
+      0.06 * f(province, 'imperial_core_index') +
+      0.06 * foreignOriginIndex +
+      0.04 * frontierIndex,
 
     white: isAmericanBase ? whiteNaturalScore : whiteDiasporaScore,
 
