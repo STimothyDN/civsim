@@ -1202,17 +1202,31 @@
   border-radius: var(--radius-sm);
 }
 
-.pollster-top-list {
+.pollster-party-board {
   display: grid;
   gap: 7px;
 }
 
+.pollster-party-board-head,
 .pollster-party-row {
   display: grid;
-  grid-template-columns: minmax(86px, 0.7fr) minmax(90px, 1fr) auto;
+  grid-template-columns: minmax(86px, 0.76fr) minmax(76px, 1fr) 48px 42px 52px;
   gap: 8px;
   align-items: center;
   min-width: 0;
+}
+
+.pollster-party-board-head {
+  padding: 0 2px;
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pollster-party-board-head span:nth-child(n+3) {
+  text-align: right;
 }
 
 .pollster-party-track {
@@ -1232,6 +1246,15 @@
 .pollster-party-row strong {
   color: var(--text-primary);
   font-size: 0.82rem;
+  text-align: right;
+}
+
+.pollster-seat-chip {
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: right;
 }
 
 .pollster-seat-grid {
@@ -1400,8 +1423,16 @@
   }
 
   .pollster-leader,
-  .pollster-party-row,
   .pollster-seat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pollster-party-board-head {
+    display: none;
+  }
+
+  .pollster-party-row {
+    grid-template-columns: minmax(76px, 0.8fr) minmax(70px, 1fr) 44px 28px 38px;
+    gap: 6px;
   }
 }

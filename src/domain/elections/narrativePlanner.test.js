@@ -4,6 +4,7 @@ import {
   requestElectionClimateSummary,
   requestElectionTicker,
   requestElectionNarrativePlan,
+  requestPollBreakdown,
 } from './narrativePlanner'
 
 function mockChatResponse(content) {
@@ -441,6 +442,71 @@ describe('narrativePlanner LLM prompts', () => {
     expect(body.system_prompt).toContain('Treat polling.aggregate')
     expect(userPayload.polling.aggregate.projectedSeats.assembly.yellow).toBe(9)
     expect(userPayload.polling.spread.voteShareRangePct.yellow).toMatchObject({ min: 39.8, max: 42.4 })
+  })
+
+  it('sends detailed pollster context to the poll breakdown roundtable prompt', async () => {
+    const polling = {
+      scope: 'national',
+      scopeLabel: 'National',
+      aggregate: {
+        voteShares: { yellow: 0.412, orange: 0.284, red: 0.121, blue: 0.103, white: 0.05, purple: 0.03 },
+        seats: {
+          assembly: { yellow: 9, orange: 5, red: 3, blue: 2, white: 1, purple: 0 },
+          prelates: { yellow: 4, orange: 2, red: 1, blue: 1, white: 0, purple: 0 },
+        },
+        leader: 'yellow',
+        spread: {
+          voteShareRangePct: { yellow: { min: 39.8, max: 42.4 } },
+          assemblySeatRange: { yellow: { min: 8, max: 10 } },
+        },
+      },
+      pollsters: [
+        {
+          id: 'aurora',
+          name: 'Aurora Public Opinion',
+          tagline: 'Reading the temper of the realm.',
+          methodology: 'Uses climate-weighted vote shares.',
+          leader: 'yellow',
+          marginOfError: 0.035,
+          houseEffect: { party: 'yellow', points: 1.2 },
+          voteShares: { yellow: 0.424, orange: 0.272, red: 0.12, blue: 0.1, white: 0.05, purple: 0.034 },
+          seats: {
+            assembly: { yellow: 10, orange: 5, red: 2, blue: 2, white: 1, purple: 0 },
+            prelates: { yellow: 4, orange: 2, red: 1, blue: 1, white: 0, purple: 0 },
+          },
+        },
+      ],
+    }
+
+    mockChatResponse('<think>panel prep</think>\nHOST: The poll board opens with Divinus Sol ahead.\n\nPOLLING EDITOR: The aggregate shows a lead.\n\nDATA ANALYST: Aurora is near the top of the range.\n\nFIELD ANALYST: Rail politics explains the movement.\n\nCAMPAIGN STRATEGIST: The path runs through assembly seats.\n\nHOST: The unanswered question is turnout.')
+
+    const text = await requestPollBreakdown({
+      results: sampleResults(),
+      baselineResults: sampleBaselineResults(),
+      polling,
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    const body = lastRequestBody()
+    const userPayload = JSON.parse(body.input)
+
+    expect(body.temperature).toBe(0.58)
+    expect(body.max_output_tokens).toBe(1800)
+    expect(body.system_prompt).toContain('roundtable')
+    expect(body.system_prompt).toContain('pre-election polling segment')
+    expect(userPayload.task).toContain('analyst roundtable')
+    expect(userPayload.format[0]).toContain('HOST')
+    expect(userPayload.polling.aggregate.voteSharesPct.yellow).toBe(41.2)
+    expect(userPayload.polling.spread.voteShareRangePct.yellow).toMatchObject({ min: 39.8, max: 42.4 })
+    expect(userPayload.polling.pollsters[0]).toMatchObject({
+      name: 'Aurora Public Opinion',
+      marginOfErrorPct: 3.5,
+      houseEffect: { party: 'yellow', points: 1.2 },
+    })
+    expect(userPayload.polling.pollsters[0].projectedSeats.assembly.yellow).toBe(10)
+    expect(text).not.toContain('<think>')
+    expect(text).toContain('HOST:')
   })
 
   it('sends provincial scope and targetName to the broadcast prompt', async () => {

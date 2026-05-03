@@ -6,6 +6,7 @@ export const useUiStore = defineStore('ui', {
     _toastId: 0,
     electionNarrativeModalOpen: false,
     electionBroadcastModalOpen: false,
+    pollBreakdownModalOpen: false,
     broadcastScope: 'national',
     broadcastTargetName: null,
   }),
@@ -27,6 +28,12 @@ export const useUiStore = defineStore('ui', {
     },
     closeElectionBroadcastModal() {
       this.electionBroadcastModalOpen = false
+    },
+    openPollBreakdownModal() {
+      this.pollBreakdownModalOpen = true
+    },
+    closePollBreakdownModal() {
+      this.pollBreakdownModalOpen = false
     },
   },
 })

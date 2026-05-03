@@ -167,6 +167,7 @@ describe('election result pages', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const { wrapper, electionStore } = mountPage(PreElectionPage)
+    const uiStore = useUiStore()
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('Pre-Election')
@@ -174,6 +175,18 @@ describe('election result pages', () => {
     expect(wrapper.text()).toContain('Election Polls')
     expect(wrapper.text()).toContain('Concord of Pollsters')
     expect(wrapper.text()).toContain('Aurora Public Opinion')
+    expect(wrapper.text()).toContain('Mandate Memory Research')
+    expect(wrapper.text()).toContain('Chamberline Analytics')
+    expect(wrapper.text()).toContain('Asm Total')
+    expect(wrapper.text()).toContain('Council Total')
+    expect(wrapper.findAll('.pollster-card')).toHaveLength(6)
+    expect(wrapper.findAll('.pollster-party-row')).toHaveLength(36)
+    expect(wrapper.text()).toContain('Start Poll Breakdown')
+
+    const pollBreakdownButton = wrapper.findAll('button').find((button) => button.text().includes('Start Poll Breakdown'))
+    await pollBreakdownButton.trigger('click')
+
+    expect(uiStore.pollBreakdownModalOpen).toBe(true)
 
     const climateButton = wrapper.findAll('button').find((button) => button.text().includes('Randomize Election Climate'))
     await climateButton.trigger('click')

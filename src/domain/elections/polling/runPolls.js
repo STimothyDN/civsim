@@ -36,6 +36,20 @@ export const POLLSTERS = [
     methodology: 'Uses current vote shares with deterministic daily-tracker sampling noise.',
     marginOfError: 0.03,
   },
+  {
+    id: 'mandate-memory',
+    name: 'Mandate Memory Research',
+    tagline: 'Late deciders remember the last mandate.',
+    methodology: 'Blends current vote shares with baseline election shares to model voters drifting back toward familiar coalitions.',
+    marginOfError: 0.028,
+  },
+  {
+    id: 'seat-efficiency',
+    name: 'Chamberline Analytics',
+    tagline: 'Finding where votes become seats.',
+    methodology: 'Blends current vote shares with assembly seat efficiency, emphasizing parties whose support is geographically productive.',
+    marginOfError: 0.026,
+  },
 ]
 
 function number(value, fallback = 0) {
@@ -128,6 +142,21 @@ function likelyVoterShares(shares = {}) {
   })))
 }
 
+function blendShares(primary = {}, secondary = {}, primaryWeight = 0.7) {
+  const first = normalizeShares(primary)
+  const second = normalizeShares(secondary)
+  const weight = Math.max(0, Math.min(1, number(primaryWeight, 0.7)))
+  return normalizeShares(Object.fromEntries(PARTIES.map((party) => [
+    party,
+    first[party] * weight + second[party] * (1 - weight),
+  ])))
+}
+
+function seatEfficiencyShares(unit = {}) {
+  const seats = unit?.assembly?.seats || {}
+  return sumSeats(seats) > 0 ? normalizeShares(seats) : normalizeShares(unit?.assembly?.vote_shares)
+}
+
 function buildScopeUnit(scope, scopeKey, scopeLabel, unit, baselineUnit = null, provinceIndex = null) {
   return { scope, scopeKey, scopeLabel, unit, baselineUnit, provinceIndex }
 }
@@ -184,6 +213,12 @@ function baseSharesForPollster(pollsterId, scopeUnit, results) {
   const assembly = scopeUnit.unit?.assembly || {}
   if (pollsterId === 'climate-heavy') return assembly.climate_vote_shares || assembly.vote_shares
   if (pollsterId === 'local-weighted') return assembly.local_vote_shares || assembly.vote_shares
+  if (pollsterId === 'mandate-memory') {
+    return blendShares(assembly.vote_shares, scopeUnit.baselineUnit?.assembly?.vote_shares || assembly.vote_shares, 0.64)
+  }
+  if (pollsterId === 'seat-efficiency') {
+    return blendShares(assembly.vote_shares, seatEfficiencyShares(scopeUnit.unit), 0.72)
+  }
   return assembly.vote_shares
 }
 
@@ -198,6 +233,12 @@ function pollsterHouseEffect(pollsterId, scopeUnit, results) {
   if (pollsterId === 'likely-voter') {
     return { party: houseSeatLeader(scopeUnit.unit), points: 0.006 }
   }
+  if (pollsterId === 'mandate-memory') {
+    return { party: topParty(scopeUnit.baselineUnit?.assembly?.vote_shares || baseShares), points: 0.005 }
+  }
+  if (pollsterId === 'seat-efficiency') {
+    return { party: houseSeatLeader(scopeUnit.unit), points: 0.01 }
+  }
   return { party: topParty(baseShares), points: 0 }
 }
 
@@ -207,7 +248,15 @@ function pollsterShares(pollster, scopeUnit, results, pollSeed) {
   const effect = pollsterHouseEffect(pollster.id, scopeUnit, results)
   const adjustedBase = pollster.id === 'likely-voter' ? likelyVoterShares(base) : base
   const withEffect = applyHouseEffect(adjustedBase, effect.party, effect.points)
-  const noiseScale = pollster.id === 'tracking' ? 0.58 : pollster.id === 'climate-heavy' ? 0.24 : 0.18
+  const noiseScale = pollster.id === 'tracking'
+    ? 0.58
+    : pollster.id === 'climate-heavy'
+      ? 0.24
+      : pollster.id === 'seat-efficiency'
+        ? 0.22
+        : pollster.id === 'mandate-memory'
+          ? 0.16
+          : 0.18
   return {
     voteShares: addPollingNoise(withEffect, rng, pollster.marginOfError, noiseScale),
     houseEffect: effect,

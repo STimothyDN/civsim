@@ -37,6 +37,11 @@
           <RefreshCcw :size="16" />
           Re-roll polls
         </button>
+        <button type="button" class="btn-broadcast-start" @click="uiStore.openPollBreakdownModal">
+          <Radio :size="16" />
+          Start Poll Breakdown
+          <BrainCircuit :size="13" class="broadcast-ai-mark" />
+        </button>
       </div>
     </div>
 
@@ -99,23 +104,32 @@
           <strong>{{ formatShare(pollster.voteShares[pollster.leader]) }}</strong>
         </div>
 
-        <div class="pollster-top-list">
-          <div v-for="party in topParties(pollster.voteShares)" :key="`${pollster.id}-${party}`" class="pollster-party-row">
+        <div class="pollster-party-board">
+          <div class="pollster-party-board-head">
+            <span>Party</span>
+            <span></span>
+            <span>Vote</span>
+            <span>Asm</span>
+            <span>Council</span>
+          </div>
+          <div v-for="party in pollsterParties(pollster)" :key="`${pollster.id}-${party}`" class="pollster-party-row">
             <PartyBadge :party="party" abbreviated />
             <div class="pollster-party-track">
               <i :style="{ width: `${Math.max(4, pollster.voteShares[party] * 100)}%`, backgroundColor: partyColor(party) }"></i>
             </div>
             <strong>{{ formatShare(pollster.voteShares[party]) }}</strong>
+            <span class="pollster-seat-chip">{{ formatNumber(pollster.seats.assembly[party] || 0) }}</span>
+            <span class="pollster-seat-chip">{{ formatNumber(pollster.seats.prelates[party] || 0) }}</span>
           </div>
         </div>
 
         <div class="pollster-seat-grid">
           <div>
-            <span>Assembly</span>
+            <span>Asm Total</span>
             <strong>{{ formatNumber(sumSeats(pollster.seats.assembly)) }}</strong>
           </div>
           <div>
-            <span>Council</span>
+            <span>Council Total</span>
             <strong>{{ formatNumber(sumSeats(pollster.seats.prelates)) }}</strong>
           </div>
           <div>
@@ -171,19 +185,21 @@
 
 <script>
 import { computed, watch } from 'vue'
-import { GitCompare, Info, RefreshCcw } from 'lucide-vue-next'
+import { BrainCircuit, GitCompare, Info, Radio, RefreshCcw } from 'lucide-vue-next'
 import { usePolls } from '../../composables/usePolls'
 import { PARTIES, formatShare } from '../../domain/elections'
 import { formatNumber } from '../../domain/provinceVisualizations'
 import { partyWinnerStyle, sumSeats, topParty } from '../../domain/elections/viewHelpers'
 import { useFormStore } from '../../stores/formStore'
+import { useUiStore } from '../../stores/uiStore'
 import PartyBadge from './PartyBadge.vue'
 
 export default {
   name: 'ElectionPollsCard',
-  components: { GitCompare, Info, PartyBadge, RefreshCcw },
+  components: { BrainCircuit, GitCompare, Info, PartyBadge, Radio, RefreshCcw },
   setup() {
     const formStore = useFormStore()
+    const uiStore = useUiStore()
     const { currentScope, pollingStore, provincialScopes, regionalScopes } = usePolls()
     const scopeOptions = [
       { value: 'national', label: 'National' },
@@ -215,8 +231,14 @@ export default {
       return formStore.partyMeta[party]?.color || '#9b9a97'
     }
 
-    function topParties(shares = {}) {
-      return [...PARTIES].sort((a, b) => Number(shares[b] || 0) - Number(shares[a] || 0)).slice(0, 3)
+    function pollsterParties(pollster = {}) {
+      const shares = pollster.voteShares || {}
+      const seats = pollster.seats?.assembly || {}
+      return [...PARTIES].sort((a, b) => (
+        Number(shares[b] || 0) - Number(shares[a] || 0) ||
+        Number(seats[b] || 0) - Number(seats[a] || 0) ||
+        PARTIES.indexOf(a) - PARTIES.indexOf(b)
+      ))
     }
 
     function houseEffectLabel(pollster) {
@@ -264,7 +286,8 @@ export default {
       selectedProvinceIndex,
       selectedRegionName,
       sumSeats,
-      topParties,
+      pollsterParties,
+      uiStore,
     }
   },
 }

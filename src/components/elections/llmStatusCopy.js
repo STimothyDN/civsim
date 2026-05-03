@@ -327,12 +327,75 @@ const CLIMATE_COPY = {
   },
 }
 
+const POLL_BREAKDOWN_COPY = {
+  ...BROADCAST_COPY,
+  'app.preparing': {
+    label: 'Roundtable',
+    message: 'Seating the polling panel.',
+    detail: 'Collecting poll-of-polls, pollster splits, house effects, and campaign climate.',
+  },
+  'app.connecting': {
+    label: 'Signal',
+    message: 'Opening the roundtable feed.',
+    detail: 'Linking the polling board to LM Studio.',
+  },
+  'prompt_processing.start': {
+    label: 'Poll Board',
+    message: 'Stacking the poll board.',
+    detail: 'Aggregate polling, pollster spreads, and party paths are being processed.',
+  },
+  'prompt_processing.progress': {
+    label: 'Poll Board',
+    message: 'Stacking the poll board.',
+    detail: (status) => progressDetail(status, 'Poll-board processing progress'),
+  },
+  'prompt_processing.end': {
+    label: 'Poll Board',
+    message: 'Poll board is locked.',
+    detail: 'The roundtable can move to analysis.',
+  },
+  'message.start': {
+    label: 'Panel',
+    message: 'Analyst copy is coming in.',
+    detail: 'The roundtable script is streaming from LM Studio.',
+  },
+  'message.delta': {
+    label: 'Panel',
+    message: 'Analyst copy is coming in.',
+    detail: (status) => status.detail || 'Polling analysis is streaming from LM Studio.',
+  },
+  'message.end': {
+    label: 'Panel',
+    message: 'Analyst copy is locked.',
+    detail: 'The roundtable text is ready.',
+  },
+  'app.complete': {
+    label: 'Panel',
+    message: 'Poll roundtable script received.',
+    detail: 'Formatting analyst turns for the breakdown screen.',
+  },
+  error: {
+    label: 'Fault',
+    message: 'Poll breakdown feed failed.',
+    detail: (status) => status.detail || 'LM Studio returned an error.',
+  },
+  default: {
+    label: 'Signal',
+    message: 'Holding the roundtable feed.',
+    detail: 'Waiting for the local model.',
+  },
+}
+
 export function broadcastLlmStatus(status) {
   return mapStatus(status, BROADCAST_COPY)
 }
 
 export function climateLlmStatus(status) {
   return mapStatus(status, CLIMATE_COPY)
+}
+
+export function pollBreakdownLlmStatus(status) {
+  return mapStatus(status, POLL_BREAKDOWN_COPY)
 }
 
 export function tickerLlmStatus(status) {

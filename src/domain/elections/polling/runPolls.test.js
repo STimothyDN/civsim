@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PARTIES } from '../constants/parties'
-import { runPolls } from './runPolls'
+import { POLLSTERS, runPolls } from './runPolls'
 
 function seats(values) {
   return { yellow: values[0], orange: values[1], red: values[2], blue: values[3], white: values[4], purple: values[5] }
@@ -81,6 +81,20 @@ function expectedSeatCounts(scope) {
 }
 
 describe('runPolls', () => {
+  it('includes the full concord of pollsters', () => {
+    const scopes = runPolls({ results: sampleResults(), baselineResults: sampleResults(), pollSeed: 'fixed-poll' })
+
+    expect(POLLSTERS).toHaveLength(6)
+    expect(scopes[0].pollsters.map((pollster) => pollster.name)).toEqual([
+      'Aurora Public Opinion',
+      'Parish & Precinct',
+      'Civitas Standard-Bearer',
+      'Sentinel Daily Tracker',
+      'Mandate Memory Research',
+      'Chamberline Analytics',
+    ])
+  })
+
   it('is deterministic for a fixed seed', () => {
     const first = runPolls({ results: sampleResults(), baselineResults: sampleResults(), pollSeed: 'fixed-poll' })
     const second = runPolls({ results: sampleResults(), baselineResults: sampleResults(), pollSeed: 'fixed-poll' })

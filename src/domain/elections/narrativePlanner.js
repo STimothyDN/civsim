@@ -646,6 +646,20 @@ function tickerSystemPrompt(scope = 'national', targetName = null) {
   ].join(' ')
 }
 
+function pollBreakdownSystemPrompt() {
+  return [
+    'You are producing a pre-election polling segment for a fictional mainstream political news network.',
+    'FORMAT: Write exactly 6 plain-text dialogue turns, each as one paragraph beginning with a speaker label such as "HOST:", "POLLING EDITOR:", "DATA ANALYST:", "FIELD ANALYST:", or "CAMPAIGN STRATEGIST:".',
+    'STYLE: This is a polished roundtable of analysts talking through the poll board, not an election-night result call and not a state-media bulletin.',
+    'TASK: Explain what the latest poll-of-polls shows, where the pollsters agree or diverge, which party has the path to control, and what uncertainty remains.',
+    'DATA FIRST: Use polling.aggregate as the main source. Bring in individual pollsters, margins of error, spread ranges, projected seats, and house effects when they explain the disagreement.',
+    'CONTEXT: Use active trends, party legend, and scoped result context only to explain why the polling might look this way.',
+    'IMMERSION: Sound like a television panel already on air. No definitions of the simulator, no tutorial language, no prompt commentary.',
+    'Use only supplied facts and numbers; do not invent counties, parties, pollsters, margins, or quotes.',
+    'Return ONLY the six dialogue paragraphs separated by blank lines. No markdown, headings, bullets, hidden reasoning, or <think> blocks.',
+  ].join(' ')
+}
+
 function pollingVotePctMap(values = {}) {
   const rawValues = Object.values(values || {}).map((value) => numberOrNull(value)).filter((value) => value !== null)
   const alreadyPct = rawValues.some((value) => value > 1)
@@ -676,6 +690,36 @@ function pollingContext(polling = null) {
     spread: polling.spread || aggregate.spread,
     pollsterCount: polling.pollsterCount || (Array.isArray(polling.pollsters) ? polling.pollsters.length : undefined),
     methodologyNotes,
+  })
+}
+
+function pollsterBreakdownContext(pollster = {}, partyMeta = PARTY_META) {
+  return compactObject({
+    id: pollster.id,
+    name: pollster.name,
+    tagline: pollster.tagline,
+    methodology: pollster.methodology,
+    leader: pollster.leader,
+    leaderName: partyMeta[pollster.leader]?.name || PARTY_META[pollster.leader]?.name || pollster.leader,
+    marginOfErrorPct: roundNumber((numberOrNull(pollster.marginOfError) ?? 0) * 100, 1),
+    houseEffect: pollster.houseEffect ? compactObject({
+      party: pollster.houseEffect.party,
+      partyName: partyMeta[pollster.houseEffect.party]?.name || PARTY_META[pollster.houseEffect.party]?.name || pollster.houseEffect.party,
+      points: roundNumber(pollster.houseEffect.points, 1),
+    }) : undefined,
+    voteSharesPct: pollingVotePctMap(pollster.voteShares),
+    projectedSeats: pollster.seats ? {
+      assembly: seatMap(pollster.seats.assembly),
+      council: seatMap(pollster.seats.prelates),
+    } : undefined,
+  })
+}
+
+function pollBreakdownPollingContext(polling = null, partyMeta = PARTY_META) {
+  if (!polling) return undefined
+  return compactObject({
+    ...pollingContext(polling),
+    pollsters: (polling.pollsters || []).map((pollster) => pollsterBreakdownContext(pollster, partyMeta)),
   })
 }
 
@@ -942,6 +986,41 @@ function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national'
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
     }) : undefined,
     polling: pollingContext(polling),
+    focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
+  })
+}
+
+function pollBreakdownUserPrompt(results = {}, baselineResults = {}, polling = null) {
+  const partyMeta = partyMetaForContext(results)
+  const scope = polling?.scope || 'national'
+  const targetName = polling?.scopeLabel || null
+  const includeNational = scope === 'national'
+
+  return JSON.stringify({
+    task: 'Write exactly six plain-text analyst roundtable turns about the current pre-election poll board.',
+    scope,
+    target: targetName || 'National',
+    format: [
+      'HOST: frame the lead from the poll-of-polls.',
+      'POLLING EDITOR: explain the aggregate vote share and seat projection.',
+      'DATA ANALYST: compare pollsters, spreads, and margins of error.',
+      'FIELD ANALYST: tie the poll movement to supplied active trends or local context.',
+      'CAMPAIGN STRATEGIST: explain the path to control and the risk for the trailing parties.',
+      'HOST: close with the unresolved question the panel will watch next.',
+    ],
+    partyLegend: partyLegend(partyMeta),
+    activeTrends: trendSummaries(results.config?.trends || []).slice(0, 8),
+    climate: compactObject({
+      name: results.config?.scenarioName,
+      description: results.config?.scenarioDescription,
+      trendCount: Array.isArray(results.config?.trends) ? results.config.trends.length : 0,
+    }),
+    national: includeNational ? compactObject({
+      population: integerOrNull(results.national?.population),
+      assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
+      council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
+    }) : undefined,
+    polling: pollBreakdownPollingContext(polling, partyMeta),
     focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
   })
 }
@@ -1875,6 +1954,41 @@ export async function requestElectionBroadcast({
     progress: 1,
     message: 'Broadcast script received.',
     detail: 'Formatting paragraphs for the transmission screen.',
+  })
+
+  return stripThinkBlocks(content)
+}
+
+export async function requestPollBreakdown({
+  results,
+  baselineResults,
+  polling = null,
+  endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
+  model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
+  onStatus,
+} = {}) {
+  emitLlmStatus(onStatus, {
+    phase: 'preparing',
+    progress: 0.1,
+    message: 'Assembling poll roundtable packet.',
+    detail: 'Collecting poll-of-polls, pollster splits, house effects, and campaign climate.',
+  })
+  const content = await requestChatCompletion({
+    endpoint,
+    model,
+    temperature: 0.58,
+    max_tokens: 1800,
+    messages: [
+      { role: 'system', content: pollBreakdownSystemPrompt() },
+      { role: 'user', content: pollBreakdownUserPrompt(results, baselineResults, polling) },
+    ],
+    onStatus,
+  })
+  emitLlmStatus(onStatus, {
+    phase: 'complete',
+    progress: 1,
+    message: 'Poll roundtable script received.',
+    detail: 'Formatting analyst turns for the breakdown screen.',
   })
 
   return stripThinkBlocks(content)
