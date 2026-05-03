@@ -229,6 +229,9 @@ function partyLegend(partyMeta = PARTY_META) {
     return {
       id,
       name: meta.name,
+      abbreviation: meta.abbreviation,
+      colorName: meta.colorName,
+      colorLabel: meta.colorLabel,
       ideology: meta.ideology,
     }
   })

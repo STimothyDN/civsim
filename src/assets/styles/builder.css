@@ -431,7 +431,7 @@
 
 .party-reference-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(220px, 1.1fr) minmax(140px, 0.5fr) minmax(220px, 1fr);
   gap: 10px;
   align-items: center;
   min-width: 0;
@@ -441,26 +441,42 @@
   border-radius: var(--radius-sm);
 }
 
-.party-color-field {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
+.party-reference-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
-.party-color-field .swatch {
-  width: 22px;
-  height: 22px;
+.party-reference-identity .swatch {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
 }
 
-.party-color-field input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
+.party-reference-identity div,
+.party-reference-identity strong,
+.party-reference-identity small {
+  min-width: 0;
+}
+
+.party-reference-identity div {
+  display: grid;
+  gap: 2px;
+}
+
+.party-reference-identity strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.party-reference-identity small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
 }
 
 .party-name-field {
@@ -477,9 +493,46 @@
   text-transform: uppercase;
 }
 
-.party-reference-row code {
-  color: var(--text-secondary);
-  font-size: 0.78rem;
+.party-abbreviation-field input {
+  text-transform: uppercase;
+}
+
+.party-palette-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.party-palette-swatch {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.party-palette-swatch span {
+  width: 16px;
+  height: 16px;
+  background: var(--swatch-color);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 999px;
+}
+
+.party-palette-swatch--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.party-palette-swatch:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .swatch--religion {

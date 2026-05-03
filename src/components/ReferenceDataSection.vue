@@ -117,23 +117,45 @@
 
       <div class="party-reference-list">
         <div v-for="party in parties" :key="party" class="party-reference-row">
-          <label class="party-color-field" :aria-label="`${party} party color`">
+          <div class="party-reference-identity">
             <span class="swatch" :style="{ background: partyConfig[party]?.color }"></span>
-            <input
-              type="color"
-              :value="partyConfig[party]?.color"
-              @input="setPartyColor(party, $event.target.value)"
-            />
-          </label>
+            <div>
+              <strong>{{ partyColorLabel(party) }}</strong>
+              <small>Stable party slot</small>
+            </div>
+          </div>
           <label class="party-name-field">
-            <span>{{ party }}</span>
+            <span>Party name</span>
             <input
               :value="partyConfig[party]?.name"
               :aria-label="`${party} party name`"
               @input="setPartyName(party, $event.target.value)"
             />
           </label>
-          <code>{{ partyConfig[party]?.color }}</code>
+          <label class="party-name-field party-abbreviation-field">
+            <span>Abbreviated party name</span>
+            <input
+              :value="partyConfig[party]?.abbreviation"
+              :aria-label="`${party} abbreviated party name`"
+              maxlength="8"
+              @input="setPartyAbbreviation(party, $event.target.value)"
+            />
+          </label>
+          <div class="party-palette-field" role="radiogroup" :aria-label="`${party} party color`">
+            <button
+              v-for="option in partyColorPalette"
+              :key="`${party}-${option.name}`"
+              type="button"
+              class="party-palette-swatch"
+              :class="{ 'party-palette-swatch--active': partyConfig[party]?.colorName === option.name }"
+              :style="{ '--swatch-color': option.color }"
+              :aria-label="`${option.name} Party`"
+              :aria-pressed="partyConfig[party]?.colorName === option.name"
+              @click="setPartyColorName(party, option.name)"
+            >
+              <span></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -143,7 +165,7 @@
 <script>
 import { computed, ref } from 'vue'
 import { AlertTriangle, Landmark, Layers, MapPinned, Palette, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
-import { PARTIES } from '../domain/elections/constants/parties'
+import { PARTIES, PARTY_COLOR_PALETTE } from '../domain/elections/constants/parties'
 import { useFormStore } from '../stores/formStore'
 import { colorForIndex } from '../domain/colors'
 
@@ -169,6 +191,7 @@ export default {
 
     const groups = computed(() => store.currentData?.province_groups || [])
     const partyConfig = computed(() => store.currentData?.election_parties || store.partyMeta)
+    const partyColorPalette = PARTY_COLOR_PALETTE
     const parties = PARTIES
     const religions = computed(() => store.currentData?.global_religions || [])
     const provinces = computed(() => store.currentData?.provinces || [])
@@ -275,8 +298,16 @@ export default {
       store.setPartyName(party, value)
     }
 
-    function setPartyColor(party, value) {
-      store.setPartyColor(party, value)
+    function setPartyAbbreviation(party, value) {
+      store.setPartyAbbreviation(party, value)
+    }
+
+    function setPartyColorName(party, value) {
+      store.setPartyColorName(party, value)
+    }
+
+    function partyColorLabel(party) {
+      return `${partyConfig.value?.[party]?.colorName || party} Party`
     }
 
     return {
@@ -288,6 +319,8 @@ export default {
       newGroup,
       newReligion,
       parties,
+      partyColorLabel,
+      partyColorPalette,
       partyConfig,
       provinceCountForGroup,
       provinces,
@@ -299,7 +332,8 @@ export default {
       renameGroup,
       renameReligion,
       setGroup,
-      setPartyColor,
+      setPartyAbbreviation,
+      setPartyColorName,
       setPartyName,
       setStateReligion,
       stateReligion,

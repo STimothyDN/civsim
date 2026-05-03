@@ -40,21 +40,33 @@ describe('templateCodec', () => {
     expect(normalized.provinces[0].counties[0].improvement).toEqual({ name: 'Farm', buildings: {}, great_works: {} })
     expect(normalized.provinces[0].counties[0].features.Wheat).toBe(true)
     expect(normalized.election_parties.yellow.name).toBe('Divinus Sol')
+    expect(normalized.election_parties.yellow.abbreviation).toBe('DS')
+    expect(normalized.election_parties.yellow.colorName).toBe('Yellow')
     expect(normalized.election_parties.yellow.color).toBe('#d4a843')
   })
 
-  it('normalizes party names and colors on import', () => {
+  it('normalizes party names, abbreviations, and palette colors on import', () => {
     const normalized = normalizeTemplateInput({
       country: { basic_info: { name: 'Test', leader: '' } },
       election_parties: {
-        yellow: { name: 'Imperial Agrarians', color: '#123abc' },
+        yellow: { name: 'Imperial Agrarians', abbreviation: 'IA', colorName: 'Teal' },
         orange: { name: '', color: 'not-a-color' },
       },
       provinces: [],
     })
 
-    expect(normalized.election_parties.yellow).toEqual({ name: 'Imperial Agrarians', color: '#123abc' })
-    expect(normalized.election_parties.orange).toEqual({ name: 'United Workers Congress', color: '#fb923c' })
+    expect(normalized.election_parties.yellow).toEqual({
+      name: 'Imperial Agrarians',
+      abbreviation: 'IA',
+      colorName: 'Teal',
+      color: '#2dd4bf',
+    })
+    expect(normalized.election_parties.orange).toEqual({
+      name: 'United Workers Congress',
+      abbreviation: 'UWC',
+      colorName: 'Orange',
+      color: '#fb923c',
+    })
   })
 
   it('keeps closest provinces sorted from closest to furthest', () => {
@@ -92,7 +104,7 @@ describe('templateCodec', () => {
       {
         country: { basic_info: { name: 'Test', leader: '' } },
         election_parties: {
-          yellow: { name: 'Imperial Agrarians', color: '#123abc' },
+          yellow: { name: 'Imperial Agrarians', abbreviation: 'IA', colorName: 'Teal' },
           orange: { name: '', color: 'bad' },
         },
         province_groups: ['Capital Region', 'Frontier'],
@@ -132,7 +144,17 @@ describe('templateCodec', () => {
       { name: 'Capital Region', regional_population: 1000, assemblypeople: 12, prelates: 15 },
       { name: 'Frontier', regional_population: null, assemblypeople: null, prelates: null },
     ])
-    expect(output.election_parties.yellow).toEqual({ name: 'Imperial Agrarians', color: '#123abc' })
-    expect(output.election_parties.orange).toEqual({ name: 'United Workers Congress', color: '#fb923c' })
+    expect(output.election_parties.yellow).toEqual({
+      name: 'Imperial Agrarians',
+      abbreviation: 'IA',
+      colorName: 'Teal',
+      color: '#2dd4bf',
+    })
+    expect(output.election_parties.orange).toEqual({
+      name: 'United Workers Congress',
+      abbreviation: 'UWC',
+      colorName: 'Orange',
+      color: '#fb923c',
+    })
   })
 })

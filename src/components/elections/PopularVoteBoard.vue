@@ -19,7 +19,7 @@
         :style="partyStyle(row.party)"
       >
         <div class="popular-vote-party">
-          <PartyBadge :party="row.party" short />
+          <PartyBadge :party="row.party" abbreviated />
           <span>{{ formatShare(row.voteShare) }}</span>
         </div>
         <div class="popular-vote-track">

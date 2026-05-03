@@ -172,7 +172,7 @@
                 <th>County</th>
                 <th>Population</th>
                 <th>Top Party</th>
-                <th v-for="party in parties" :key="party">{{ party }}</th>
+                <th v-for="party in parties" :key="party">{{ partyColumnLabel(party) }}</th>
               </tr>
             </thead>
             <tbody>
@@ -315,6 +315,7 @@ export default {
       hasData,
       partyWinnerStyle: (party) => partyWinnerStyle(party, store.partyMeta),
       parties: PARTIES,
+      partyColumnLabel: (party) => store.partyMeta[party]?.abbreviation || store.partyMeta[party]?.colorLabel || party,
       provinceOptions,
       results,
       selectedIndex,

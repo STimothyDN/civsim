@@ -5,7 +5,7 @@ import { getValueAtPath, setValueAtPath, removeValueAtPath } from '../utils/path
 import { deepClone } from '../utils/object'
 import { computeAllProvinceCalcs, computeRegionalTotals, resetJitterCache } from '../utils/calculatedFields'
 import { clearAutosavedTemplate, readAutosavedTemplate, writeAutosavedTemplate } from '../domain/autosave'
-import { partyColorsFromConfig, partyMetaFromConfig, partyNamesFromConfig } from '../domain/elections/constants/parties'
+import { partyColorsFromConfig, partyMetaFromConfig, partyNamesFromConfig, partyPaletteOption } from '../domain/elections/constants/parties'
 import { buildExportTemplate, normalizeTemplateInput } from '../domain/templateCodec'
 import {
   addNamedItem,
@@ -263,9 +263,23 @@ export const useFormStore = defineStore('form', {
       this.currentData.election_parties[party].name = String(name || '').trim()
       this._recalcVersion++
     },
+    setPartyAbbreviation(party, abbreviation) {
+      if (!this.currentData?.election_parties?.[party]) return
+      this.currentData.election_parties[party].abbreviation = String(abbreviation || '').trim().toUpperCase().replace(/\s+/g, '').slice(0, 8)
+      this._recalcVersion++
+    },
     setPartyColor(party, color) {
       if (!this.currentData?.election_parties?.[party]) return
-      this.currentData.election_parties[party].color = String(color || '').trim()
+      const option = partyPaletteOption(color, this.currentData.election_parties[party].colorName)
+      this.currentData.election_parties[party].colorName = option.name
+      this.currentData.election_parties[party].color = option.color
+      this._recalcVersion++
+    },
+    setPartyColorName(party, colorName) {
+      if (!this.currentData?.election_parties?.[party]) return
+      const option = partyPaletteOption(colorName, this.currentData.election_parties[party].colorName)
+      this.currentData.election_parties[party].colorName = option.name
+      this.currentData.election_parties[party].color = option.color
       this._recalcVersion++
     },
     setNationalCapital(provinceIndex) {

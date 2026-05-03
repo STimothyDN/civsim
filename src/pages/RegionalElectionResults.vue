@@ -167,7 +167,7 @@
                 <th>Top Party</th>
                 <th>Assembly Control</th>
                 <th>Council Control</th>
-                <th v-for="party in parties" :key="`region-province-vote-${party}`">{{ party }}</th>
+                <th v-for="party in parties" :key="`region-province-vote-${party}`">{{ partyColumnLabel(party) }}</th>
               </tr>
             </thead>
             <tbody>
@@ -325,6 +325,7 @@ export default {
       hasData,
       formatShare,
       parties: PARTIES,
+      partyColumnLabel: (party) => store.partyMeta[party]?.abbreviation || store.partyMeta[party]?.colorLabel || party,
       partyWinnerStyle: (party) => partyWinnerStyle(party, store.partyMeta),
       provinceResultRows,
       regionRows,

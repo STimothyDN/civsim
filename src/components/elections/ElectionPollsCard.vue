@@ -101,7 +101,7 @@
 
         <div class="pollster-top-list">
           <div v-for="party in topParties(pollster.voteShares)" :key="`${pollster.id}-${party}`" class="pollster-party-row">
-            <PartyBadge :party="party" short />
+            <PartyBadge :party="party" abbreviated />
             <div class="pollster-party-track">
               <i :style="{ width: `${Math.max(4, pollster.voteShares[party] * 100)}%`, backgroundColor: partyColor(party) }"></i>
             </div>

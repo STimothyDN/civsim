@@ -59,18 +59,26 @@ describe('ReferenceDataSection', () => {
     expect(store.currentData.provinces[0].group).toBeNull()
   })
 
-  it('edits election party names and colors as reference data', async () => {
+  it('edits election party names, abbreviations, and palette colors as reference data', async () => {
     const { pinia, store } = loadReferenceData()
     const wrapper = mount(ReferenceDataSection, { global: { plugins: [pinia] } })
+    const yellowRow = wrapper.findAll('.party-reference-row')[0]
 
-    await wrapper.get('input[aria-label="yellow party name"]').setValue('Imperial Agrarians')
-    await wrapper.get('label[aria-label="yellow party color"] input').setValue('#123abc')
+    await yellowRow.get('input[aria-label="yellow party name"]').setValue('Imperial Agrarians')
+    await yellowRow.get('input[aria-label="yellow abbreviated party name"]').setValue('IA')
+    await yellowRow.get('button[aria-label="Teal Party"]').trigger('click')
 
     expect(store.currentData.election_parties.yellow).toEqual({
       name: 'Imperial Agrarians',
-      color: '#123abc',
+      abbreviation: 'IA',
+      colorName: 'Teal',
+      color: '#2dd4bf',
     })
     expect(store.partyMeta.yellow.name).toBe('Imperial Agrarians')
-    expect(store.partyMeta.yellow.color).toBe('#123abc')
+    expect(store.partyMeta.yellow.abbreviation).toBe('IA')
+    expect(store.partyMeta.yellow.colorName).toBe('Teal')
+    expect(store.partyMeta.yellow.colorLabel).toBe('Teal Party')
+    expect(store.partyMeta.yellow.color).toBe('#2dd4bf')
+    expect(wrapper.text()).toContain('Teal Party')
   })
 })

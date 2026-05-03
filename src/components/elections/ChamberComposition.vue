@@ -112,7 +112,7 @@
 
     <div class="chamber-legend">
       <div v-for="party in partyRows" :key="party.party" class="chamber-legend-row">
-        <PartyBadge :party="party.party" short />
+        <PartyBadge :party="party.party" abbreviated />
         <strong>{{ party.seats }}</strong>
       </div>
     </div>

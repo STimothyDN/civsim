@@ -14,6 +14,10 @@ function metaName(party, partyMeta = PARTY_META) {
   return partyMeta[party]?.name || PARTY_NAMES[party]
 }
 
+function metaAbbreviation(party, partyMeta = PARTY_META) {
+  return partyMeta[party]?.abbreviation || metaName(party, partyMeta)
+}
+
 function partyColors(partyMeta = PARTY_META) {
   return PARTIES.map((party) => metaColor(party, partyMeta))
 }
@@ -42,7 +46,7 @@ export function partySeatBarOption(seats = {}, title = 'Seats', partyMeta = PART
     grid: { left: 42, right: 18, top: 32, bottom: 78, containLabel: true },
     xAxis: {
       type: 'category',
-      data: PARTIES.map((party) => metaName(party, partyMeta)),
+      data: PARTIES.map((party) => metaAbbreviation(party, partyMeta)),
       axisLabel: { color: AXIS_COLOR, rotate: 24 },
       axisTick: { show: false },
       axisLine: { lineStyle: { color: GRID_COLOR } },
@@ -95,7 +99,7 @@ export function regionalStackedSeatOption(regions = {}, chamber = 'assembly', pa
       splitLine: { lineStyle: { color: GRID_COLOR } },
     },
     series: PARTIES.map((party) => ({
-      name: metaName(party, partyMeta),
+      name: metaAbbreviation(party, partyMeta),
       type: 'bar',
       stack: chamber,
       barMaxWidth: 38,

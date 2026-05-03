@@ -641,8 +641,13 @@
   }
 
   .assignment-row,
-  .inline-add {
+  .inline-add,
+  .party-reference-row {
     grid-template-columns: 1fr;
+  }
+
+  .party-palette-field {
+    justify-content: flex-start;
   }
 
   .province-summary-grid,

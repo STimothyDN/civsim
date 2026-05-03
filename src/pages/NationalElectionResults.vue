@@ -148,7 +148,7 @@
                   <th>Province</th>
                   <th>Region</th>
                   <th>Total</th>
-                  <th v-for="party in parties" :key="`delegation-${party}`">{{ party }}</th>
+                  <th v-for="party in parties" :key="`delegation-${party}`">{{ partyColumnLabel(party) }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -347,6 +347,7 @@ export default {
       nationalSeatColumns,
       nationalThreshold,
       parties: PARTIES,
+      partyColumnLabel: (party) => store.partyMeta[party]?.abbreviation || store.partyMeta[party]?.colorLabel || party,
       popularVoteRows,
       prelateDelegationRows,
       regionRows,
