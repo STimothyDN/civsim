@@ -24,12 +24,12 @@
               <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('provincial', selectedProvince.name)">
                 <Radio :size="16" />
                 Start Provincial Broadcast
-                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
+                <BrainCircuit :size="13" class="broadcast-ai-mark" />
               </button>
               <button type="button" class="btn-broadcast-start" @click="showElectionTicker('provincial', selectedProvince.name)">
                 <Radio :size="16" />
                 Show Election Ticker
-                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
+                <BrainCircuit :size="13" class="broadcast-ai-mark" />
               </button>
             </div>
           </div>
@@ -55,11 +55,6 @@
         :ticker-key="tickerKey"
       />
 
-      <ElectionScenarioControls
-        :current-shares="selectedProvince?.assembly?.vote_shares"
-        :baseline-shares="baselineSelectedProvince?.assembly?.vote_shares"
-      />
-
       <section class="election-panel">
         <div class="election-panel-heading">
           <div>
@@ -78,14 +73,14 @@
 
         <div v-if="selectedProvince" class="election-summary-grid">
           <article class="election-summary-card election-summary-card--winner winner-control-card" :style="controlCardStyle(selectedProvince.assembly.control)">
-            <span>{{ selectedLowerHouseName }}</span>
+            <span>Assembly Control</span>
             <strong>{{ selectedProvince.assembly.control.label }}</strong>
-            <small>{{ formatNumber(sumSeats(selectedProvince.assembly.seats)) }} assemblypersons</small>
+            <small>{{ selectedLowerHouseName }} · {{ formatNumber(sumSeats(selectedProvince.assembly.seats)) }} assemblypersons</small>
           </article>
           <article class="election-summary-card election-summary-card--winner winner-control-card" :style="controlCardStyle(selectedProvince.prelates.control)">
-            <span>{{ selectedUpperHouseName }}</span>
+            <span>Council Control</span>
             <strong>{{ selectedProvince.prelates.control.label }}</strong>
-            <small>{{ formatNumber(sumSeats(selectedProvince.prelates.seats)) }} prelates</small>
+            <small>{{ selectedUpperHouseName }} · {{ formatNumber(sumSeats(selectedProvince.prelates.seats)) }} prelates</small>
           </article>
           <article class="election-summary-card">
             <span>Counties</span>
@@ -150,42 +145,6 @@
           :seat-columns="selectedProvinceSeatColumns"
         />
       </section>
-
-      <section class="election-panel">
-        <div class="election-panel-heading">
-          <div>
-            <p class="eyebrow">Province-By-Province Calls</p>
-            <h3>Control Of Provincial Houses</h3>
-          </div>
-        </div>
-        <div class="election-call-board election-call-board--provinces">
-          <article
-            v-for="province in provinceCallRows"
-            :key="province.provinceIndex"
-            class="election-call-card winner-control-card"
-            :style="controlCardStyle(province.assembly.control)"
-          >
-            <div class="election-call-card-main">
-              <strong>{{ province.name }}</strong>
-              <span>{{ province.group }} · {{ formatCompactNumber(province.provincial_population) }}</span>
-            </div>
-            <div class="election-call-card-chambers">
-              <div>
-                <small>Assembly</small>
-                <PartyBadge :party="province.assembly.control.leaderParty" short />
-                <b>{{ province.assembly.control.label }}</b>
-              </div>
-              <div :style="controlCardStyle(province.prelates.control)">
-                <small>Council</small>
-                <PartyBadge :party="province.prelates.control.leaderParty" short />
-                <b>{{ province.prelates.control.label }}</b>
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-
 
       <section class="election-panel">
         <div class="election-panel-heading">
@@ -256,7 +215,6 @@ import { computed, ref, watch } from 'vue'
 import { BrainCircuit, Building2, FilePlus2, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
-import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
@@ -266,24 +224,22 @@ import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizati
 import { lowerHouseName, PARTIES, formatShare, trendHasMatchingEffect, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { provinceFeatureRadarOption } from '../domain/elections/charts/electionChartOptions'
 import { partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
+import { usePollingStore } from '../stores/pollingStore'
 
 export default {
   name: 'ProvincialElectionResults',
-  components: { BrainCircuit, Building2, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
+  components: { BrainCircuit, Building2, ChamberComposition, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
+    const pollingStore = usePollingStore()
     const selectedIndex = ref(0)
     const tickerRequestId = ref(0)
     const tickerScope = ref('provincial')
     const tickerTargetName = ref(null)
-    const { baselineResults, electionStore, hasData, results, store } = useElectionResults()
+    const { electionStore, hasData, results, store } = useElectionResults()
     const provinceOptions = computed(() => results.value.provinces)
-    const provinceCallRows = computed(() => [...results.value.provinces].sort((a, b) => b.provincial_population - a.provincial_population))
     const selectedProvince = computed(() => {
       return results.value.provinces.find((province) => province.provinceIndex === selectedIndex.value) || results.value.provinces[0] || null
-    })
-    const baselineSelectedProvince = computed(() => {
-      return baselineResults.value.provinces.find((province) => province.provinceIndex === selectedIndex.value) || baselineResults.value.provinces[0] || null
     })
     const selectedLowerHouseName = computed(() => lowerHouseName('provincial', selectedProvince.value?.name))
     const selectedUpperHouseName = computed(() => upperHouseName('provincial', selectedProvince.value?.name))
@@ -329,6 +285,7 @@ export default {
       results.value.config.seed,
       results.value.config.jitterSeed,
       selectedProvince.value?.provinceIndex ?? '',
+      pollingStore.pollSeed,
     ].join('|'))
 
     function showElectionTicker(scope = 'provincial', targetName = selectedProvince.value?.name || null) {
@@ -349,7 +306,6 @@ export default {
 
     return {
       affectedTrends,
-      baselineSelectedProvince,
       controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
       countyRows,
       featureRadarOption,
@@ -360,7 +316,6 @@ export default {
       partyWinnerStyle: (party) => partyWinnerStyle(party, store.partyMeta),
       parties: PARTIES,
       provinceOptions,
-      provinceCallRows,
       results,
       selectedIndex,
       selectedLowerHouseName,

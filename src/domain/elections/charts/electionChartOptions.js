@@ -146,3 +146,52 @@ export function provinceFeatureRadarOption(province) {
     ],
   }
 }
+
+export function regionFeatureRadarOption(region, provinces = []) {
+  if (!region) return emptyOption('No region selected')
+  const keys = [
+    ['Imperial Core', 'imperial_core_index'],
+    ['Industrial', 'industrial_index'],
+    ['Agrarian', 'agrarian_index'],
+    ['Military', 'military_index'],
+    ['Intellectual', 'intellectual_index'],
+    ['Spiritual', 'spiritual_index'],
+    ['Localist', 'localist_index'],
+    ['Restorationist', 'restorationist_index'],
+  ]
+  const totalPopulation = provinces.reduce((sum, province) => sum + num(province.provincial_population), 0)
+  const values = keys.map(([, key]) => {
+    if (totalPopulation <= 0) return 0
+    return provinces.reduce((sum, province) => (
+      sum + num(province.political_features?.[key]) * num(province.provincial_population)
+    ), 0) / totalPopulation
+  })
+
+  return {
+    color: ['#2dd4bf'],
+    backgroundColor: BG_COLOR,
+    textStyle: { color: TEXT_COLOR, fontFamily: 'Inter, system-ui, sans-serif' },
+    tooltip: { trigger: 'item', backgroundColor: '#181a24', borderColor: GRID_COLOR, textStyle: { color: TEXT_COLOR } },
+    radar: {
+      center: ['50%', '54%'],
+      radius: '68%',
+      indicator: keys.map(([name]) => ({ name, max: 1 })),
+      axisName: { color: AXIS_COLOR },
+      splitLine: { lineStyle: { color: GRID_COLOR } },
+      splitArea: { areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.05)'] } },
+      axisLine: { lineStyle: { color: GRID_COLOR } },
+    },
+    series: [
+      {
+        name: region.name,
+        type: 'radar',
+        data: [
+          {
+            name: region.name,
+            value: values,
+          },
+        ],
+      },
+    ],
+  }
+}

@@ -52,7 +52,9 @@
 .overview-hero h2 {
   margin: 0;
   font-family: 'Cinzel', serif;
-  font-size: clamp(1.5rem, 4vw, 2.7rem);
+  font-size: 2.15rem;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
 }
 
 .overview-hero p:not(.eyebrow) {
@@ -63,7 +65,7 @@
 .overview-hero-actions {
   margin-top: 18px;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 12px;
 }
@@ -111,6 +113,7 @@
   color: #2dd4bf;
   font-weight: 700;
   font-size: 0.9rem;
+  white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -123,6 +126,11 @@
 
 .btn-broadcast-start:active {
   transform: translateY(0);
+}
+
+.broadcast-ai-mark {
+  margin-left: 2px;
+  opacity: 0.7;
 }
 
 .election-ticker-card {
@@ -367,10 +375,14 @@
 .overview-hero-call strong {
   color: var(--winner-color, var(--accent));
   font-size: 1.35rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .overview-hero-call small {
+  min-width: 0;
   color: var(--text-secondary);
+  overflow-wrap: anywhere;
 }
 
 .overview-call-grid {
@@ -464,6 +476,10 @@
   gap: 12px;
 }
 
+.overview-control-grid--merged {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .overview-board-panel {
   min-width: 0;
   padding: 16px;
@@ -473,6 +489,10 @@
   display: grid;
   gap: 10px;
   padding: 14px;
+}
+
+.overview-control-panel--merged {
+  gap: 14px;
 }
 
 .overview-control-panel-header {
@@ -496,6 +516,26 @@
 .overview-control-list {
   display: grid;
   gap: 7px;
+}
+
+.overview-control-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.overview-control-summary {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.overview-control-summary > span {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .overview-control-row {
@@ -687,6 +727,15 @@
 }
 
 @media (max-width: 720px) {
+  .overview-hero h2 {
+    font-size: 1.55rem;
+  }
+
+  .overview-hero-actions .btn-broadcast-start {
+    width: 100%;
+    justify-content: center;
+  }
+
   .election-dashboard-grid,
   .election-summary-grid,
   .overview-metric-strip,
@@ -699,6 +748,7 @@
   .overview-party-row,
   .overview-call-row,
   .overview-control-row,
+  .overview-control-summary-grid,
   .popular-vote-bar-row,
   .election-call-card-chambers {
     grid-template-columns: 1fr;

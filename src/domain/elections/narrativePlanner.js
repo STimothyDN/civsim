@@ -612,6 +612,7 @@ function broadcastSystemPrompt(scope = 'national', targetName = null) {
     'STRUCTURE: Paragraphs 3 and 4 pull specific examples from the supplied scoped examples, such as decisive provinces, counties, demographic signals, or trend impacts. Keep examples subordinate to the area-wide story.',
     'STRUCTURE: Paragraph 5 gives the scoped outlook: what this result means for the area now, not a generic empire-wide conclusion unless scope is overview.',
     'JOURNALISTIC ANALYSIS: Explain why these shifts are occurring based on supplied trends and demographics, but do not speculate outside the data packet.',
+    'Treat polling.aggregate as the latest poll-of-polls expectation; reference the spread to acknowledge uncertainty when relevant.',
     'Use only supplied facts and numbers; do not invent counties, parties, margins, or quotes.',
     'Return ONLY the script as five plain-text paragraphs separated by blank lines. No markdown, headings, commentary, hidden reasoning, or <think> blocks.',
   ].filter(Boolean).join(' ')
@@ -635,10 +636,44 @@ function tickerSystemPrompt(scope = 'national', targetName = null) {
     'Return exactly one plain-text paragraph, 55 to 85 words.',
     scopeRules[scope] || scopeRules.national,
     'Lead with the most important control call or vote movement, then explain the main reason using supplied trends and numbers.',
+    'Treat polling.aggregate as the latest poll-of-polls expectation; reference the spread to acknowledge uncertainty when relevant.',
     'Use hard data, but stay compact enough for an on-page ticker card.',
     'Use only supplied facts and numbers; do not invent counties, parties, margins, or quotes.',
     'No markdown, heading, bullets, preamble, hidden reasoning, or <think> blocks.',
   ].join(' ')
+}
+
+function pollingVotePctMap(values = {}) {
+  const rawValues = Object.values(values || {}).map((value) => numberOrNull(value)).filter((value) => value !== null)
+  const alreadyPct = rawValues.some((value) => value > 1)
+  return compactObject(Object.fromEntries(PARTIES.map((party) => {
+    const value = numberOrNull(values?.[party])
+    if (value === null) return [party, undefined]
+    return [party, roundNumber(alreadyPct ? value : value * 100, 1)]
+  })))
+}
+
+function pollingContext(polling = null) {
+  if (!polling) return undefined
+  const aggregate = polling.aggregate || {}
+  const projectedSeats = aggregate.projectedSeats || aggregate.seats || null
+  const methodologyNotes = uniqueList(
+    polling.methodologyNotes || (polling.pollsters || []).map((pollster) => `${pollster.name}: ${pollster.methodology}`),
+    8
+  )
+
+  return compactObject({
+    scope: polling.scope,
+    scopeLabel: polling.scopeLabel,
+    aggregate: compactObject({
+      voteSharesPct: aggregate.voteSharesPct || pollingVotePctMap(aggregate.voteShares),
+      projectedSeats,
+      leader: aggregate.leader,
+    }),
+    spread: polling.spread || aggregate.spread,
+    pollsterCount: polling.pollsterCount || (Array.isArray(polling.pollsters) ? polling.pollsters.length : undefined),
+    methodologyNotes,
+  })
 }
 
 function getSwings(current, baseline) {
@@ -849,7 +884,7 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
   }
 }
 
-function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null) {
+function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
   const partyMeta = partyMetaForContext(results)
@@ -871,11 +906,12 @@ function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'nation
       assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
     }) : undefined,
+    polling: pollingContext(polling),
     focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
   })
 }
 
-function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null) {
+function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
   const partyMeta = partyMetaForContext(results)
@@ -902,6 +938,7 @@ function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national'
       assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
     }) : undefined,
+    polling: pollingContext(polling),
     focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
   })
 }
@@ -1808,6 +1845,7 @@ export async function requestElectionBroadcast({
   baselineResults,
   scope = 'national',
   targetName = null,
+  polling = null,
   endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
   model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
   onStatus,
@@ -1825,7 +1863,7 @@ export async function requestElectionBroadcast({
     max_tokens: 2200,
     messages: [
       { role: 'system', content: broadcastSystemPrompt(scope, targetName) },
-      { role: 'user', content: broadcastUserPrompt(results, baselineResults, scope, targetName) },
+      { role: 'user', content: broadcastUserPrompt(results, baselineResults, scope, targetName, polling) },
     ],
     onStatus,
   })
@@ -1844,6 +1882,7 @@ export async function requestElectionTicker({
   baselineResults,
   scope = 'national',
   targetName = null,
+  polling = null,
   endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
   model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
   onStatus,
@@ -1861,7 +1900,7 @@ export async function requestElectionTicker({
     max_tokens: 420,
     messages: [
       { role: 'system', content: tickerSystemPrompt(scope, targetName) },
-      { role: 'user', content: tickerUserPrompt(results, baselineResults, scope, targetName) },
+      { role: 'user', content: tickerUserPrompt(results, baselineResults, scope, targetName, polling) },
     ],
     onStatus,
   })

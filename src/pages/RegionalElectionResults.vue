@@ -24,24 +24,24 @@
               <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('regional', selectedRegionName)">
                 <Radio :size="16" />
                 Start Regional Broadcast
-                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
+                <BrainCircuit :size="13" class="broadcast-ai-mark" />
               </button>
               <button type="button" class="btn-broadcast-start" @click="showElectionTicker('regional', selectedRegion.name)">
                 <Radio :size="16" />
                 Show Election Ticker
-                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
+                <BrainCircuit :size="13" class="broadcast-ai-mark" />
               </button>
             </div>
           </div>
         </div>
         <div v-if="selectedRegion" class="overview-hero-calls">
           <div class="overview-hero-call winner-control-card" :style="controlCardStyle(selectedRegion.assembly.control)">
-            <span>Selected Assembly</span>
+            <span>Assembly Control</span>
             <strong>{{ selectedRegion.assembly.control.label }}</strong>
-            <small>{{ selectedRegion.name }}</small>
+            <small>{{ selectedRegion.assembly.control.detail }}</small>
           </div>
           <div class="overview-hero-call winner-control-card" :style="controlCardStyle(selectedRegion.prelates.control)">
-            <span>Selected Council</span>
+            <span>Council Control</span>
             <strong>{{ selectedRegion.prelates.control.label }}</strong>
             <small>{{ selectedRegion.prelates.control.detail }}</small>
           </div>
@@ -53,11 +53,6 @@
         :scope="tickerScope"
         :target-name="tickerTargetName"
         :ticker-key="tickerKey"
-      />
-
-      <ElectionScenarioControls
-        :current-shares="selectedRegion?.assembly?.vote_shares"
-        :baseline-shares="baselineSelectedRegion?.assembly?.vote_shares"
       />
 
       <section class="election-panel">
@@ -81,14 +76,14 @@
             <small>{{ selectedRegion.province_count }} provinces</small>
           </article>
           <article class="election-summary-card election-summary-card--winner winner-control-card" :style="controlCardStyle(selectedRegion.assembly.control)">
-            <span>{{ selectedLowerHouseName }}</span>
+            <span>Assembly Control</span>
             <strong>{{ selectedRegion.assembly.control.label }}</strong>
-            <small>{{ formatNumber(sumSeats(selectedRegion.assembly.seats)) }} assemblypersons</small>
+            <small>{{ selectedLowerHouseName }} · {{ formatNumber(sumSeats(selectedRegion.assembly.seats)) }} assemblypersons</small>
           </article>
           <article class="election-summary-card election-summary-card--winner winner-control-card" :style="controlCardStyle(selectedRegion.prelates.control)">
-            <span>{{ selectedUpperHouseName }}</span>
+            <span>Council Control</span>
             <strong>{{ selectedRegion.prelates.control.label }}</strong>
-            <small>{{ formatNumber(sumSeats(selectedRegion.prelates.seats)) }} prelates</small>
+            <small>{{ selectedUpperHouseName }} · {{ formatNumber(sumSeats(selectedRegion.prelates.seats)) }} prelates</small>
           </article>
           <article class="election-summary-card election-summary-card--winner winner-control-card" :style="partyWinnerStyle(selectedPopularVoteLeader)">
             <span>Popular Vote Leader</span>
@@ -144,80 +139,48 @@
         />
       </section>
 
-      <section class="election-panel">
+      <section v-if="selectedRegion" class="election-panel">
         <div class="election-panel-heading">
           <div>
-            <p class="eyebrow">Region-By-Region Calls</p>
-            <h3>Control Of Regional Houses</h3>
+            <p class="eyebrow">Feature Indices</p>
+            <h3>Regional Political Profile</h3>
           </div>
         </div>
-        <div class="election-call-board election-call-board--regions">
-          <article
-            v-for="region in regionRows"
-            :key="region.name"
-            class="election-call-card winner-control-card"
-            :style="controlCardStyle(region.assembly.control)"
-          >
-            <div class="election-call-card-main">
-              <strong>{{ region.name }}</strong>
-              <span>{{ formatCompactNumber(region.population) }} people · {{ region.province_count }} provinces</span>
-            </div>
-            <div class="election-call-card-chambers">
-              <div>
-                <small>Assembly</small>
-                <PartyBadge :party="region.assembly.control.leaderParty" short />
-                <b>{{ region.assembly.control.label }}</b>
-              </div>
-              <div :style="controlCardStyle(region.prelates.control)">
-                <small>Council</small>
-                <PartyBadge :party="region.prelates.control.leaderParty" short />
-                <b>{{ region.prelates.control.label }}</b>
-              </div>
-            </div>
-          </article>
+        <div class="election-chart-shell election-chart-shell--compact">
+          <ProvinceChart :option="featureRadarOption" aria-label="Region political feature radar" />
         </div>
       </section>
 
-      <section class="election-panel">
+      <section v-if="selectedRegion" class="election-panel">
         <div class="election-panel-heading">
           <div>
-            <p class="eyebrow">All Regions</p>
-            <h3>Assembly Seat Geography</h3>
-          </div>
-        </div>
-        <div class="election-chart-shell">
-          <ProvinceChart :option="regionalAssemblyChartOption" aria-label="Regional Assembly seats by party" />
-        </div>
-      </section>
-
-      <section class="election-panel">
-        <div class="election-panel-heading">
-          <div>
-            <p class="eyebrow">Regional Popular Vote</p>
-            <h3>Vote Strength By Region</h3>
+            <p class="eyebrow">Province Results</p>
+            <h3>{{ selectedRegion.name }} Province-Level Returns</h3>
           </div>
         </div>
         <div class="election-table-wrap">
           <table class="election-table election-table--wide election-table--vote-detail">
             <thead>
               <tr>
-                <th>Region</th>
+                <th>Province</th>
                 <th>Population</th>
                 <th>Top Party</th>
-                <th>Leader Vote</th>
-                <th v-for="party in parties" :key="`regional-vote-${party}`">{{ party }}</th>
+                <th>Assembly Control</th>
+                <th>Council Control</th>
+                <th v-for="party in parties" :key="`region-province-vote-${party}`">{{ party }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="region in regionalPopularVoteRows" :key="`${region.name}-popular-vote`" class="winner-table-row" :style="partyWinnerStyle(region.topParty)">
-                <td>{{ region.name }}</td>
-                <td>{{ formatNumber(region.population) }}</td>
-                <td><PartyBadge :party="region.topParty" short /></td>
-                <td>{{ region.topVoteShare }} · {{ region.topVoteCount }}</td>
-                <td v-for="party in parties" :key="`${region.name}-vote-${party}`">
+              <tr v-for="province in provinceResultRows" :key="`${province.provinceIndex}-region-province`" class="winner-table-row" :style="controlCardStyle(province.assemblyControl)">
+                <td>{{ province.name }}</td>
+                <td>{{ formatNumber(province.population) }}</td>
+                <td><PartyBadge :party="province.topParty" short /></td>
+                <td>{{ province.assemblyControl.label }}</td>
+                <td>{{ province.prelateControl.label }}</td>
+                <td v-for="party in parties" :key="`${province.provinceIndex}-vote-${party}`">
                   <span class="vote-detail-cell">
-                    <strong>{{ formatShare(region.voteShares[party]) }}</strong>
-                    <small>{{ formatCompactNumber(region.popularVotes[party]) }}</small>
+                    <strong>{{ formatShare(province.voteShares[party]) }}</strong>
+                    <small>{{ formatCompactNumber(province.popularVotes[party]) }}</small>
                   </span>
                 </td>
               </tr>
@@ -226,38 +189,18 @@
         </div>
       </section>
 
-      <section class="election-panel">
+      <section v-if="affectedTrends.length" class="election-panel">
         <div class="election-panel-heading">
           <div>
-            <p class="eyebrow">Regional Table</p>
-            <h3>Seat Allocation By Region</h3>
+            <p class="eyebrow">Active Trends</p>
+            <h3>Matched Regional Climate</h3>
           </div>
         </div>
-        <div class="election-table-wrap">
-          <table class="election-table election-table--wide">
-            <thead>
-              <tr>
-                <th>Region</th>
-                <th>Assembly Control</th>
-                <th>Council Control</th>
-                <th>Population</th>
-                <th>Provinces</th>
-                <th v-for="party in parties" :key="`assembly-${party}`">A {{ party }}</th>
-                <th v-for="party in parties" :key="`prelates-${party}`">P {{ party }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="region in regionRows" :key="region.name" class="winner-table-row" :style="controlCardStyle(region.assembly.control)">
-                <td>{{ region.name }}</td>
-                <td>{{ region.assembly.control.label }}</td>
-                <td>{{ region.prelates.control.label }}</td>
-                <td>{{ formatNumber(region.population) }}</td>
-                <td>{{ region.province_count }}</td>
-                <td v-for="party in parties" :key="`${region.name}-a-${party}`">{{ region.assembly.seats[party] }}</td>
-                <td v-for="party in parties" :key="`${region.name}-p-${party}`">{{ region.prelates.seats[party] }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="trend-chip-list">
+          <span v-for="trend in affectedTrends" :key="trend.id" class="trend-chip">
+            <PartyBadge :party="trend.party" short />
+            {{ trend.label }}
+          </span>
         </div>
       </section>
     </template>
@@ -269,34 +212,40 @@ import { computed, ref, watch } from 'vue'
 import { BrainCircuit, FilePlus2, Map, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
-import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
-import { lowerHouseName, PARTIES, formatShare, upperHouseName, winnerControlStyle } from '../domain/elections'
-import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
+import { lowerHouseName, PARTIES, formatShare, trendHasMatchingEffect, upperHouseName, winnerControlStyle } from '../domain/elections'
+import { regionFeatureRadarOption as buildRegionFeatureRadarOption } from '../domain/elections/charts/electionChartOptions'
 import { orderRegionsByReference, partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
+import { usePollingStore } from '../stores/pollingStore'
 
 export default {
   name: 'RegionalElectionResults',
-  components: { BrainCircuit, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, Map, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
+  components: { BrainCircuit, ChamberComposition, ElectionTickerCard, FilePlus2, Map, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
+    const pollingStore = usePollingStore()
     const selectedRegionName = ref('')
     const tickerRequestId = ref(0)
     const tickerScope = ref('regional')
     const tickerTargetName = ref(null)
-    const { baselineResults, hasData, results, store } = useElectionResults()
+    const { electionStore, hasData, results, store } = useElectionResults()
     const regionOrder = computed(() => store.currentData?.province_groups || [])
     const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value))
     const selectedRegion = computed(() => results.value.regions[selectedRegionName.value] || regionRows.value[0] || null)
-    const baselineSelectedRegion = computed(() => baselineResults.value.regions[selectedRegionName.value] || null)
+    const selectedRegionProvinces = computed(() => {
+      if (!selectedRegion.value) return []
+      return results.value.provinces
+        .filter((province) => province.group === selectedRegion.value.name)
+        .sort((a, b) => Number(b.provincial_population || 0) - Number(a.provincial_population || 0))
+    })
     const selectedLowerHouseName = computed(() => lowerHouseName('regional', selectedRegion.value?.name))
     const selectedUpperHouseName = computed(() => upperHouseName('regional', selectedRegion.value?.name))
-    const regionalAssemblyChartOption = computed(() => regionalStackedSeatOption(results.value.regions, 'assembly', store.partyMeta, regionOrder.value))
+    const featureRadarOption = computed(() => buildRegionFeatureRadarOption(selectedRegion.value, selectedRegionProvinces.value))
     const totalRegionalPopulation = computed(() => regionRows.value.reduce((sum, region) => sum + Number(region.population || 0), 0))
     const totalRegionalAssemblySeats = computed(() => regionRows.value.reduce((sum, region) => sum + sumSeats(region.assembly.seats), 0))
     const selectedRegionSeatColumns = [
@@ -318,28 +267,37 @@ export default {
       selectedRegion.value?.assembly?.vote_shares,
       selectedPopularVoteLeader.value
     )))
-    const regionalPopularVoteRows = computed(() => regionRows.value.map((region) => {
-      const leader = topParty(region.assembly.vote_shares)
+    const provinceResultRows = computed(() => selectedRegionProvinces.value.map((province) => {
+      const leader = topParty(province.assembly.vote_shares)
       const popularVotes = Object.fromEntries(PARTIES.map((party) => [
         party,
-        popularVoteCount(region.population, region.assembly.vote_shares, party),
+        popularVoteCount(province.provincial_population, province.assembly.vote_shares, party),
       ]))
       return {
-        name: region.name,
-        population: region.population,
+        provinceIndex: province.provinceIndex,
+        name: province.name,
+        population: province.provincial_population,
         topParty: leader,
-        topVoteShare: formatShare(region.assembly.vote_shares[leader]),
-        topVoteCount: formatCompactNumber(popularVotes[leader]),
-        voteShares: region.assembly.vote_shares,
+        assemblyControl: province.assembly.control,
+        prelateControl: province.prelates.control,
+        voteShares: province.assembly.vote_shares,
         popularVotes,
       }
     }))
+    const affectedTrends = computed(() => {
+      if (!selectedRegion.value) return []
+      return electionStore.trends.filter((trend) => selectedRegionProvinces.value.some((province) => {
+        if (trendHasMatchingEffect(trend, province, 'province')) return true
+        return province.counties.some((county) => trendHasMatchingEffect(trend, county, 'county'))
+      }))
+    })
 
     const tickerKey = computed(() => [
       results.value.config.trendPackageId,
       results.value.config.seed,
       results.value.config.jitterSeed,
       selectedRegion.value?.name || '',
+      pollingStore.pollSeed,
     ].join('|'))
 
     function showElectionTicker(scope = 'regional', targetName = selectedRegion.value?.name || null) {
@@ -359,17 +317,17 @@ export default {
     }, { immediate: true })
 
     return {
-      baselineSelectedRegion,
+      affectedTrends,
       controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
+      featureRadarOption,
       formatCompactNumber,
       formatNumber,
       hasData,
       formatShare,
       parties: PARTIES,
       partyWinnerStyle: (party) => partyWinnerStyle(party, store.partyMeta),
+      provinceResultRows,
       regionRows,
-      regionalPopularVoteRows,
-      regionalAssemblyChartOption,
       results,
       selectedRegion,
       selectedRegionName,

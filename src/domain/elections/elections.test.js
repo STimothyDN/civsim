@@ -13,6 +13,7 @@ import {
   scoresToVoteShares,
   simulateElection,
   trendEffect,
+  winnerControlStyle,
 } from './index'
 import { determineHouseControl } from './coalitions/houseControl'
 import { calculateCountyFeatures } from './features/countyFeatures'
@@ -485,6 +486,17 @@ describe('election domain', () => {
     expect(control.seats).toBeGreaterThanOrEqual(control.majority)
     // Yellow now prioritizes orange as partner after being weakened
     expect(control.supportParties[0]).toBe('orange')
+  })
+
+  it('mutes minority government control styling while preserving majority color', () => {
+    const partyMeta = { yellow: { color: '#d4a843' } }
+    const majorityStyle = winnerControlStyle({ status: 'majority', leaderParty: 'yellow' }, partyMeta)
+    const minorityStyle = winnerControlStyle({ status: 'minority-government', leaderParty: 'yellow' }, partyMeta)
+
+    expect(majorityStyle['--winner-color']).toBe('#d4a843')
+    expect(minorityStyle['--winner-color']).toBe('color-mix(in srgb, #d4a843 64%, var(--text-muted))')
+    expect(minorityStyle['--winner-bg']).toBe('#d4a84312')
+    expect(minorityStyle['--winner-border']).toBe('#d4a84344')
   })
 
   it('keeps Solidarity and Lotus minor outside their natural regions', () => {

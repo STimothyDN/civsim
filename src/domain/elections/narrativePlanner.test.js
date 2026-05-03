@@ -377,6 +377,72 @@ describe('narrativePlanner LLM prompts', () => {
     expect(text).toContain('Capital Region assembly')
   })
 
+  it('includes supplied polling context in broadcast and ticker payloads', async () => {
+    const polling = {
+      scope: 'national',
+      scopeLabel: 'National',
+      aggregate: {
+        voteSharesPct: { yellow: 41.2, orange: 28.4, red: 12.1, blue: 10.3, white: 5, purple: 3 },
+        projectedSeats: {
+          assembly: { yellow: 9, orange: 5, red: 3, blue: 2, white: 1, purple: 0 },
+          prelates: { yellow: 4, orange: 2, red: 1, blue: 1, white: 0, purple: 0 },
+        },
+        leader: 'yellow',
+      },
+      spread: {
+        voteShareRangePct: { yellow: { min: 39.8, max: 42.4 } },
+        assemblySeatRange: { yellow: { min: 8, max: 10 } },
+      },
+      pollsterCount: 4,
+      methodologyNotes: ['Aurora Public Opinion: climate-weighted model.'],
+    }
+
+    mockChatResponse('Polling frames the national board.\n\nThe assembly math follows.\n\nThe capital confirms it.\n\nMargins remain live.\n\nThe outlook is cautious.')
+
+    await requestElectionBroadcast({
+      results: sampleResults(),
+      baselineResults: sampleBaselineResults(),
+      scope: 'national',
+      polling,
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    let body = lastRequestBody()
+    let userPayload = JSON.parse(body.input)
+
+    expect(body.system_prompt).toContain('Treat polling.aggregate')
+    expect(userPayload.polling).toMatchObject({
+      scope: 'national',
+      scopeLabel: 'National',
+      pollsterCount: 4,
+      aggregate: {
+        leader: 'yellow',
+        voteSharesPct: { yellow: 41.2 },
+      },
+    })
+    expect(userPayload.polling.methodologyNotes[0]).toContain('Aurora Public Opinion')
+
+    vi.restoreAllMocks()
+    mockChatResponse('Polls show Divinus Sol ahead, but the spread keeps the call cautious.')
+
+    await requestElectionTicker({
+      results: sampleResults(),
+      baselineResults: sampleBaselineResults(),
+      scope: 'national',
+      polling,
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    body = lastRequestBody()
+    userPayload = JSON.parse(body.input)
+
+    expect(body.system_prompt).toContain('Treat polling.aggregate')
+    expect(userPayload.polling.aggregate.projectedSeats.assembly.yellow).toBe(9)
+    expect(userPayload.polling.spread.voteShareRangePct.yellow).toMatchObject({ min: 39.8, max: 42.4 })
+  })
+
   it('sends provincial scope and targetName to the broadcast prompt', async () => {
     mockChatResponse('Angkor Thom council is called.\n\nThe county math follows.\n\nRail Works swung hard.\n\nThe margin is narrow.\n\nThe province is stable.')
 

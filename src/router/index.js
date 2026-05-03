@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const HomePage = () => import('../pages/HomePage.vue')
 const ElectionSimulator = () => import('../pages/ElectionSimulator.vue')
+const PreElectionPage = () => import('../pages/PreElectionPage.vue')
 const ElectionOverview = () => import('../pages/ElectionOverview.vue')
 const NationalElectionResults = () => import('../pages/NationalElectionResults.vue')
 const RegionalElectionResults = () => import('../pages/RegionalElectionResults.vue')
@@ -24,7 +25,13 @@ const routes = [
     children: [
       {
         path: '',
-        redirect: '/elections/overview',
+        redirect: '/elections/pre-election',
+      },
+      {
+        path: 'pre-election',
+        name: 'PreElectionPage',
+        component: PreElectionPage,
+        meta: { title: 'Civ Sim — Pre-Election Simulator' },
       },
       {
         path: 'overview',

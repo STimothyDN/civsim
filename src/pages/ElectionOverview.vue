@@ -22,12 +22,12 @@
             <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('overview')">
               <Radio :size="16" />
               Start Election Broadcast
-              <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
+              <BrainCircuit :size="13" class="broadcast-ai-mark" />
             </button>
             <button type="button" class="btn-broadcast-start" @click="showElectionTicker('overview')">
               <Radio :size="16" />
               Show Election Ticker
-              <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
+              <BrainCircuit :size="13" class="broadcast-ai-mark" />
             </button>
           </div>
         </div>
@@ -50,11 +50,6 @@
         :scope="tickerScope"
         :target-name="tickerTargetName"
         :ticker-key="tickerKey"
-      />
-
-      <ElectionScenarioControls
-        :current-shares="results.national.assembly.vote_shares"
-        :baseline-shares="baselineResults.national.assembly.vote_shares"
       />
 
       <section class="overview-metric-strip" aria-label="Election overview metrics">
@@ -88,8 +83,8 @@
         </article>
       </section>
 
-      <section class="overview-control-grid">
-        <article v-for="board in controlBoards" :key="`${board.eyebrow}-${board.label}`" class="overview-board-panel overview-control-panel">
+      <section class="overview-control-grid overview-control-grid--merged">
+        <article v-for="board in mergedControlBoards" :key="board.kind" class="overview-board-panel overview-control-panel overview-control-panel--merged">
           <div class="overview-control-panel-header">
             <div>
               <p class="eyebrow">{{ board.eyebrow }}</p>
@@ -97,15 +92,21 @@
             </div>
             <strong>{{ board.total }}</strong>
           </div>
-          <div class="overview-control-list">
-            <div v-for="row in board.rows" :key="`${board.label}-${row.party}`" class="overview-control-row" :style="partyControlStyle(row.party)">
-              <PartyBadge :party="row.party" short />
-              <div class="overview-control-track">
-                <i :style="{ width: `${row.share}%`, backgroundColor: row.color }"></i>
+          <div class="overview-control-summary-grid">
+            <div v-for="chamber in board.chambers" :key="`${board.kind}-${chamber.label}`" class="overview-control-summary">
+              <span>{{ chamber.label }}</span>
+              <div class="overview-control-list">
+                <div v-for="row in chamber.rows" :key="`${board.kind}-${chamber.label}-${row.party}`" class="overview-control-row" :style="partyControlStyle(row.party)">
+                  <PartyBadge :party="row.party" short />
+                  <div class="overview-control-track">
+                    <i :style="{ width: `${row.share}%`, backgroundColor: row.color }"></i>
+                  </div>
+                  <strong>{{ row.count }}</strong>
+                </div>
               </div>
-              <strong>{{ row.count }}</strong>
             </div>
           </div>
+          <ControlCallBoard :units="board.units" :kind="board.kind" :party-meta="store.partyMeta" />
         </article>
       </section>
 
@@ -216,13 +217,14 @@
 <script>
 import { computed, ref } from 'vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
-import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
+import ControlCallBoard from '../components/elections/ControlCallBoard.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import { BrainCircuit, FilePlus2, LayoutDashboard, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
+import { usePollingStore } from '../stores/pollingStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
 import { PARTIES, formatShare, lowerHouseName, upperHouseName, winnerControlStyle } from '../domain/elections'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
@@ -250,10 +252,11 @@ function countControlLeaders(units, chamber, partyMeta) {
 
 export default {
   name: 'ElectionOverview',
-  components: { BrainCircuit, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
+  components: { BrainCircuit, ChamberComposition, ControlCallBoard, ElectionTickerCard, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
-    const { baselineResults, hasData, results, store } = useElectionResults()
+    const pollingStore = usePollingStore()
+    const { hasData, results, store } = useElectionResults()
     const tickerRequestId = ref(0)
     const tickerScope = ref('overview')
     const tickerTargetName = ref(null)
@@ -295,30 +298,28 @@ export default {
     const climateDescription = computed(() => (
       results.value.config.scenarioDescription || `${formatNumber(results.value.config.trends.length)} climate signals`
     ))
-    const controlBoards = computed(() => [
+    const mergedControlBoards = computed(() => [
       {
         eyebrow: 'Regional Map',
-        label: 'Assembly Calls',
+        label: 'Regional Control',
         total: regionRows.value.length,
-        rows: countControlLeaders(regionRows.value, 'assembly', store.partyMeta),
-      },
-      {
-        eyebrow: 'Regional Map',
-        label: 'Council Calls',
-        total: regionRows.value.length,
-        rows: countControlLeaders(regionRows.value, 'prelates', store.partyMeta),
+        kind: 'region',
+        units: regionRows.value,
+        chambers: [
+          { label: 'Assembly Calls', rows: countControlLeaders(regionRows.value, 'assembly', store.partyMeta) },
+          { label: 'Council Calls', rows: countControlLeaders(regionRows.value, 'prelates', store.partyMeta) },
+        ],
       },
       {
         eyebrow: 'Provincial Map',
-        label: 'Assembly Calls',
+        label: 'Provincial Control',
         total: results.value.provinces.length,
-        rows: countControlLeaders(results.value.provinces, 'assembly', store.partyMeta),
-      },
-      {
-        eyebrow: 'Provincial Map',
-        label: 'Council Calls',
-        total: results.value.provinces.length,
-        rows: countControlLeaders(results.value.provinces, 'prelates', store.partyMeta),
+        kind: 'province',
+        units: results.value.provinces,
+        chambers: [
+          { label: 'Assembly Calls', rows: countControlLeaders(results.value.provinces, 'assembly', store.partyMeta) },
+          { label: 'Council Calls', rows: countControlLeaders(results.value.provinces, 'prelates', store.partyMeta) },
+        ],
       },
     ])
     const partyRows = computed(() => {
@@ -355,6 +356,7 @@ export default {
       results.value.config.trendPackageId,
       results.value.config.seed,
       results.value.config.jitterSeed,
+      pollingStore.pollSeed,
     ].join('|'))
 
     function showElectionTicker(scope = 'overview', targetName = null) {
@@ -364,10 +366,8 @@ export default {
     }
 
     return {
-      baselineResults,
       climateDescription,
       climateName,
-      controlBoards,
       controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
       countryName,
       formatCompactNumber,
@@ -375,6 +375,7 @@ export default {
       formatShare,
       hasData,
       lowerHouseNameFor,
+      mergedControlBoards,
       overviewMetrics,
       partyRows,
       partyControlStyle,

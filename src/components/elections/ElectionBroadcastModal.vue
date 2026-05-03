@@ -74,6 +74,7 @@ import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { ArrowRight, FastForward, Radio, X } from 'lucide-vue-next'
 import { useUiStore } from '../../stores/uiStore'
 import { useElectionResults } from '../../composables/useElectionResults'
+import { usePolls } from '../../composables/usePolls'
 import { requestElectionBroadcast } from '../../domain/elections/narrativePlanner'
 import LlmStatusIndicator from './LlmStatusIndicator.vue'
 import { broadcastLlmStatus } from './llmStatusCopy'
@@ -84,6 +85,7 @@ export default {
   setup() {
     const uiStore = useUiStore()
     const { results, baselineResults } = useElectionResults()
+    const { pollingPayloadFor } = usePolls()
 
     const fullText = ref('')
     const paragraphs = ref([])
@@ -127,6 +129,7 @@ export default {
           baselineResults: baselineResults.value,
           scope: uiStore.broadcastScope,
           targetName: uiStore.broadcastTargetName,
+          polling: pollingPayloadFor(uiStore.broadcastScope, uiStore.broadcastTargetName),
           onStatus: (status) => {
             llmStatus.value = broadcastLlmStatus(status)
           },

@@ -26,6 +26,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { Loader2, Radio } from 'lucide-vue-next'
 import { useElectionResults } from '../../composables/useElectionResults'
+import { usePolls } from '../../composables/usePolls'
 import { requestElectionTicker } from '../../domain/elections/narrativePlanner'
 import { useUiStore } from '../../stores/uiStore'
 import LlmStatusIndicator from './LlmStatusIndicator.vue'
@@ -42,6 +43,7 @@ export default {
   },
   setup(props) {
     const { baselineResults, results } = useElectionResults()
+    const { pollingPayloadFor } = usePolls()
     const uiStore = useUiStore()
     const isVisible = ref(false)
     const isLoading = ref(false)
@@ -106,6 +108,7 @@ export default {
           baselineResults: baselineResults.value,
           scope: props.scope,
           targetName: props.targetName,
+          polling: pollingPayloadFor(props.scope, props.targetName),
           onStatus: (status) => {
             llmStatus.value = tickerLlmStatus(status)
           },

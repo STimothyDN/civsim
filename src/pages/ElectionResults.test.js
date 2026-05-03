@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import NationalElectionResults from './NationalElectionResults.vue'
 import ElectionOverview from './ElectionOverview.vue'
+import PreElectionPage from './PreElectionPage.vue'
 import ProvincialElectionResults from './ProvincialElectionResults.vue'
 import RegionalElectionResults from './RegionalElectionResults.vue'
 import { useElectionStore } from '../stores/electionStore'
@@ -140,7 +141,20 @@ describe('election result pages', () => {
     expect(wrapper.text()).toContain('No Election Data')
   })
 
-  it('renders national results and randomizes the election climate', async () => {
+  it('renders national chamber detail without the climate controls', async () => {
+    const { wrapper } = mountPage(NationalElectionResults)
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('National Vote And Seats')
+    expect(wrapper.text()).toContain('Vote, Seats, And Thresholds')
+    expect(wrapper.text()).toContain('Prelate Delegation By Province')
+    expect(wrapper.text()).toContain('Thresholds And Apportionment')
+    expect(wrapper.text()).toContain('Divinus Sol')
+    expect(wrapper.text()).not.toContain('Randomize Election Climate')
+    expect(wrapper.text()).not.toContain('Party Strength By Region')
+  })
+
+  it('renders pre-election climate controls and polls', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(nativeChatResponse(''))
@@ -152,15 +166,17 @@ describe('election result pages', () => {
       })))
     vi.stubGlobal('fetch', fetchMock)
 
-    const { wrapper, electionStore } = mountPage(NationalElectionResults)
+    const { wrapper, electionStore } = mountPage(PreElectionPage)
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('National Vote And Seats')
-    expect(wrapper.text()).toContain('Assembly of the Empire')
-    expect(wrapper.text()).toContain('Council of Prelates')
-    expect(wrapper.text()).toContain('Divinus Sol')
+    expect(wrapper.text()).toContain('Pre-Election')
+    expect(wrapper.text()).toContain('Election Climate')
+    expect(wrapper.text()).toContain('Election Polls')
+    expect(wrapper.text()).toContain('Concord of Pollsters')
+    expect(wrapper.text()).toContain('Aurora Public Opinion')
 
-    await wrapper.get('.btn-primary').trigger('click')
+    const climateButton = wrapper.findAll('button').find((button) => button.text().includes('Randomize Election Climate'))
+    await climateButton.trigger('click')
     await flushPromises()
 
     expect(fetchMock).toHaveBeenCalledTimes(0)
@@ -182,18 +198,21 @@ describe('election result pages', () => {
     expect(wrapper.text()).toContain('Election Board')
     expect(wrapper.text()).toContain('Assembly of the Empire')
     expect(wrapper.text()).toContain('Council of Prelates')
-    expect(wrapper.text()).toContain('Regional Calls')
+    expect(wrapper.text()).toContain('Regional Control')
+    expect(wrapper.text()).toContain('Provincial Control')
 
     await wrapper.get('.btn-broadcast-start').trigger('click')
     expect(uiStore.broadcastScope).toBe('overview')
   })
 
-  it('renders regional result tables', async () => {
+  it('renders regional selected-region detail tables', async () => {
     const { wrapper } = mountPage(RegionalElectionResults)
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Seat Allocation By Region')
+    expect(wrapper.text()).toContain('Regional Political Profile')
+    expect(wrapper.text()).toContain('Province-Level Returns')
     expect(wrapper.text()).toContain('Capital Region')
+    expect(wrapper.text()).not.toContain('Control Of Regional Houses')
   })
 
   it('renders provincial county result inputs', async () => {
@@ -202,5 +221,6 @@ describe('election result pages', () => {
 
     expect(wrapper.text()).toContain('County Results')
     expect(wrapper.text()).toContain('Forum')
+    expect(wrapper.text()).not.toContain('Control Of Provincial Houses')
   })
 })
