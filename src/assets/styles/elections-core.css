@@ -216,6 +216,15 @@
   gap: 8px;
 }
 
+.election-control-ai-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+}
+
 .election-spin {
   animation: electionSpin 0.9s linear infinite;
 }

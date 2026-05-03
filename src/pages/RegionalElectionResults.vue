@@ -24,10 +24,12 @@
               <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('regional', selectedRegionName)">
                 <Radio :size="16" />
                 Start Regional Broadcast
+                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
               </button>
               <button type="button" class="btn-broadcast-start" @click="showElectionTicker('regional', selectedRegion.name)">
                 <Radio :size="16" />
                 Show Election Ticker
+                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
               </button>
             </div>
           </div>
@@ -264,7 +266,7 @@
 
 <script>
 import { computed, ref, watch } from 'vue'
-import { FilePlus2, Map, Radio } from 'lucide-vue-next'
+import { BrainCircuit, FilePlus2, Map, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
@@ -280,7 +282,7 @@ import { orderRegionsByReference, partyWinnerStyle, popularVoteCount, sumSeats, 
 
 export default {
   name: 'RegionalElectionResults',
-  components: { ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, Map, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
+  components: { BrainCircuit, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, Map, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
     const selectedRegionName = ref('')

@@ -11,18 +11,11 @@
           <span>Seed {{ electionStore.seed }}</span>
           <span>Jitter {{ electionStore.jitterSeed }}</span>
         </div>
-        <LlmStatusIndicator
-          v-if="isNamingScenario && llmStatus"
-          :status="llmStatus"
-          title="Climate Naming"
-          variant="compact"
-        />
       </div>
       <div class="election-control-actions">
-        <button type="button" class="btn-primary" :disabled="isNamingScenario" @click="randomizeElectionClimate">
-          <Loader2 v-if="isNamingScenario" class="election-spin" :size="16" />
-          <Shuffle v-else :size="16" />
-          {{ isNamingScenario ? 'Naming Climate' : 'Randomize Election Climate' }}
+        <button type="button" class="btn-primary" @click="randomizeElectionClimate">
+          <Shuffle :size="16" />
+          Randomize Election Climate
         </button>
         <button type="button" :disabled="electionStore.isBaseline" @click="electionStore.resetScenario">
           <RotateCcw :size="16" />
@@ -45,12 +38,31 @@
         <strong>{{ shift.shiftFormatted }}</strong>
       </div>
     </div>
+
+    <div class="election-control-ai-footer">
+      <LlmStatusIndicator
+        v-if="isNamingScenario && llmStatus"
+        :status="llmStatus"
+        title="Climate Naming"
+        variant="compact"
+      />
+      <button
+        type="button"
+        class="btn-ai"
+        :disabled="isNamingScenario || electionStore.isBaseline"
+        @click="generateClimateDescription"
+      >
+        <Loader2 v-if="isNamingScenario" class="election-spin" :size="14" />
+        <BrainCircuit v-else :size="14" />
+        {{ isNamingScenario ? 'Generating...' : 'Generate Climate Description' }}
+      </button>
+    </div>
   </section>
 </template>
 
 <script>
 import { computed, ref } from 'vue'
-import { Loader2, RotateCcw, Shuffle } from 'lucide-vue-next'
+import { BrainCircuit, Loader2, RotateCcw, Shuffle } from 'lucide-vue-next'
 import { useElectionStore } from '../../stores/electionStore'
 import { useFormStore } from '../../stores/formStore'
 import { useUiStore } from '../../stores/uiStore'
@@ -62,7 +74,7 @@ import PartyBadge from './PartyBadge.vue'
 
 export default {
   name: 'ElectionScenarioControls',
-  components: { LlmStatusIndicator, Loader2, PartyBadge, RotateCcw, Shuffle },
+  components: { BrainCircuit, LlmStatusIndicator, Loader2, PartyBadge, RotateCcw, Shuffle },
   props: {
     currentShares: { type: Object, default: () => ({}) },
     baselineShares: { type: Object, default: () => ({}) },
@@ -93,17 +105,19 @@ export default {
       }).filter((p) => Math.abs(p.diff) >= 0.0005).sort((a, b) => b.diff - a.diff)
     })
 
-    async function randomizeElectionClimate() {
-      const packageDef = electionStore.randomizeScenario()
-      const trendPackageId = packageDef.trendPackageId
+    function randomizeElectionClimate() {
+      electionStore.randomizeScenario()
+    }
 
+    async function generateClimateDescription() {
+      const trendPackageId = electionStore.trendPackageId
       electionStore.setScenarioMetadataLoading(trendPackageId)
       llmStatus.value = null
 
       try {
         const metadata = await requestElectionClimateSummary({
-          trends: packageDef.trends,
-          seed: packageDef.seed,
+          trends: electionStore.trends,
+          seed: electionStore.seed,
           data: formStore.currentData,
           onStatus: (status) => {
             llmStatus.value = climateLlmStatus(status)
@@ -112,11 +126,11 @@ export default {
         electionStore.applyScenarioMetadata(metadata, trendPackageId)
       } catch (error) {
         electionStore.setScenarioMetadataError(error.message, trendPackageId)
-        uiStore.showToast('Election climate randomized; scenario description could not be generated.', 'error')
+        uiStore.showToast('Scenario description could not be generated.', 'error')
       }
     }
 
-    return { electionStore, isNamingScenario, llmStatus, partyShifts, randomizeElectionClimate }
+    return { electionStore, generateClimateDescription, isNamingScenario, llmStatus, partyShifts, randomizeElectionClimate }
   },
 }
 </script>

@@ -24,10 +24,12 @@
               <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('provincial', selectedProvince.name)">
                 <Radio :size="16" />
                 Start Provincial Broadcast
+                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
               </button>
               <button type="button" class="btn-broadcast-start" @click="showElectionTicker('provincial', selectedProvince.name)">
                 <Radio :size="16" />
                 Show Election Ticker
+                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
               </button>
             </div>
           </div>
@@ -251,7 +253,7 @@
 
 <script>
 import { computed, ref, watch } from 'vue'
-import { Building2, FilePlus2, Radio } from 'lucide-vue-next'
+import { BrainCircuit, Building2, FilePlus2, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
@@ -267,7 +269,7 @@ import { partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domai
 
 export default {
   name: 'ProvincialElectionResults',
-  components: { Building2, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
+  components: { BrainCircuit, Building2, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
     const selectedIndex = ref(0)

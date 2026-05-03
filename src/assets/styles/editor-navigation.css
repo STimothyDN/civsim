@@ -145,9 +145,9 @@
 }
 
 .btn-narrative {
-  background: rgba(212, 168, 67, 0.12);
-  border-color: rgba(212, 168, 67, 0.3);
-  color: var(--accent);
+  background: rgba(45, 212, 191, 0.08);
+  border-color: rgba(45, 212, 191, 0.38);
+  color: #2dd4bf;
 }
 
 .btn-recalculate:hover {
@@ -157,9 +157,9 @@
 }
 
 .btn-narrative:hover {
-  background: linear-gradient(135deg, rgba(212, 168, 67, 0.2), rgba(212, 168, 67, 0.1));
-  border-color: rgba(212, 168, 67, 0.45);
-  box-shadow: 0 0 16px rgba(212, 168, 67, 0.11);
+  background: rgba(45, 212, 191, 0.14);
+  border-color: rgba(45, 212, 191, 0.6);
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.18);
 }
 
 .btn-recalculate:active,

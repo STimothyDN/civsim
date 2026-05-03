@@ -17,7 +17,7 @@
         </button>
       </div>
       <button type="button" class="btn-narrative election-simulator-narrative" @click="uiStore.openElectionNarrativeModal">
-        <Sparkles :size="15" />
+        <BrainCircuit :size="15" />
         <span>Election Narrative</span>
       </button>
     </div>
@@ -29,11 +29,12 @@
 <script>
 import { markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Building2, LayoutDashboard, Map, Sparkles, Vote } from 'lucide-vue-next'
+import { BrainCircuit, Building2, LayoutDashboard, Map, Vote } from 'lucide-vue-next'
 import { useUiStore } from '../stores/uiStore'
 
 export default {
   name: 'ElectionSimulator',
+  components: { BrainCircuit },
   setup() {
     const route = useRoute()
     const router = useRouter()

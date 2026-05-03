@@ -22,10 +22,12 @@
             <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('overview')">
               <Radio :size="16" />
               Start Election Broadcast
+              <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
             </button>
             <button type="button" class="btn-broadcast-start" @click="showElectionTicker('overview')">
               <Radio :size="16" />
               Show Election Ticker
+              <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
             </button>
           </div>
         </div>
@@ -217,7 +219,7 @@ import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
-import { FilePlus2, LayoutDashboard, Radio } from 'lucide-vue-next'
+import { BrainCircuit, FilePlus2, LayoutDashboard, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
@@ -248,7 +250,7 @@ function countControlLeaders(units, chamber, partyMeta) {
 
 export default {
   name: 'ElectionOverview',
-  components: { ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
+  components: { BrainCircuit, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
     const { baselineResults, hasData, results, store } = useElectionResults()

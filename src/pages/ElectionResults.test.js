@@ -163,8 +163,13 @@ describe('election result pages', () => {
     await wrapper.get('.btn-primary').trigger('click')
     await flushPromises()
 
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock).toHaveBeenCalledTimes(0)
     expect(electionStore.trends.length).toBeGreaterThan(0)
+
+    await wrapper.get('.btn-ai').trigger('click')
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(electionStore.scenarioName).toBe('Breadline Backlash')
     expect(wrapper.text()).toContain('Breadline Backlash')
   })

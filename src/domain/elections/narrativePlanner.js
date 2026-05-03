@@ -1785,7 +1785,7 @@ export async function requestElectionClimateSummary({
         message: 'Reading scenario metadata.',
         detail: 'Extracting the scenario name and one-sentence description.',
       })
-      const metadata = normalizeScenarioMetadata(extractJsonObject(content))
+      const metadata = normalizeScenarioMetadata(extractJsonObject(stripThinkBlocks(content)))
       emitLlmStatus(onStatus, {
         phase: 'complete',
         progress: 1,
@@ -1795,7 +1795,8 @@ export async function requestElectionClimateSummary({
       return metadata
     } catch (error) {
       lastError = error
-      if (error.code !== 'length' && error.code !== 'empty') throw error
+      const retryable = ['length', 'empty', 'invalid-json', 'no-json']
+      if (!retryable.includes(error.code)) throw error
     }
   }
 

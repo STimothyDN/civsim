@@ -68,6 +68,38 @@
   gap: 12px;
 }
 
+.btn-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  background: rgba(45, 212, 191, 0.08);
+  border: 1px solid rgba(45, 212, 191, 0.38);
+  border-radius: var(--radius-sm);
+  color: #2dd4bf;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-ai:hover {
+  background: rgba(45, 212, 191, 0.14);
+  border-color: rgba(45, 212, 191, 0.6);
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.18);
+}
+
+.btn-ai:active {
+  transform: scale(0.97);
+}
+
+.btn-ai:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .btn-broadcast-start {
   display: flex;
   align-items: center;

@@ -17,6 +17,11 @@
       <Download :size="16" />
       Download JSON
     </button>
+
+    <button type="button" @click="downloadExample">
+      <Download :size="16" />
+      Download Example
+    </button>
   </div>
 </template>
 
@@ -24,6 +29,7 @@
 import { computed } from 'vue'
 import { Download, FilePlus2, Upload } from 'lucide-vue-next'
 import { useFormStore } from '../stores/formStore'
+import exampleData from '../../jayavarman.json'
 
 export default {
   name: 'Toolbar',
@@ -40,13 +46,23 @@ export default {
       store.downloadJson()
     }
 
+    function downloadExample() {
+      const blob = new Blob([JSON.stringify(exampleData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'jayavarman.json'
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+
     function onFileChange(e) {
       const file = e.target.files?.[0]
       if (file) store.loadFromFile(file)
       e.target.value = ''
     }
 
-    return { loadDefault, onFileChange, downloadJson, hasData }
+    return { loadDefault, onFileChange, downloadJson, downloadExample, hasData }
   }
 }
 </script>

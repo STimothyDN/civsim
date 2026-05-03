@@ -24,10 +24,12 @@
               <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('national')">
                 <Radio :size="16" />
                 Start National Broadcast
+                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
               </button>
               <button type="button" class="btn-broadcast-start" @click="showElectionTicker('national')">
                 <Radio :size="16" />
                 Show Election Ticker
+                <BrainCircuit :size="13" style="opacity:0.7;margin-left:2px" />
               </button>
             </div>
           </div>
@@ -149,7 +151,7 @@
 
 <script>
 import { computed, ref } from 'vue'
-import { FilePlus2, Radio, TriangleAlert, Vote } from 'lucide-vue-next'
+import { BrainCircuit, FilePlus2, Radio, TriangleAlert, Vote } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
@@ -165,7 +167,7 @@ import { orderRegionsByReference, popularVoteCount, sumSeats, topParty } from '.
 
 export default {
   name: 'NationalElectionResults',
-  components: { ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio, TriangleAlert, Vote },
+  components: { BrainCircuit, ChamberComposition, ElectionScenarioControls, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio, TriangleAlert, Vote },
   setup() {
     const uiStore = useUiStore()
     const { baselineResults, hasData, results, store } = useElectionResults()
