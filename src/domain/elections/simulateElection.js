@@ -13,6 +13,7 @@ import { applyJitter } from './randomness/jitter'
 import { applyTrends } from './trends/applyTrends'
 import { clamp, num, roundTo, sumObjectValues } from './normalization/numbers'
 import { determineHouseControl } from './coalitions/houseControl'
+import { applyNeighborInfluence } from './scoring/applyNeighborInfluence'
 
 function mergeConfig(electionConfig = {}) {
   return {
@@ -101,7 +102,7 @@ function calculateCountyVote(county, province, config) {
 }
 
 function calculateProvinceAssembly(province, counties, config) {
-  const rawScores = calculateProvincePartyScores(province)
+  const rawScores = applyNeighborInfluence(calculateProvincePartyScores(province), province)
   const trendScores = applyTrends(rawScores, province, 'province', config.trends)
   const adjustedScores = applyJitter(trendScores, {
     national: 'national',

@@ -177,17 +177,17 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
   const isolationIndex = clamp01(1 - connectivity.connectedness_index)
 
   let imperialCoreIndex = clamp01(
-    0.25 * (province?.is_national_capital ? 1 : 0) +
+    0.3 * (province?.is_national_capital ? 1 : 0) +
     0.15 * (province?.is_regional_capital ? 1 : 0) +
-    0.15 * (province?.is_founded ? 1 : 0) +
-    0.15 * loyaltyIndex +
-    0.1 * stateReligionShare +
-    0.1 * cultureIndex +
-    0.08 * scienceIndex +
-    0.07 * connectivity.connectedness_index -
-    0.05 * foreignOriginIndex
+    0.06 * (province?.is_founded ? 1 : 0) +
+    0.12 * loyaltyIndex +
+    0.08 * stateReligionShare +
+    0.08 * cultureIndex +
+    0.06 * scienceIndex +
+    0.05 * connectivity.connectedness_index -
+    0.08 * foreignOriginIndex
   )
-  if (province?.is_conquered) imperialCoreIndex *= 0.75
+  if (province?.is_conquered) imperialCoreIndex *= 0.6
 
   return {
     state_religion_share: stateReligionShare,

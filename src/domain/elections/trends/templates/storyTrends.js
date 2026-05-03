@@ -439,7 +439,7 @@ export const STORY_TREND_TEMPLATES = [
     scope: ['province', 'county'],
     level: 'county',
     party: 'white',
-    magnitudeRange: [0.14, 0.32],
+    magnitudeRange: [0.20, 0.46],
     tags: ['localism', 'rural', 'reform'],
     selectionWeight: 0.95,
     narrative: narrative(
@@ -563,7 +563,7 @@ export const STORY_TREND_TEMPLATES = [
     scope: ['province', 'county'],
     level: 'province',
     party: 'white',
-    magnitudeRange: [0.12, 0.3],
+    magnitudeRange: [0.16, 0.38],
     tags: ['autonomy', 'governance', 'localism', 'calming'],
     selectionWeight: 1,
     narrative: narrative(
@@ -792,7 +792,7 @@ export const STORY_TREND_TEMPLATES = [
     scope: ['province', 'county'],
     level: 'province',
     party: 'purple',
-    magnitudeRange: [0.13, 0.32],
+    magnitudeRange: [0.19, 0.44],
     tags: ['minority', 'reform', 'localism', 'calming'],
     selectionWeight: 0.95,
     narrative: narrative(

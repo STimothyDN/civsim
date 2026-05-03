@@ -116,6 +116,6 @@ export const PARTY_FLOORS = {
   orange: 0.08,
   red: 0.08,
   blue: 0.08,
-  white: 0.015,
-  purple: 0.015,
+  white: 0.008,
+  purple: 0.008,
 }
