@@ -226,15 +226,38 @@ function partyMetaForContext(source = null) {
 function partyLegend(partyMeta = PARTY_META) {
   return PARTIES.map((id) => {
     const meta = partyMeta[id] || PARTY_META[id]
+    const aliases = uniqueList([
+      id,
+      meta.name,
+      meta.abbreviation,
+      meta.colorName,
+      meta.colorLabel,
+      `${meta.colorName} Party`,
+    ], 8)
+
     return {
       id,
       name: meta.name,
       abbreviation: meta.abbreviation,
       colorName: meta.colorName,
       colorLabel: meta.colorLabel,
+      aliases,
+      identityRule: `${meta.colorLabel || `${meta.colorName} Party`} = ${meta.name} = ${meta.abbreviation}; these are aliases for one party, not separate parties.`,
       ideology: meta.ideology,
     }
   })
+}
+
+function partyIdentityRules(partyMeta = PARTY_META) {
+  return partyLegend(partyMeta).map((party) => ({
+    id: party.id,
+    canonicalName: party.name,
+    abbreviation: party.abbreviation,
+    colorName: party.colorName,
+    colorLabel: party.colorLabel,
+    aliases: party.aliases,
+    rule: party.identityRule,
+  }))
 }
 
 function templateParties(template) {
@@ -651,9 +674,14 @@ function pollBreakdownSystemPrompt() {
     'You are producing a pre-election polling segment for a fictional mainstream political news network.',
     'FORMAT: Write exactly 6 plain-text dialogue turns, each as one paragraph beginning with a speaker label such as "HOST:", "POLLING EDITOR:", "DATA ANALYST:", "FIELD ANALYST:", or "CAMPAIGN STRATEGIST:".',
     'STYLE: This is a polished roundtable of analysts talking through the poll board, not an election-night result call and not a state-media bulletin.',
-    'TASK: Explain what the latest poll-of-polls shows, where the pollsters agree or diverge, which party has the path to control, and what uncertainty remains.',
-    'DATA FIRST: Use polling.aggregate as the main source. Bring in individual pollsters, margins of error, spread ranges, projected seats, and house effects when they explain the disagreement.',
-    'CONTEXT: Use active trends, party legend, and scoped result context only to explain why the polling might look this way.',
+    'TIMELINE: The election is upcoming. Treat currentScenario, preElectionStateOfPlay, polling, and allScopePolling as pre-election projections/state of play, never as completed results or incoming returns.',
+    'PRIOR ELECTION: Treat priorElectionContext and any priorElection fields as the previous election/reference baseline. Use them only for comparison, not as the election currently happening.',
+    'BASELINE SCENARIO: If scenarioContext.isBaselineScenario is true, the current scenario is the neutral baseline state of play for the upcoming election; do not make the segment mostly about the past or about absence of change.',
+    'PARTY IDENTITY: Color labels, party IDs, abbreviations, and formal names in partyLegend/partyIdentityRules are aliases for the same parties. Never treat "Orange Party" and "United Workers Congress" as separate parties.',
+    'TASK: Lead with the key takeaways at a high level as the "news of the nation," then turn to polls that may be surprising.',
+    'DATA FIRST: Use preElectionStateOfPlay and allScopePolling to explain the nationwide poll-of-polls picture. Use polling as the current detailed board for individual pollsters, margins of error, spread ranges, projected seats, and house effects.',
+    'SURPRISES: Use surprisingPolls and allScopePolling to identify regional or provincial polls that break from the national story, show unusual swings, show close races, or show pollster disagreement.',
+    'CONTEXT: Explicitly connect the polling picture to activeTrends, party legend, and scoped result context when explaining why the numbers might look this way.',
     'IMMERSION: Sound like a television panel already on air. No definitions of the simulator, no tutorial language, no prompt commentary.',
     'Use only supplied facts and numbers; do not invent counties, parties, pollsters, margins, or quotes.',
     'Return ONLY the six dialogue paragraphs separated by blank lines. No markdown, headings, bullets, hidden reasoning, or <think> blocks.',
@@ -693,6 +721,103 @@ function pollingContext(polling = null) {
   })
 }
 
+function baselineScenarioFlag(results = {}) {
+  const config = results?.config || {}
+  return (
+    config.trendPackageId === 'baseline' ||
+    (config.seed === 'baseline' && config.jitterSeed === 'baseline')
+  ) && (!Array.isArray(config.trends) || config.trends.length === 0)
+}
+
+function scenarioContext(results = {}, baselineResults = {}) {
+  const isBaselineScenario = baselineScenarioFlag(results)
+  const trendCount = Array.isArray(results?.config?.trends) ? results.config.trends.length : 0
+
+  return compactObject({
+    phase: 'pre_election',
+    isBaselineScenario,
+    currentScenarioMeaning: isBaselineScenario
+      ? 'Neutral baseline state of play for the upcoming election; these are not completed election results.'
+      : 'Current pre-election scenario state of play shaped by active trends; these are not completed election results.',
+    priorElectionMeaning: 'Baseline Election Climate is the prior election/reference baseline used for comparison.',
+    guidance: isBaselineScenario
+      ? 'Because this is the baseline scenario, emphasize the upcoming election poll picture and use prior-election comparisons sparingly.'
+      : 'Compare the current pre-election state of play against the prior election when it clarifies movement.',
+    currentScenario: compactObject({
+      name: results?.config?.scenarioName,
+      description: results?.config?.scenarioDescription,
+      trendPackageId: results?.config?.trendPackageId,
+      trendCount,
+    }),
+    priorElectionScenario: compactObject({
+      name: baselineResults?.config?.scenarioName || 'Baseline Election Climate',
+      description: baselineResults?.config?.scenarioDescription || 'No randomized climate trends are active.',
+      trendPackageId: baselineResults?.config?.trendPackageId || 'baseline',
+    }),
+  })
+}
+
+function pollingSeatContext(projectedSeats = null) {
+  if (!projectedSeats) return undefined
+  return compactObject({
+    assembly: projectedSeats.assembly ? seatMap(projectedSeats.assembly) : undefined,
+    prelates: projectedSeats.prelates ? seatMap(projectedSeats.prelates) : undefined,
+  })
+}
+
+function strongestPollingSwing(voteSharesPct = {}, baselineVoteShares = {}, partyMeta = PARTY_META) {
+  if (!baselineVoteShares || Object.keys(baselineVoteShares).length === 0) return null
+  const strongest = PARTIES
+    .map((party) => ({
+      party,
+      name: partyMeta[party]?.name || PARTY_META[party]?.name || party,
+      points: roundNumber((numberOrNull(voteSharesPct?.[party]) ?? 0) - ((numberOrNull(baselineVoteShares?.[party]) ?? 0) * 100), 1),
+    }))
+    .sort((a, b) => Math.abs(b.points) - Math.abs(a.points) || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party))[0]
+
+  return strongest || null
+}
+
+function priorElectionPollingContext(baselineUnit = null, partyMeta = PARTY_META) {
+  if (!baselineUnit?.assembly && !baselineUnit?.prelates) return undefined
+  const votePct = baselineUnit?.assembly?.vote_shares ? voteShareMap(baselineUnit.assembly.vote_shares) : null
+  const leader = topPartyOrNull(votePct)
+
+  return compactObject({
+    leader,
+    leaderName: leader ? partyMeta[leader]?.name || PARTY_META[leader]?.name || leader : undefined,
+    assemblyVotePct: votePct,
+    assemblySeats: seatMap(baselineUnit?.assembly?.seats),
+    councilSeats: seatMap(baselineUnit?.prelates?.seats),
+  })
+}
+
+function pollAggregateContext(polling = null, baselineUnit = null, partyMeta = PARTY_META) {
+  if (!polling) return undefined
+  const aggregate = polling.aggregate || {}
+  const projectedSeats = aggregate.projectedSeats || aggregate.seats || null
+  const voteSharesPct = aggregate.voteSharesPct || pollingVotePctMap(aggregate.voteShares)
+
+  return compactObject({
+    scope: polling.scope,
+    scopeKey: polling.scopeKey,
+    scopeLabel: polling.scopeLabel,
+    aggregate: compactObject({
+      voteSharesPct,
+      projectedSeats: pollingSeatContext(projectedSeats),
+      leader: aggregate.leader,
+    }),
+    priorElection: priorElectionPollingContext(baselineUnit, partyMeta),
+    changeFromPriorElectionPct: baselineUnit?.assembly?.vote_shares ? getSwings(
+      Object.fromEntries(PARTIES.map((party) => [party, (numberOrNull(voteSharesPct?.[party]) ?? 0) / 100])),
+      baselineUnit.assembly.vote_shares
+    ) : undefined,
+    strongestChangeFromPriorElection: strongestPollingSwing(voteSharesPct, baselineUnit?.assembly?.vote_shares, partyMeta),
+    spread: polling.spread || aggregate.spread,
+    pollsterCount: polling.pollsterCount || (Array.isArray(polling.pollsters) ? polling.pollsters.length : undefined),
+  })
+}
+
 function pollsterBreakdownContext(pollster = {}, partyMeta = PARTY_META) {
   return compactObject({
     id: pollster.id,
@@ -715,10 +840,19 @@ function pollsterBreakdownContext(pollster = {}, partyMeta = PARTY_META) {
   })
 }
 
-function pollBreakdownPollingContext(polling = null, partyMeta = PARTY_META) {
+function pollBreakdownPollingContext(polling = null, partyMeta = PARTY_META, baselineUnit = null) {
   if (!polling) return undefined
+  const aggregate = polling.aggregate || {}
+  const voteSharesPct = aggregate.voteSharesPct || pollingVotePctMap(aggregate.voteShares)
+
   return compactObject({
     ...pollingContext(polling),
+    priorElection: priorElectionPollingContext(baselineUnit, partyMeta),
+    changeFromPriorElectionPct: baselineUnit?.assembly?.vote_shares ? getSwings(
+      Object.fromEntries(PARTIES.map((party) => [party, (numberOrNull(voteSharesPct?.[party]) ?? 0) / 100])),
+      baselineUnit.assembly.vote_shares
+    ) : undefined,
+    strongestChangeFromPriorElection: strongestPollingSwing(voteSharesPct, baselineUnit?.assembly?.vote_shares, partyMeta),
     pollsters: (polling.pollsters || []).map((pollster) => pollsterBreakdownContext(pollster, partyMeta)),
   })
 }
@@ -931,6 +1065,130 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
   }
 }
 
+function unitForPollingScope(results = {}, polling = {}) {
+  if (polling.scope === 'national') return results.national || null
+  if (polling.scope === 'regional') {
+    return results.regions?.[polling.scopeKey] || results.regions?.[polling.scopeLabel] || null
+  }
+  if (polling.scope === 'provincial') {
+    const key = String(polling.scopeKey ?? '')
+    return (results.provinces || []).find((province) => (
+      String(province.provinceIndex) === key ||
+      String(province.name || '') === String(polling.scopeLabel || '')
+    )) || null
+  }
+  return null
+}
+
+function topPollingParties(voteSharesPct = {}, max = 2, partyMeta = PARTY_META) {
+  return PARTIES
+    .map((party) => ({
+      party,
+      name: partyMeta[party]?.name || PARTY_META[party]?.name || party,
+      votePct: numberOrNull(voteSharesPct?.[party]) ?? 0,
+    }))
+    .sort((a, b) => b.votePct - a.votePct || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party))
+    .slice(0, max)
+}
+
+function topPartyFromValues(values = {}) {
+  return [...PARTIES].sort((a, b) => (
+    (numberOrNull(values?.[b]) ?? 0) - (numberOrNull(values?.[a]) ?? 0) ||
+    PARTIES.indexOf(a) - PARTIES.indexOf(b)
+  ))[0]
+}
+
+function topPartyOrNull(values = {}) {
+  const hasSignal = Object.values(values || {}).some((value) => (numberOrNull(value) ?? 0) > 0)
+  return hasSignal ? topPartyFromValues(values) : null
+}
+
+function leaderSpreadWidth(spread = {}, leader = null) {
+  const range = spread?.voteShareRangePct?.[leader]
+  const min = numberOrNull(range?.min)
+  const max = numberOrNull(range?.max)
+  if (min === null || max === null) return null
+  return roundNumber(max - min, 1)
+}
+
+function surprisingPollContexts(pollingScopes = [], results = {}, baselineResults = {}, partyMeta = PARTY_META) {
+  const scopes = Array.isArray(pollingScopes) ? pollingScopes : []
+  const nationalScope = scopes.find((scope) => scope.scope === 'national') || scopes[0] || null
+  const nationalLeader = nationalScope
+    ? nationalScope.aggregate?.leader || topPartyOrNull(nationalScope.aggregate?.voteShares)
+    : null
+
+  return scopes
+    .map((scope) => {
+      const unit = unitForPollingScope(results, scope)
+      const baselineUnit = unitForPollingScope(baselineResults, scope)
+      const context = pollAggregateContext(scope, baselineUnit, partyMeta)
+      if (!context?.aggregate?.voteSharesPct) return null
+
+      const topTwo = topPollingParties(context.aggregate.voteSharesPct, 2, partyMeta)
+      const leader = topTwo[0]?.party || context.aggregate.leader
+      const runnerUp = topTwo[1] || null
+      const margin = runnerUp ? roundNumber((topTwo[0]?.votePct || 0) - runnerUp.votePct, 1) : null
+      const resultLeader = topPartyOrNull(unit?.assembly?.vote_shares || unit?.assembly?.seats || {})
+      const baselineLeader = topPartyOrNull(baselineUnit?.assembly?.vote_shares || {})
+      const spreadWidth = leaderSpreadWidth(context.spread, leader)
+      const strongestSwing = context.strongestChangeFromPriorElection
+      const reasons = []
+      let score = 0
+
+      if (scope.scope !== 'national' && leader && nationalLeader && leader !== nationalLeader) {
+        reasons.push(`Breaks from the national ${partyMeta[nationalLeader]?.name || nationalLeader} lead`)
+        score += 4
+      }
+      if (resultLeader && leader && resultLeader !== leader) {
+        reasons.push(`Poll leader differs from the projected local state-of-play leader`)
+        score += 3
+      }
+      if (baselineLeader && leader && baselineLeader !== leader) {
+        reasons.push(`Poll leader differs from the prior election leader`)
+        score += 2
+      }
+      if (margin !== null && margin <= 2.5) {
+        reasons.push(`Top two parties are within ${margin} points`)
+        score += 2
+      }
+      if (spreadWidth !== null && spreadWidth >= 4) {
+        reasons.push(`Pollster spread for the leader spans ${spreadWidth} points`)
+        score += 2
+      }
+      if (strongestSwing && Math.abs(strongestSwing.points) >= 4) {
+        reasons.push(`${strongestSwing.name} is ${strongestSwing.points > 0 ? 'up' : 'down'} ${Math.abs(strongestSwing.points)} points from the prior election`)
+        score += 2
+      }
+
+      if (score <= 0) return null
+
+      return compactObject({
+        scope: context.scope,
+        scopeKey: context.scopeKey,
+        scopeLabel: context.scopeLabel,
+        leader,
+        leaderName: partyMeta[leader]?.name || PARTY_META[leader]?.name || leader,
+        topTwo,
+        marginPct: margin,
+        projectedSeats: context.aggregate.projectedSeats,
+        spread: context.spread,
+        strongestSwing,
+        reasons,
+        score,
+      })
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || String(a.scopeLabel || '').localeCompare(String(b.scopeLabel || '')))
+    .slice(0, 10)
+}
+
+function allScopePollingContext(pollingScopes = [], baselineResults = {}, partyMeta = PARTY_META) {
+  return (Array.isArray(pollingScopes) ? pollingScopes : [])
+    .map((scope) => pollAggregateContext(scope, unitForPollingScope(baselineResults, scope), partyMeta))
+    .filter(Boolean)
+}
+
 function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
@@ -990,38 +1248,65 @@ function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national'
   })
 }
 
-function pollBreakdownUserPrompt(results = {}, baselineResults = {}, polling = null) {
+function pollBreakdownUserPrompt(results = {}, baselineResults = {}, polling = null, pollingScopes = []) {
   const partyMeta = partyMetaForContext(results)
   const scope = polling?.scope || 'national'
   const targetName = polling?.scopeLabel || null
-  const includeNational = scope === 'national'
+  const scopedPolls = Array.isArray(pollingScopes) && pollingScopes.length ? pollingScopes : (polling ? [polling] : [])
+  const baselineUnit = unitForPollingScope(baselineResults, polling || { scope: 'national' })
 
   return JSON.stringify({
-    task: 'Write exactly six plain-text analyst roundtable turns about the current pre-election poll board.',
+    task: 'Write exactly six plain-text analyst roundtable turns about the national pre-election poll picture, then the most surprising polls.',
     scope,
     target: targetName || 'National',
+    scenarioContext: scenarioContext(results, baselineResults),
+    interpretationRules: [
+      'This is a pre-election polling broadcast. Do not report the current scenario as finished election results.',
+      'Treat projected seats and projected vote shares as state-of-play projections for the upcoming election.',
+      'Treat Baseline Election Climate and priorElection fields as the previous election/reference baseline.',
+      'If scenarioContext.isBaselineScenario is true, keep prior-election comparisons light and focus on what the baseline polls imply for the upcoming election.',
+      'Use partyIdentityRules to collapse color labels, abbreviations, ids, and formal names into one party identity.',
+    ],
     format: [
-      'HOST: frame the lead from the poll-of-polls.',
-      'POLLING EDITOR: explain the aggregate vote share and seat projection.',
-      'DATA ANALYST: compare pollsters, spreads, and margins of error.',
-      'FIELD ANALYST: tie the poll movement to supplied active trends or local context.',
-      'CAMPAIGN STRATEGIST: explain the path to control and the risk for the trailing parties.',
+      'HOST: open with the news of the nation from the national poll-of-polls and the dominant trend context.',
+      'POLLING EDITOR: explain the national aggregate vote share, seat projection, and path to control.',
+      'DATA ANALYST: compare allScopePolling and identify the first surprising poll or map pattern.',
+      'FIELD ANALYST: tie the surprising polls to supplied active trends or local context.',
+      'CAMPAIGN STRATEGIST: explain the risk for leading and trailing parties using the national board plus surprising scopes.',
       'HOST: close with the unresolved question the panel will watch next.',
     ],
     partyLegend: partyLegend(partyMeta),
-    activeTrends: trendSummaries(results.config?.trends || []).slice(0, 8),
-    climate: compactObject({
+    partyIdentityRules: partyIdentityRules(partyMeta),
+    activeTrends: trendSummaries(results.config?.trends || []),
+    currentScenario: compactObject({
       name: results.config?.scenarioName,
       description: results.config?.scenarioDescription,
+      trendPackageId: results.config?.trendPackageId,
       trendCount: Array.isArray(results.config?.trends) ? results.config.trends.length : 0,
     }),
-    national: includeNational ? compactObject({
+    priorElectionContext: compactObject({
+      label: 'Prior election/reference baseline',
+      scenarioName: baselineResults?.config?.scenarioName || 'Baseline Election Climate',
+      scenarioDescription: baselineResults?.config?.scenarioDescription || 'No randomized climate trends are active.',
+      nationalAssembly: chamberContext(baselineResults.national?.assembly, null, partyMeta),
+      nationalCouncil: chamberContext(baselineResults.national?.prelates, null, partyMeta),
+    }),
+    preElectionStateOfPlay: compactObject({
+      label: 'Current pre-election projection/state of play',
       population: integerOrNull(results.national?.population),
       assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
-    }) : undefined,
-    polling: pollBreakdownPollingContext(polling, partyMeta),
-    focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
+    }),
+    nationalContext: compactObject({
+      meaning: 'Current pre-election national projection/state of play, retained for compatibility with existing broadcast packets.',
+      population: integerOrNull(results.national?.population),
+      assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
+      council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
+    }),
+    allScopePolling: allScopePollingContext(scopedPolls, baselineResults, partyMeta),
+    surprisingPolls: surprisingPollContexts(scopedPolls, results, baselineResults, partyMeta),
+    polling: pollBreakdownPollingContext(polling, partyMeta, baselineUnit),
+    stateOfPlayContext: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
   })
 }
 
@@ -1963,6 +2248,7 @@ export async function requestPollBreakdown({
   results,
   baselineResults,
   polling = null,
+  pollingScopes = [],
   endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
   model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
   onStatus,
@@ -1971,7 +2257,7 @@ export async function requestPollBreakdown({
     phase: 'preparing',
     progress: 0.1,
     message: 'Assembling poll roundtable packet.',
-    detail: 'Collecting poll-of-polls, pollster splits, house effects, and campaign climate.',
+    detail: 'Collecting national takeaways, prior-election baselines, all-scope poll-of-polls, pollster splits, surprises, and campaign climate.',
   })
   const content = await requestChatCompletion({
     endpoint,
@@ -1980,7 +2266,7 @@ export async function requestPollBreakdown({
     max_tokens: 1800,
     messages: [
       { role: 'system', content: pollBreakdownSystemPrompt() },
-      { role: 'user', content: pollBreakdownUserPrompt(results, baselineResults, polling) },
+      { role: 'user', content: pollBreakdownUserPrompt(results, baselineResults, polling, pollingScopes) },
     ],
     onStatus,
   })

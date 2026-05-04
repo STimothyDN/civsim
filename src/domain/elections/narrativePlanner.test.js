@@ -447,6 +447,7 @@ describe('narrativePlanner LLM prompts', () => {
   it('sends detailed pollster context to the poll breakdown roundtable prompt', async () => {
     const polling = {
       scope: 'national',
+      scopeKey: 'national',
       scopeLabel: 'National',
       aggregate: {
         voteShares: { yellow: 0.412, orange: 0.284, red: 0.121, blue: 0.103, white: 0.05, purple: 0.03 },
@@ -477,6 +478,24 @@ describe('narrativePlanner LLM prompts', () => {
         },
       ],
     }
+    const regionalPolling = {
+      scope: 'regional',
+      scopeKey: 'Capital Region',
+      scopeLabel: 'Capital Region',
+      aggregate: {
+        voteShares: { yellow: 0.31, orange: 0.39, red: 0.12, blue: 0.09, white: 0.05, purple: 0.04 },
+        seats: {
+          assembly: { yellow: 3, orange: 4, red: 1, blue: 1, white: 0, purple: 0 },
+          prelates: { yellow: 2, orange: 2, red: 1, blue: 1, white: 0, purple: 0 },
+        },
+        leader: 'orange',
+        spread: {
+          voteShareRangePct: { orange: { min: 36, max: 41 } },
+          assemblySeatRange: { orange: { min: 3, max: 5 } },
+        },
+      },
+      pollsters: [],
+    }
 
     mockChatResponse('<think>panel prep</think>\nHOST: The poll board opens with Divinus Sol ahead.\n\nPOLLING EDITOR: The aggregate shows a lead.\n\nDATA ANALYST: Aurora is near the top of the range.\n\nFIELD ANALYST: Rail politics explains the movement.\n\nCAMPAIGN STRATEGIST: The path runs through assembly seats.\n\nHOST: The unanswered question is turnout.')
 
@@ -484,6 +503,7 @@ describe('narrativePlanner LLM prompts', () => {
       results: sampleResults(),
       baselineResults: sampleBaselineResults(),
       polling,
+      pollingScopes: [polling, regionalPolling],
       endpoint: 'http://lm.test/api/v1/chat',
       model: 'qwen/qwen3.5-9b',
     })
@@ -495,9 +515,49 @@ describe('narrativePlanner LLM prompts', () => {
     expect(body.max_output_tokens).toBe(1800)
     expect(body.system_prompt).toContain('roundtable')
     expect(body.system_prompt).toContain('pre-election polling segment')
-    expect(userPayload.task).toContain('analyst roundtable')
-    expect(userPayload.format[0]).toContain('HOST')
+    expect(body.system_prompt).toContain('news of the nation')
+    expect(body.system_prompt).toContain('surprising')
+    expect(userPayload.task).toContain('national pre-election poll picture')
+    expect(userPayload.scenarioContext.phase).toBe('pre_election')
+    expect(userPayload.scenarioContext.priorElectionMeaning).toContain('prior election')
+    expect(userPayload.interpretationRules.join(' ')).toContain('Do not report the current scenario as finished election results')
+    expect(userPayload.format[0]).toContain('news of the nation')
+    expect(userPayload.partyIdentityRules.find((party) => party.id === 'orange')).toMatchObject({
+      canonicalName: 'United Workers Congress',
+      abbreviation: 'UWC',
+      colorLabel: 'Orange Party',
+    })
+    expect(userPayload.partyIdentityRules.find((party) => party.id === 'orange').aliases).toEqual(expect.arrayContaining([
+      'orange',
+      'United Workers Congress',
+      'UWC',
+      'Orange Party',
+    ]))
+    expect(userPayload.activeTrends[0]).toMatchObject({ label: 'Rail Opening', templateId: 'rail-opening' })
+    expect(userPayload.priorElectionContext).toMatchObject({
+      label: 'Prior election/reference baseline',
+      nationalAssembly: { votePct: { yellow: 36, orange: 34 } },
+    })
+    expect(userPayload.preElectionStateOfPlay).toMatchObject({
+      label: 'Current pre-election projection/state of play',
+      assembly: { votePct: { yellow: 42, orange: 28 } },
+    })
+    expect(userPayload.nationalContext.assembly.votePct.yellow).toBe(42)
+    expect(userPayload.allScopePolling).toHaveLength(2)
+    expect(userPayload.allScopePolling[1]).toMatchObject({
+      scope: 'regional',
+      scopeLabel: 'Capital Region',
+      aggregate: { leader: 'orange' },
+    })
+    expect(userPayload.allScopePolling[1].aggregate.voteSharesPct.orange).toBe(39)
+    expect(userPayload.surprisingPolls[0]).toMatchObject({
+      scopeLabel: 'Capital Region',
+      leader: 'orange',
+    })
+    expect(userPayload.surprisingPolls[0].reasons.join(' ')).toContain('Breaks from the national')
     expect(userPayload.polling.aggregate.voteSharesPct.yellow).toBe(41.2)
+    expect(userPayload.polling.priorElection.assemblyVotePct.yellow).toBe(36)
+    expect(userPayload.polling.changeFromPriorElectionPct.yellow).toBe(5.2)
     expect(userPayload.polling.spread.voteShareRangePct.yellow).toMatchObject({ min: 39.8, max: 42.4 })
     expect(userPayload.polling.pollsters[0]).toMatchObject({
       name: 'Aurora Public Opinion',
@@ -507,6 +567,58 @@ describe('narrativePlanner LLM prompts', () => {
     expect(userPayload.polling.pollsters[0].projectedSeats.assembly.yellow).toBe(10)
     expect(text).not.toContain('<think>')
     expect(text).toContain('HOST:')
+  })
+
+  it('frames baseline poll breakdowns as an upcoming election instead of a past-results segment', async () => {
+    const baseline = sampleBaselineResults()
+    baseline.config = {
+      ...baseline.config,
+      seed: 'baseline',
+      jitterSeed: 'baseline',
+      trendPackageId: 'baseline',
+      scenarioName: 'Baseline Election Climate',
+      scenarioDescription: 'No randomized climate trends are active.',
+    }
+    const polling = {
+      scope: 'national',
+      scopeKey: 'national',
+      scopeLabel: 'National',
+      aggregate: {
+        voteShares: { yellow: 0.36, orange: 0.34, red: 0.12, blue: 0.1, white: 0.05, purple: 0.03 },
+        seats: {
+          assembly: { yellow: 8, orange: 7, red: 3, blue: 2, white: 0, purple: 0 },
+          prelates: { yellow: 3, orange: 3, red: 1, blue: 1, white: 0, purple: 0 },
+        },
+        leader: 'yellow',
+      },
+      pollsters: [],
+    }
+
+    mockChatResponse('HOST: The baseline poll board sets up the upcoming election.\n\nPOLLING EDITOR: The aggregate is close.\n\nDATA ANALYST: Regional boards are steady.\n\nFIELD ANALYST: No active trends dominate.\n\nCAMPAIGN STRATEGIST: The path is narrow.\n\nHOST: Turnout is next.')
+
+    await requestPollBreakdown({
+      results: baseline,
+      baselineResults: baseline,
+      polling,
+      pollingScopes: [polling],
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'qwen/qwen3.5-9b',
+    })
+
+    const body = lastRequestBody()
+    const userPayload = JSON.parse(body.input)
+
+    expect(body.system_prompt).toContain('BASELINE SCENARIO')
+    expect(userPayload.scenarioContext).toMatchObject({
+      phase: 'pre_election',
+      isBaselineScenario: true,
+      currentScenario: { name: 'Baseline Election Climate', trendPackageId: 'baseline', trendCount: 0 },
+    })
+    expect(userPayload.scenarioContext.guidance).toContain('emphasize the upcoming election poll picture')
+    expect(userPayload.interpretationRules.join(' ')).toContain('keep prior-election comparisons light')
+    expect(userPayload.activeTrends).toEqual([])
+    expect(userPayload.polling.priorElection.assemblyVotePct.orange).toBe(34)
+    expect(userPayload.polling.changeFromPriorElectionPct.orange).toBe(0)
   })
 
   it('sends provincial scope and targetName to the broadcast prompt', async () => {

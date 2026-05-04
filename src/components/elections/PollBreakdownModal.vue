@@ -85,7 +85,7 @@ export default {
   setup() {
     const uiStore = useUiStore()
     const { results, baselineResults } = useElectionResults()
-    const { currentScope } = usePolls()
+    const { currentScope, scopes } = usePolls()
 
     const fullText = ref('')
     const paragraphs = ref([])
@@ -106,7 +106,7 @@ export default {
       currentParagraphIndex.value === paragraphs.value.length - 1 &&
       !isTyping.value
     ))
-    const roundtableTitle = computed(() => String(currentScope.value?.scopeLabel || 'National').toUpperCase())
+    const roundtableTitle = computed(() => 'NATIONAL')
 
     async function startBreakdown() {
       isLoading.value = true
@@ -126,6 +126,7 @@ export default {
           results: results.value,
           baselineResults: baselineResults.value,
           polling: currentScope.value,
+          pollingScopes: scopes.value,
           onStatus: (status) => {
             llmStatus.value = pollBreakdownLlmStatus(status)
           },

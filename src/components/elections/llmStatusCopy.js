@@ -332,7 +332,7 @@ const POLL_BREAKDOWN_COPY = {
   'app.preparing': {
     label: 'Roundtable',
     message: 'Seating the polling panel.',
-    detail: 'Collecting poll-of-polls, pollster splits, house effects, and campaign climate.',
+    detail: 'Collecting national takeaways, prior-election baselines, all-scope poll-of-polls, pollster splits, surprises, and campaign climate.',
   },
   'app.connecting': {
     label: 'Signal',
@@ -342,7 +342,7 @@ const POLL_BREAKDOWN_COPY = {
   'prompt_processing.start': {
     label: 'Poll Board',
     message: 'Stacking the poll board.',
-    detail: 'Aggregate polling, pollster spreads, and party paths are being processed.',
+    detail: 'National polling, prior-election comparisons, all-scope aggregates, surprise polls, trends, and party identities are being processed.',
   },
   'prompt_processing.progress': {
     label: 'Poll Board',
