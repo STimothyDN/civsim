@@ -189,10 +189,10 @@ describe('election domain', () => {
     const counties = allocateCountyPopulations(province, 1000)
 
     expect(counties.reduce((total, county) => total + county.county_population, 0)).toBe(1000)
-    expect(countyAllowsAmbientPopulation(province.counties[1])).toBe(false)
-    expect(countyAllowsAmbientPopulation(province.counties[2])).toBe(false)
+    expect(countyAllowsAmbientPopulation(province.counties[1])).toBe(false) // Empty Coast, no improvement, no workers
+    expect(countyAllowsAmbientPopulation(province.counties[2])).toBe(true) // Mountain with National Park (has improvement)
     expect(counties.find((county) => county.tile_id === 'tile_2').county_population).toBe(0)
-    expect(counties.find((county) => county.tile_id === 'tile_3').county_population).toBe(0)
+    expect(counties.find((county) => county.tile_id === 'tile_3').county_population).toBeGreaterThan(0)
     expect(counties.find((county) => county.tile_id === 'tile_4').county_population).toBeGreaterThan(0)
   })
 
@@ -497,6 +497,69 @@ describe('election domain', () => {
     expect(minorityStyle['--winner-color']).toBe('color-mix(in srgb, #d4a843 64%, var(--text-muted))')
     expect(minorityStyle['--winner-bg']).toBe('#d4a84312')
     expect(minorityStyle['--winner-border']).toBe('#d4a84344')
+  })
+
+  it('uses FPTP county council for provinces with more than 20 counties', () => {
+    const countyBase = {
+      distance_from_center: 1,
+      terrain: 'Grassland',
+      improvement: { name: 'Farm', buildings: {}, great_works: {} },
+      features: {},
+      resource: null,
+      citizens_working: 1,
+      river: false,
+      has_railroad: false,
+      appeal: 3,
+      yields: { food: 3, production: 2, gold: 1, culture: 1, science: 1, faith: 0 },
+    }
+    const counties = Array.from({ length: 21 }, (_, i) => ({
+      ...countyBase,
+      name: `County ${i + 1}`,
+      tile_id: `tile_${i + 1}`,
+      distance_from_center: i === 0 ? 0 : 2,
+      improvement: i === 0
+        ? { name: 'City Center', buildings: {}, great_works: {} }
+        : countyBase.improvement,
+    }))
+    const template = {
+      country: {
+        basic_info: { name: 'Test Empire', leader: 'Leader' },
+        state_religion: 'Zoroastrianism',
+      },
+      province_groups: ['Capital Region'],
+      global_religions: ['Zoroastrianism'],
+      provinces: [
+        {
+          name: 'LargeProvince',
+          city_id: 10,
+          group: 'Capital Region',
+          is_national_capital: false,
+          population: 21,
+          loyalty: 50,
+          growth_percentage: 100,
+          happiness_percentage: 100,
+          net_amenities: 5,
+          yields: { food: 30, production: 30, gold: 30, culture: 30, science: 30, faith: 10 },
+          religions: [{ name: 'Zoroastrianism', followers: 20 }],
+          counties,
+        },
+      ],
+    }
+    const rows = buildProvinceComparisonRows(template, [
+      { provincialPopulation: 2100, assemblypeople: 10, prelates: 7, dominantReligion: 'Zoroastrianism' },
+    ])
+    const result = simulateElection({
+      data: template,
+      provinceRows: rows,
+      electionConfig: { seed: 'fptp-test', jitterSeed: 'fptp-test', trends: [] },
+    })
+
+    const province = result.provinces[0]
+    expect(province.counties.length).toBe(21)
+    expect(province.prelates.seat_count).toBe(21)
+    expect(sum(province.prelates.seats)).toBe(21)
+    expect(sum(province.assembly.seats)).toBe(province.assemblypeople)
+    expect(result.diagnostics.validation.seatCounts).toBe(true)
   })
 
   it('keeps Solidarity and Lotus minor outside their natural regions', () => {

@@ -876,6 +876,68 @@ export const STORY_TREND_TEMPLATES = [
       },
     ],
   },
+  // --- NEW GREEN PARTY COMPOUND TREND: Eco-Coalition ---
+  {
+    id: 'eco-coalition',
+    label: 'Eco-Coalition',
+    description: 'Environmental groups, local communities, and reformers unite across rainforest, coastal, and watershed regions for a green platform.',
+    complexity: COMPOUND,
+    family: 'environment',
+    scope: ['province', 'county'],
+    level: 'province',
+    party: 'green',
+    magnitudeRange: [0.18, 0.42],
+    tags: ['environment', 'green', 'coalition', 'reform'],
+    selectionWeight: 1,
+    narrative: narrative(
+      'Ecological politics bridges environmentalists, localists, and reformers in a broad coalition.',
+      ['green coalition', 'environmental politics'],
+      ['Rainforest counties mobilize first.', 'Coastal and river communities join the alliance.', 'Reformers lend institutional credibility.']
+    ),
+    interactions: [
+      { withTags: ['environment'], levels: ['county'], multiplier: 1.2 },
+      { withTags: ['conservation'], levels: ['province'], multiplier: 1.15 },
+    ],
+    effects: [
+      {
+        id: 'eco-green-province-surge',
+        level: 'province',
+        party: 'green',
+        selector: { any: [
+          { minFeatures: { feature: 'rainforest_index', value: 0.5 } },
+          { minFeatures: { feature: 'protected_marine_index', value: 0.5 } },
+          { minFeatures: { feature: 'watershed_index', value: 0.5 } },
+        ]},
+        weightBy: [
+          { feature: 'rainforest_index', minMultiplier: 0.9, maxMultiplier: 1.5 },
+          { feature: 'protected_marine_index', minMultiplier: 0.9, maxMultiplier: 1.4 },
+          { feature: 'watershed_index', minMultiplier: 0.9, maxMultiplier: 1.35 },
+        ],
+      },
+      {
+        id: 'watershed-white-eco-echo',
+        level: 'county',
+        party: 'white',
+        selector: { minFeatures: { feature: 'watershed_index', value: 0.5 } },
+        magnitudeFactor: 0.45,
+      },
+      {
+        id: 'coastal-blue-eco-echo',
+        level: 'county',
+        party: 'blue',
+        selector: { minFeatures: { feature: 'coastal_index', value: 0.6 } },
+        magnitudeFactor: 0.35,
+      },
+      {
+        id: 'industrial-yellow-eco-drag',
+        level: 'county',
+        party: 'yellow',
+        mode: 'suppress',
+        selector: { minIndustrialIndex: 0.5 },
+        magnitudeFactor: 0.25,
+      },
+    ],
+  },
   // --- NEW TREND: Economic Diversity Campaign (post-scoring rebalance) ---
   {
     id: 'economic-diversity-campaign',

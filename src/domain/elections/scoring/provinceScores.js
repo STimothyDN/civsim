@@ -5,6 +5,13 @@ function f(province, key) {
   return num(province?.political_features?.[key])
 }
 
+function hasNationalPark(province) {
+  return (province?.improvements || []).some(imp =>
+    String(imp?.name || '').toLowerCase().includes('park') ||
+    String(imp?.type || '').toLowerCase().includes('park')
+  ) ? 1 : 0
+}
+
 export function calculateProvincePartyScores(province) {
   const conqueredPenalty = province?.is_conquered ? 1 : 0
   const americanIdentityIndex = f(province, 'american_identity_index')
@@ -128,5 +135,22 @@ export function calculateProvincePartyScores(province) {
     white: isAmericanBase ? whiteNaturalScore : whiteDiasporaScore,
 
     purple: isLotusBase ? purpleNaturalScore : purpleDiasporaScore,
+
+    green:
+      PARTY_FLOORS.green +
+      0.015 +
+      0.12 * f(province, 'appeal_index') +
+      0.09 * f(province, 'wilderness_index') +
+      0.09 * f(province, 'rainforest_index') +
+      0.06 * f(province, 'mountain_index') +
+      0.05 * f(province, 'coastal_index') +
+      0.08 * f(province, 'leisure_tourism_index') +
+      0.06 * f(province, 'protected_marine_index') +
+      0.04 * f(province, 'maritime_index') +
+      0.04 * f(province, 'offshore_development_index') +
+      0.03 * hasNationalPark(province) -
+      0.04 * f(province, 'industrial_index') -
+      0.03 * f(province, 'urbanization_index') -
+      0.02 * f(province, 'pollution_index'),
   }
 }

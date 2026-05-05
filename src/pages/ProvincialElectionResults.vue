@@ -55,6 +55,19 @@
         :ticker-key="tickerKey"
       />
 
+      <section v-if="selectedProvince" class="election-panel">
+        <div class="election-panel-heading">
+          <div>
+            <p class="eyebrow">Provincial Swing</p>
+            <h3>{{ selectedProvince.name }} Party Shifts from Baseline</h3>
+          </div>
+        </div>
+        <PartySwingCards
+          :current-shares="selectedProvince.assembly.vote_shares"
+          :baseline-shares="baselineResults.provinces.find(p => p.provinceIndex === selectedProvince.provinceIndex)?.assembly?.vote_shares"
+        />
+      </section>
+
       <section class="election-panel">
         <div class="election-panel-heading">
           <div>
@@ -217,6 +230,7 @@ import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
+import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
@@ -228,7 +242,7 @@ import { usePollingStore } from '../stores/pollingStore'
 
 export default {
   name: 'ProvincialElectionResults',
-  components: { BrainCircuit, Building2, ChamberComposition, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, ProvinceChart, Radio },
+  components: { BrainCircuit, Building2, ChamberComposition, ElectionTickerCard, FilePlus2, PartyBadge, PartySwingCards, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
     const pollingStore = usePollingStore()
@@ -236,7 +250,7 @@ export default {
     const tickerRequestId = ref(0)
     const tickerScope = ref('provincial')
     const tickerTargetName = ref(null)
-    const { electionStore, hasData, results, store } = useElectionResults()
+    const { baselineResults, electionStore, hasData, results, store } = useElectionResults()
     const provinceOptions = computed(() => results.value.provinces)
     const selectedProvince = computed(() => {
       return results.value.provinces.find((province) => province.provinceIndex === selectedIndex.value) || results.value.provinces[0] || null
@@ -306,6 +320,7 @@ export default {
 
     return {
       affectedTrends,
+      baselineResults,
       controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
       countyRows,
       featureRadarOption,

@@ -72,5 +72,19 @@ export function calculateNationalPartyScores(nationalFeatures) {
       0.1 * f(nationalFeatures, 'roman_identity_index') +
       0.018 * f(nationalFeatures, 'wilderness_index') +
       0.015 * f(nationalFeatures, 'mountain_index'),
+
+    green:
+      PARTY_FLOORS.green +
+      0.012 +
+      0.14 * f(nationalFeatures, 'appeal_index') +
+      0.12 * f(nationalFeatures, 'wilderness_index') +
+      0.1 * f(nationalFeatures, 'rainforest_index') +
+      0.08 * f(nationalFeatures, 'coastal_index') +
+      0.08 * f(nationalFeatures, 'leisure_tourism_index') +
+      0.06 * f(nationalFeatures, 'protected_marine_index') +
+      0.05 * f(nationalFeatures, 'offshore_development_index') -
+      0.04 * f(nationalFeatures, 'industrial_index') -
+      0.03 * f(nationalFeatures, 'urbanization_index') -
+      0.02 * f(nationalFeatures, 'pollution_index'),
   }
 }

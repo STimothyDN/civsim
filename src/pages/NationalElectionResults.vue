@@ -55,6 +55,19 @@
         :ticker-key="tickerKey"
       />
 
+      <section class="election-panel">
+        <div class="election-panel-heading">
+          <div>
+            <p class="eyebrow">National Swing</p>
+            <h3>Party Shifts from Baseline</h3>
+          </div>
+        </div>
+        <PartySwingCards
+          :current-shares="results.national.assembly.vote_shares"
+          :baseline-shares="baselineResults.national.assembly.vote_shares"
+        />
+      </section>
+
       <section class="election-summary-grid">
         <article
           v-for="card in summaryCards"
@@ -212,6 +225,7 @@ import { BrainCircuit, FilePlus2, Radio, TriangleAlert, Vote } from 'lucide-vue-
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
+import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
@@ -222,7 +236,7 @@ import { usePollingStore } from '../stores/pollingStore'
 
 export default {
   name: 'NationalElectionResults',
-  components: { BrainCircuit, ChamberComposition, ElectionTickerCard, FilePlus2, PartyBadge, PopularVoteBoard, Radio, TriangleAlert, Vote },
+  components: { BrainCircuit, ChamberComposition, ElectionTickerCard, FilePlus2, PartyBadge, PartySwingCards, PopularVoteBoard, Radio, TriangleAlert, Vote },
   setup() {
     const uiStore = useUiStore()
     const pollingStore = usePollingStore()

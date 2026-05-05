@@ -1,4 +1,4 @@
-export const PARTIES = ['yellow', 'orange', 'red', 'blue', 'white', 'purple']
+export const PARTIES = ['yellow', 'orange', 'red', 'blue', 'white', 'purple', 'green']
 
 export const PARTY_NAMES = {
   yellow: 'Divinus Sol',
@@ -7,6 +7,7 @@ export const PARTY_NAMES = {
   blue: 'Coalition of the Free',
   white: 'Solidarity Americana',
   purple: 'Lotus Restorationists',
+  green: 'Green Party',
 }
 
 export const PARTY_COLORS = {
@@ -16,6 +17,7 @@ export const PARTY_COLORS = {
   blue: '#60a5fa',
   white: '#f8fafc',
   purple: '#a78bfa',
+  green: '#22c55e',
 }
 
 export const PARTY_COLOR_PALETTE = [
@@ -38,6 +40,7 @@ export const PARTY_COLOR_NAMES = {
   blue: 'Blue',
   white: 'White',
   purple: 'Purple',
+  green: 'Green',
 }
 
 export const PARTY_ABBREVIATIONS = {
@@ -47,6 +50,7 @@ export const PARTY_ABBREVIATIONS = {
   blue: 'CF',
   white: 'SA',
   purple: 'LR',
+  green: 'GP',
 }
 
 export const PARTY_META = {
@@ -97,6 +101,14 @@ export const PARTY_META = {
     colorKey: 'purple',
     color: PARTY_COLORS.purple,
     ideology: 'Taoist interest, religious-cultural minority, Roman royal restorationism',
+  },
+  green: {
+    name: PARTY_NAMES.green,
+    abbreviation: PARTY_ABBREVIATIONS.green,
+    colorName: PARTY_COLOR_NAMES.green,
+    colorKey: 'green',
+    color: PARTY_COLORS.green,
+    ideology: 'Environmental conservation, natural preservation, ecological sustainability',
   },
 }
 
@@ -191,4 +203,5 @@ export const PARTY_FLOORS = {
   blue: 0.08,
   white: 0.008,
   purple: 0.008,
+  green: 0.005,
 }

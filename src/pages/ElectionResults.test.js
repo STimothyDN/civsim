@@ -180,7 +180,7 @@ describe('election result pages', () => {
     expect(wrapper.text()).toContain('Asm Total')
     expect(wrapper.text()).toContain('Council Total')
     expect(wrapper.findAll('.pollster-card')).toHaveLength(6)
-    expect(wrapper.findAll('.pollster-party-row')).toHaveLength(36)
+    expect(wrapper.findAll('.pollster-party-row')).toHaveLength(42)
     expect(wrapper.text()).toContain('Start Poll Breakdown')
 
     const pollBreakdownButton = wrapper.findAll('button').find((button) => button.text().includes('Start Poll Breakdown'))

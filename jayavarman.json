@@ -1588,7 +1588,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 22298115,
+      "provincial_population": 21694820,
       "assemblypeople": 30,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -1647,7 +1647,7 @@
             "food": "2",
             "production": "1",
             "gold": null,
-            "culture": null,
+            "culture": "1",
             "science": null,
             "faith": null,
             "tourism": null
@@ -1915,7 +1915,7 @@
           "distance_from_center": "2"
         },
         {
-          "name": "Meitrei-Sorya Temple",
+          "name": "Meitrei-Sorya Fire Temple",
           "tile_id": "tile_11",
           "terrain": "Plains",
           "features": {},
@@ -1935,12 +1935,12 @@
           "appeal": "6",
           "yields": {
             "amenities": null,
-            "food": "2",
+            "food": "10",
             "production": null,
             "gold": null,
             "culture": null,
             "science": null,
-            "faith": "11",
+            "faith": "28",
             "tourism": null
           },
           "distance_from_center": "2"
@@ -2053,7 +2053,7 @@
           "yields": {
             "amenities": null,
             "food": null,
-            "production": "6",
+            "production": "14",
             "gold": "6",
             "culture": null,
             "science": null,
@@ -2093,7 +2093,7 @@
           "distance_from_center": "2"
         },
         {
-          "name": "Main Street",
+          "name": "Main Street District",
           "tile_id": "tile_17",
           "terrain": "Plains",
           "features": {},
@@ -2119,7 +2119,7 @@
             "amenities": null,
             "food": null,
             "production": null,
-            "gold": "24",
+            "gold": "87",
             "culture": null,
             "science": null,
             "faith": null,
@@ -2364,7 +2364,7 @@
             "food": null,
             "production": null,
             "gold": null,
-            "culture": "15",
+            "culture": "37",
             "science": null,
             "faith": null,
             "tourism": null
@@ -2395,7 +2395,7 @@
             "food": null,
             "production": null,
             "gold": null,
-            "culture": null,
+            "culture": "1",
             "science": null,
             "faith": null,
             "tourism": null
@@ -2427,7 +2427,7 @@
             "production": null,
             "gold": null,
             "culture": null,
-            "science": "12",
+            "science": "34",
             "faith": null,
             "tourism": null
           },
@@ -3151,7 +3151,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 37018028,
+      "provincial_population": 35877406,
       "assemblypeople": 33,
       "prelates": 9,
       "dominant_religion": "Zoroastrianism"
@@ -3244,7 +3244,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 20429361,
+      "provincial_population": 20888720,
       "assemblypeople": 28,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -3288,6 +3288,804 @@
       "counties": [
         {
           "tile_id": "tile_1",
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "City Center",
+            "buildings": {
+              "Flood Barrier": true,
+              "Granary": true,
+              "Monument": true,
+              "Sewer": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "name": "City Center",
+          "distance_from_center": 0
+        },
+        {
+          "name": "Central Village",
+          "tile_id": "tile_2",
+          "distance_from_center": 1,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {
+              "Food Market": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Central Woods",
+          "tile_id": "tile_3",
+          "distance_from_center": 1,
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "1",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": "3",
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Wind Farm District",
+          "tile_id": "tile_4",
+          "distance_from_center": 1,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Wind Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "4",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "South Central Woods",
+          "tile_id": "tile_5",
+          "distance_from_center": 1,
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "West Fields",
+          "tile_id": "tile_6",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {
+            "Maize": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Maize",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Central Woods",
+          "tile_id": "tile_7",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Southport",
+          "tile_id": "tile_8",
+          "distance_from_center": 2,
+          "terrain": "Coast",
+          "features": {
+            "Cliff": true,
+            "Gulf of Thailand": true
+          },
+          "improvement": {
+            "name": "Harbor",
+            "buildings": {
+              "Lighthouse": true,
+              "Seaport": true,
+              "Shipyard": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "6",
+            "production": null,
+            "gold": "9",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Ironworks",
+          "tile_id": "tile_9",
+          "distance_from_center": 2,
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Iron": true
+          },
+          "improvement": {
+            "name": "Mine",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Iron",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "5",
+            "gold": null,
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Industrial Zone District",
+          "tile_id": "tile_10",
+          "distance_from_center": 2,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Industrial Zone",
+            "buildings": {
+              "Factory": true,
+              "Workshop": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": "4",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Dairyworks",
+          "tile_id": "tile_11",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Cattle": true
+          },
+          "improvement": {
+            "name": "Pasture",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cattle",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Great Zimbabwe District",
+          "tile_id": "tile_12",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Great Zimbabwe",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "6",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Southern Village",
+          "tile_id": "tile_13",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Holy Site Fire Temple",
+          "tile_id": "tile_14",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Holy Site",
+            "buildings": {
+              "Gurdwara": true,
+              "Prasat": true,
+              "Shrine": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": "Se Kong River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": "11",
+            "tourism": null
+          }
+        },
+        {
+          "name": "Marshlands Crossing",
+          "tile_id": "tile_15",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Marsh": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": "Se Kong River",
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": "1",
+            "gold": "2",
+            "culture": null,
+            "science": "3",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Fort Parvata",
+          "tile_id": "tile_16",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Encampment",
+            "buildings": {
+              "Armory": true,
+              "Barracks": true,
+              "Military Academy": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "0",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": "6",
+            "gold": "6",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Mausoleum at Halicarnassus District",
+          "tile_id": "tile_17",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Mausoleum at Halicarnassus",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "6",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "University of Central Pannotia",
+          "tile_id": "tile_18",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Campus",
+            "buildings": {
+              "Library": true,
+              "Research Lab": true,
+              "University": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": "12",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "East Village",
+          "tile_id": "tile_19",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Theater Square District",
+          "tile_id": "tile_20",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Theater Square",
+            "buildings": {
+              "Ampitheater": true,
+              "Art Museum": true,
+              "Broadcast Center": true
+            },
+            "great_works": {
+              "Composition 8": true,
+              "Blue Rider": true,
+              "Red Square": true
+            }
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": "15",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Coalworks",
+          "tile_id": "tile_21",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Coal": true
+          },
+          "improvement": {
+            "name": "Mine",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Coal",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "7",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Entertainment Complex District",
+          "tile_id": "tile_22",
+          "distance_from_center": 3,
+          "terrain": "Desert",
+          "features": {
+            "Bledowska Desert": true
+          },
+          "improvement": {
+            "name": "Entertainment Complex",
+            "buildings": {
+              "Arena": true,
+              "Stadium": true,
+              "Zoo": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "1",
+          "yields": {
+            "amenities": "13",
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Main Street District",
+          "tile_id": "tile_23",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Commercial Hub",
+            "buildings": {
+              "Bank": true,
+              "Market": true,
+              "Stock Exchange": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": "Se Kong River",
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": "12",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Southern Junction",
+          "tile_id": "tile_24",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": "Se Kong River",
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": "1",
+            "tourism": null
+          }
+        },
+        {
+          "name": "South Marble Riverbend",
+          "tile_id": "tile_25",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {
+            "Marble": true
+          },
+          "improvement": {
+            "name": "Quarry",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Marble",
+          "citizens_working": "1",
+          "river": "Se Kong River",
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "4",
+            "gold": null,
+            "culture": "1",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "North Marble Riverbend",
+          "tile_id": "tile_26",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Marble": true
+          },
+          "improvement": {
+            "name": "Quarry",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Marble",
+          "citizens_working": "1",
+          "river": "Se Kong River",
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "5",
+            "gold": null,
+            "culture": "1",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Far Wind Farm District",
+          "tile_id": "tile_27",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Wind Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": "Se Kong River",
+          "has_railroad": false,
+          "appeal": "1",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": "4",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "",
+          "tile_id": "tile_28",
+          "distance_from_center": null,
           "terrain": "",
           "features": {},
           "improvement": {
@@ -3309,9 +4107,7 @@
             "science": null,
             "faith": null,
             "tourism": null
-          },
-          "name": "",
-          "distance_from_center": null
+          }
         }
       ],
       "group": "Roraima Land",
@@ -3341,9 +4137,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 25203381,
+      "provincial_population": 20533751,
       "assemblypeople": 29,
-      "prelates": 8,
+      "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -3434,7 +4230,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 17856454,
+      "provincial_population": 19130188,
       "assemblypeople": 27,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -3523,7 +4319,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 12040045,
+      "provincial_population": 12159012,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -3612,7 +4408,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1423761,
+      "provincial_population": 1696661,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -3701,7 +4497,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1916284,
+      "provincial_population": 2169819,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -3790,7 +4586,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1583999,
+      "provincial_population": 1725809,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -5191,7 +5987,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 41521458,
+      "provincial_population": 38609706,
       "assemblypeople": 36,
       "prelates": 10,
       "dominant_religion": "Zoroastrianism"
@@ -6296,9 +7092,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 32516226,
+      "provincial_population": 28621646,
       "assemblypeople": 32,
-      "prelates": 9,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -7359,7 +8155,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 30882783,
+      "provincial_population": 32206301,
       "assemblypeople": 31,
       "prelates": 9,
       "dominant_religion": "Zoroastrianism"
@@ -7452,7 +8248,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 12905411,
+      "provincial_population": 14204415,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -7545,7 +8341,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 12417811,
+      "provincial_population": 12430611,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -7638,7 +8434,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 16341861,
+      "provincial_population": 16393154,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -7727,7 +8523,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 400177,
+      "provincial_population": 439925,
       "assemblypeople": 5,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -7816,7 +8612,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 845880,
+      "provincial_population": 859507,
       "assemblypeople": 7,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -7905,7 +8701,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 802342,
+      "provincial_population": 956241,
       "assemblypeople": 7,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -7994,7 +8790,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1375483,
+      "provincial_population": 1682992,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8083,7 +8879,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1445179,
+      "provincial_population": 1489950,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8172,7 +8968,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2150628,
+      "provincial_population": 1981724,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8261,7 +9057,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2435415,
+      "provincial_population": 1778709,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8350,7 +9146,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2516003,
+      "provincial_population": 2221452,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8439,7 +9235,7 @@
         }
       ],
       "original_country": "",
-      "provincial_population": 2841608,
+      "provincial_population": 2336754,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8528,7 +9324,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2938836,
+      "provincial_population": 2201377,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8617,7 +9413,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 3360932,
+      "provincial_population": 3608354,
       "assemblypeople": 12,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8706,7 +9502,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 5253627,
+      "provincial_population": 4806022,
       "assemblypeople": 14,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8795,7 +9591,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 5333098,
+      "provincial_population": 5854923,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8884,7 +9680,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 5427608,
+      "provincial_population": 6688865,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8977,7 +9773,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 5210543,
+      "provincial_population": 5451560,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "Taoism"
@@ -9066,7 +9862,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 6218393,
+      "provincial_population": 5841469,
       "assemblypeople": 17,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9155,7 +9951,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 7451256,
+      "provincial_population": 5983407,
       "assemblypeople": 17,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9248,9 +10044,9 @@
         }
       ],
       "original_country": "Spain",
-      "provincial_population": 7175369,
+      "provincial_population": 9205924,
       "assemblypeople": 18,
-      "prelates": 5,
+      "prelates": 6,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -9337,7 +10133,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 9557880,
+      "provincial_population": 8384483,
       "assemblypeople": 18,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -9430,7 +10226,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 8657995,
+      "provincial_population": 8595963,
       "assemblypeople": 18,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -9523,7 +10319,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 8787051,
+      "provincial_population": 8508576,
       "assemblypeople": 18,
       "prelates": 6,
       "dominant_religion": "Taoism"
@@ -9612,7 +10408,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 9566030,
+      "provincial_population": 8570267,
       "assemblypeople": 19,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -9705,7 +10501,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 9485192,
+      "provincial_population": 10380059,
       "assemblypeople": 19,
       "prelates": 6,
       "dominant_religion": "Sikhism"
@@ -9794,7 +10590,7 @@
         }
       ],
       "original_country": "",
-      "provincial_population": 10530168,
+      "provincial_population": 11067750,
       "assemblypeople": 20,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -9883,7 +10679,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 9453332,
+      "provincial_population": 8947093,
       "assemblypeople": 20,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -9976,7 +10772,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 12876352,
+      "provincial_population": 11229048,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10069,7 +10865,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 10083593,
+      "provincial_population": 11735992,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Taoism"
@@ -10162,7 +10958,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 13020878,
+      "provincial_population": 10015980,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10251,7 +11047,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 11880499,
+      "provincial_population": 10241948,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10344,7 +11140,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 13760125,
+      "provincial_population": 13553554,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10433,7 +11229,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 11558740,
+      "provincial_population": 11602720,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10522,9 +11318,9 @@
         }
       ],
       "original_country": "Maori",
-      "provincial_population": 15562057,
+      "provincial_population": 14062165,
       "assemblypeople": 23,
-      "prelates": 7,
+      "prelates": 6,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -10615,7 +11411,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 14083201,
+      "provincial_population": 12099275,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10708,7 +11504,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 14509547,
+      "provincial_population": 13154412,
       "assemblypeople": 24,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10801,7 +11597,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 19458324,
+      "provincial_population": 18292921,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -10890,7 +11686,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 17226314,
+      "provincial_population": 20386515,
       "assemblypeople": 26,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -10983,7 +11779,7 @@
         }
       ],
       "original_country": "Maori",
-      "provincial_population": 21067079,
+      "provincial_population": 21513647,
       "assemblypeople": 26,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -11076,9 +11872,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 21686031,
+      "provincial_population": 22773643,
       "assemblypeople": 29,
-      "prelates": 7,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -11113,10 +11909,227 @@
       "net_food": "40.2",
       "counties": [
         {
-          "name": "",
+          "name": "City Center",
           "tile_id": "tile_1",
-          "terrain": "",
+          "terrain": "Plains",
           "features": {},
+          "improvement": {
+            "name": "City Center",
+            "buildings": {
+              "Granary": true,
+              "Monument": true,
+              "Sewer": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          },
+          "distance_from_center": 0
+        },
+        {
+          "name": "Vimaya's Mouth",
+          "tile_id": "tile_2",
+          "distance_from_center": 1,
+          "terrain": "Coast",
+          "features": {
+            "Amber": true,
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "Fishing Boats",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Amber",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "3",
+            "gold": "5",
+            "culture": "1",
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Main Street District",
+          "tile_id": "tile_3",
+          "distance_from_center": 1,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Commercial Hub",
+            "buildings": {
+              "Bank": true,
+              "Market": true,
+              "Stock Exchange": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": "26",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Cabugi's Slumber",
+          "tile_id": "tile_4",
+          "distance_from_center": 1,
+          "terrain": "Plains (Mountain)",
+          "features": {
+            "Volcano": true,
+            "Pico do Cabugi": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Holy Site Fire Temple",
+          "tile_id": "tile_5",
+          "distance_from_center": 1,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Holy Site",
+            "buildings": {
+              "Gurdwara": true,
+              "Prasat": true,
+              "Shrine": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": "0",
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": "14",
+            "tourism": null
+          }
+        },
+        {
+          "name": "Pantanal Ntnl Park District 3",
+          "tile_id": "tile_6",
+          "distance_from_center": 1,
+          "terrain": "Plains",
+          "features": {
+            "Pantanal": true,
+            "Pantanal National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": "2",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Rest",
+          "tile_id": "tile_7",
+          "distance_from_center": 1,
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Cliff": true
+          },
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {
+              "Food Market": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "8",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "The Deeps",
+          "tile_id": "tile_8",
+          "distance_from_center": 2,
+          "terrain": "Ocean",
+          "features": {
+            "Adriatic Sea": true
+          },
           "improvement": {
             "name": "",
             "buildings": {},
@@ -11129,6 +12142,420 @@
           "appeal": null,
           "yields": {
             "amenities": null,
+            "food": "1",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Port Vimaya",
+          "tile_id": "tile_9",
+          "distance_from_center": 2,
+          "terrain": "Coast",
+          "features": {
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "Harbor",
+            "buildings": {
+              "Lighthouse": true,
+              "Seaport": true,
+              "Shipyard": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "3",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "6",
+            "production": null,
+            "gold": "8",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Southern Shallows",
+          "tile_id": "tile_10",
+          "distance_from_center": 2,
+          "terrain": "Coast",
+          "features": {
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Breadbasket",
+          "tile_id": "tile_11",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {
+            "Wheat": true,
+            "Plains Floodplains": true
+          },
+          "improvement": {
+            "name": "Farm",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Wheat",
+          "citizens_working": "1",
+          "river": "Shinano River",
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "The Bush",
+          "tile_id": "tile_12",
+          "distance_from_center": 2,
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": "Shinano River",
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "1",
+            "production": "3",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Cabugi's Greeting",
+          "tile_id": "tile_13",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Bronze Delles",
+          "tile_id": "tile_14",
+          "distance_from_center": 2,
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Copper": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Copper",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Pantanal Ntnl Park District 4",
+          "tile_id": "tile_15",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Pantanal": true,
+            "Pantanal National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": "2",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Pantanal Ntnl Park District 2",
+          "tile_id": "tile_16",
+          "distance_from_center": 2,
+          "terrain": "Grassland",
+          "features": {
+            "Pantanal": true,
+            "Pantanal National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": "2",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Pantanal Ntnl Park District 1",
+          "tile_id": "tile_17",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {
+            "Pantanal": true,
+            "Pantanal National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": "2",
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Gratitude",
+          "tile_id": "tile_18",
+          "distance_from_center": 2,
+          "terrain": "Plains",
+          "features": {
+            "Cotton": true
+          },
+          "improvement": {
+            "name": "Plantation",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cotton",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": "1",
+            "gold": "7",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Northern Shallows",
+          "tile_id": "tile_19",
+          "distance_from_center": 2,
+          "terrain": "Coast",
+          "features": {
+            "Cliff": true,
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Bounty",
+          "tile_id": "tile_20",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {
+            "Fish": true,
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "Fishing Boats",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Fish",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "3",
+            "gold": "5",
+            "culture": null,
+            "science": "1",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Shinano's Mouth",
+          "tile_id": "tile_21",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Dam District",
+          "tile_id": "tile_22",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {
+            "Plains Floodplains": true
+          },
+          "improvement": {
+            "name": "Dam",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Shinano River",
+          "has_railroad": true,
+          "appeal": "1",
+          "yields": {
+            "amenities": null,
             "food": null,
             "production": null,
             "gold": null,
@@ -11136,8 +12563,407 @@
             "science": null,
             "faith": null,
             "tourism": null
+          }
+        },
+        {
+          "name": "Plains of the Rising Sun",
+          "tile_id": "tile_23",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {
+            "Plains Floodplains": true
           },
-          "distance_from_center": null
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": "Shinano River",
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "1",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "South of the Bush",
+          "tile_id": "tile_24",
+          "distance_from_center": 3,
+          "terrain": "Plains (Hills)",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "1",
+            "production": "3",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Sacrifice",
+          "tile_id": "tile_25",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Hills)",
+          "features": {
+            "Sheep": true
+          },
+          "improvement": {
+            "name": "Pasture",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Sheep",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "3",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Journey",
+          "tile_id": "tile_26",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Plains of the Setting Sun",
+          "tile_id": "tile_27",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "0",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Suckling Fields",
+          "tile_id": "tile_28",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {
+            "Cattle": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cattle",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Industrial Zone District",
+          "tile_id": "tile_29",
+          "distance_from_center": 3,
+          "terrain": "Grassland (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "Industrial Zone",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": "3",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Rage",
+          "tile_id": "tile_30",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {
+            "Niter": true
+          },
+          "improvement": {
+            "name": "Mine",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Niter",
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": true,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": "5",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Solitude",
+          "tile_id": "tile_31",
+          "distance_from_center": 3,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "Neighborhood",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "7",
+          "yields": {
+            "amenities": null,
+            "food": "4",
+            "production": "2",
+            "gold": "1",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimayan Tetons",
+          "tile_id": "tile_32",
+          "distance_from_center": 3,
+          "terrain": "Plains (Hills)",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "1",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya State University",
+          "tile_id": "tile_33",
+          "distance_from_center": 3,
+          "terrain": "Plains",
+          "features": {},
+          "improvement": {
+            "name": "Campus",
+            "buildings": {
+              "Library": true,
+              "University": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": "2",
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Water Park District",
+          "tile_id": "tile_34",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {
+            "Adriatic Sea": true
+          },
+          "improvement": {
+            "name": "Water Park",
+            "buildings": {
+              "Aquarium": true,
+              "Aquatics Center": true,
+              "Ferris Wheel": true
+            },
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": "10",
+            "food": null,
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Ford",
+          "tile_id": "tile_35",
+          "distance_from_center": 3,
+          "terrain": "Coast",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": "1",
+          "river": null,
+          "has_railroad": false,
+          "appeal": null,
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "3",
+            "gold": "3",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Vimaya's Sweetness",
+          "tile_id": "tile_36",
+          "distance_from_center": 4,
+          "terrain": "Plains",
+          "features": {
+            "Sugar": true,
+            "Plains Floodplains": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Sugar",
+          "citizens_working": null,
+          "river": "Shinano River",
+          "has_railroad": true,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "5",
+            "production": "1",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
         }
       ],
       "group": "Union of the Free Adriatic Provinces",
@@ -11165,9 +12991,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 27564922,
+      "provincial_population": 21819836,
       "assemblypeople": 30,
-      "prelates": 8,
+      "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -11258,7 +13084,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 14294829,
+      "provincial_population": 14675134,
       "assemblypeople": 25,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -11267,63 +13093,63 @@
   "province_groups": [
     {
       "name": "Capital Region",
-      "regional_population": 89212642,
+      "regional_population": 88861426,
       "assemblypeople": 111,
       "prelates": 29
     },
     {
       "name": "Roraima Land",
-      "regional_population": 50556786,
+      "regional_population": 47014760,
       "assemblypeople": 85,
-      "prelates": 30
+      "prelates": 29
     },
     {
       "name": "Federation of American Provinces",
-      "regional_population": 97481370,
+      "regional_population": 96313020,
       "assemblypeople": 132,
       "prelates": 35
     },
     {
       "name": "Provinces of Western Pannotia and the Bering Sea",
-      "regional_population": 66161609,
+      "regional_population": 57831246,
       "assemblypeople": 113,
-      "prelates": 35
+      "prelates": 34
     },
     {
       "name": "Union of the Free Adriatic Provinces",
-      "regional_population": 100689408,
+      "regional_population": 97421910,
       "assemblypeople": 130,
-      "prelates": 37
+      "prelates": 35
     },
     {
       "name": "Duchy of Western Rome",
-      "regional_population": 44465897,
+      "regional_population": 47137296,
       "assemblypeople": 97,
       "prelates": 33
     },
     {
       "name": "Royal Provinces of the Eastern Romaioi",
-      "regional_population": 49398699,
+      "regional_population": 44660634,
       "assemblypeople": 101,
       "prelates": 34
     },
     {
       "name": "Imperial Avalonia",
-      "regional_population": 22416406,
+      "regional_population": 21180887,
       "assemblypeople": 76,
       "prelates": 36
     },
     {
       "name": "Confederation of Eastern Avalonian Provinces",
-      "regional_population": 40167842,
+      "regional_population": 38937529,
       "assemblypeople": 78,
       "prelates": 24
     },
     {
       "name": "Union of the Free Gondwanan Provinces",
-      "regional_population": 93656835,
+      "regional_population": 93983447,
       "assemblypeople": 151,
-      "prelates": 42
+      "prelates": 44
     }
   ],
   "global_religions": [
@@ -11368,6 +13194,12 @@
       "abbreviation": "LOTUS",
       "colorName": "Purple",
       "color": "#a78bfa"
+    },
+    "green": {
+      "name": "Environmental League",
+      "abbreviation": "ENVLG",
+      "colorName": "Green",
+      "color": "#22c55e"
     }
   }
 }

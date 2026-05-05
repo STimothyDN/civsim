@@ -18,6 +18,21 @@ const CIVIC_MONUMENT_IMPROVEMENTS = [
 const NATURAL_FEATURES = ['Woods (old-growth)', 'Rainforest', 'Marsh', 'Cliff', 'Volcano', 'Volcanic Soil', 'Oasis']
 const HARBOR_BUILDINGS = ['Lighthouse', 'Shipyard', 'Seaport']
 
+// Shared geographic features for cross-tile effects
+const MARITIME_BASIN_FEATURES = [
+  'Gulf of Thailand', 'San Francisco Bay', 'Adriatic Sea', 'Bering Sea',
+  'Atlantic Ocean', 'Pacific Ocean', 'Indian Ocean', 'Mediterranean Sea',
+  'North Sea', 'Baltic Sea', 'South China Sea', 'Caribbean Sea',
+  'Red Sea', 'Black Sea', 'Sea of Japan', 'Arabian Sea',
+  'Gulf', 'Bay', 'Sea', 'Ocean', 'Strait'
+]
+const DESERT_FEATURES = ['Bledowska Desert', 'Sahara', 'Gobi', 'Kalahari', 'Outback', 'Desert']
+const FLOODPLAIN_FEATURES = ['Grassland Floodplains', 'Plains Floodplains', 'Floodplains']
+const PROTECTED_MARINE_FEATURES = ['Reef', 'Turtles', 'Coral', 'Marine Reserve']
+const ENERGY_RESOURCES = ['Coal', 'Oil', 'Uranium', 'Niter', 'Aluminum']
+const LUXURY_RESOURCES = ['Amber', 'Marble', 'Cocoa', 'Spices', 'Silk', 'Wine', 'Ivory', 'Pearls', 'Jade', 'Gems', 'Gold', 'Silver']
+const OFFSHORE_IMPROVEMENTS = ['Offshore Wind Farm', 'Offshore Oil Rig', 'Seastead', 'Fishing Boats']
+
 function improvementName(county) {
   return String(county?.improvement?.name || '').trim()
 }
@@ -28,6 +43,55 @@ function terrainIncludes(county, text) {
 
 function boolIndex(value) {
   return value ? 1 : 0
+}
+
+function featureNameIncludes(features, keywords) {
+  const featureNames = Object.keys(features || {})
+  return keywords.some(keyword =>
+    featureNames.some(name => name.toLowerCase().includes(keyword.toLowerCase()))
+  )
+}
+
+function detectMaritimeBasin(county) {
+  const features = county?.features || {}
+  const found = MARITIME_BASIN_FEATURES.find(basin =>
+    Object.keys(features).some(name => name.toLowerCase().includes(basin.toLowerCase()))
+  )
+  return found || null
+}
+
+function detectRiver(county) {
+  const river = county?.river
+  return river && String(river).trim().length > 0 ? String(river).trim() : null
+}
+
+function hasRainforest(county) {
+  return (county?.features?.Rainforest === true) ||
+    Object.keys(county?.features || {}).some(name => name.toLowerCase().includes('rainforest'))
+}
+
+function hasDesertFeature(county) {
+  return featureNameIncludes(county?.features, DESERT_FEATURES)
+}
+
+function hasFloodplain(county) {
+  return featureNameIncludes(county?.features, FLOODPLAIN_FEATURES)
+}
+
+function hasProtectedMarine(county) {
+  return featureNameIncludes(county?.features, PROTECTED_MARINE_FEATURES)
+}
+
+function isEnergyResource(county) {
+  return ENERGY_RESOURCES.includes(String(county?.resource || ''))
+}
+
+function isLuxuryResource(county) {
+  return LUXURY_RESOURCES.includes(String(county?.resource || ''))
+}
+
+function hasOffshoreImprovement(county) {
+  return OFFSHORE_IMPROVEMENTS.includes(improvementName(county))
 }
 
 function countyYieldIndices(county) {
@@ -302,6 +366,29 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     0.1 * (civicMonumentIndex > 0.5 ? 1 : 0)
   )
 
+  // Calculate new shared feature indices
+  const maritimeBasinName = detectMaritimeBasin(county)
+  const maritimeBasinIndex = maritimeBasinName ? 1 : 0
+  const riverName = detectRiver(county)
+  const watershedIndex = riverName ? 1 : 0
+  const rainforestIndex = hasRainforest(county) ? 1 : 0
+  const desertRegionIndex = hasDesertFeature(county) ? 1 : 0
+  const floodplainIndex = hasFloodplain(county) ? 1 : 0
+  const protectedMarineIndex = hasProtectedMarine(county) ? 1 : 0
+  const energyResourceIndex = isEnergyResource(county) ? 1 : 0
+  const luxuryResourceIndex = isLuxuryResource(county) ? 1 : 0
+  const offshoreDevelopmentIndex = clamp01(
+    0.4 * (hasOffshoreImprovement(county) ? 1 : 0) +
+    0.3 * (coastTerrainIndex || oceanTerrainIndex ? 1 : 0) +
+    0.2 * maritimeImprovementIndex +
+    0.1 * citizensWorkingIndex
+  )
+  const resourceClusterIndex = clamp01(
+    0.5 * (energyResourceIndex || luxuryResourceIndex ? 1 : 0) +
+    0.3 * resourceIndex +
+    0.2 * strategicResourceIndex
+  )
+
   return {
     county_population: Math.max(0, Math.round(num(county?.county_population))),
     county_population_share: clamp01(county?.county_population_share),
@@ -342,5 +429,18 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     commercial_middle_class_index: clamp01((commercialIndex + urbanIndex + appealIndex) / 3),
     religious_minority_index: num(provinceContext.minority_religion_share),
     improvement_name: name,
+    // Shared geographic feature indices
+    maritime_basin_index: maritimeBasinIndex,
+    maritime_basin_name: maritimeBasinName,
+    watershed_index: watershedIndex,
+    river_name: riverName,
+    rainforest_index: rainforestIndex,
+    desert_region_index: desertRegionIndex,
+    floodplain_index: floodplainIndex,
+    protected_marine_index: protectedMarineIndex,
+    energy_resource_index: energyResourceIndex,
+    luxury_resource_index: luxuryResourceIndex,
+    offshore_development_index: offshoreDevelopmentIndex,
+    resource_cluster_index: resourceClusterIndex,
   }
 }

@@ -154,6 +154,36 @@ function calculateProvincePrelates(province, counties, config) {
   }
 }
 
+function calculateProvincePrelatesCouncil(counties, config) {
+  const seats = createEmptySeats()
+  counties.forEach((county) => {
+    let winner = null
+    let winnerShare = -Infinity
+    for (const party of Object.keys(county.vote_shares)) {
+      const share = num(county.vote_shares[party])
+      if (share > winnerShare) {
+        winnerShare = share
+        winner = party
+      }
+    }
+    if (winner !== null && Object.prototype.hasOwnProperty.call(seats, winner)) {
+      seats[winner] += 1
+    }
+  })
+
+  const voteShares = weightedVoteShares(
+    counties,
+    (county) => county.county_population,
+    (county) => county.vote_shares
+  )
+
+  return {
+    vote_shares: voteShares,
+    seats,
+    control: determineHouseControl(seats, config.trends, config.partyNames),
+  }
+}
+
 function buildProvinceFeatureUnit(data, row) {
   const country = data?.country || {}
   const provinceInput = createProvinceInput(data, row)
@@ -229,7 +259,11 @@ function buildProvinceResult(data, row, config, rowsByName = new Map()) {
     return calculateCountyVote({ ...county, political_features: features }, province, config)
   })
   const assembly = calculateProvinceAssembly(province, counties, config)
-  const prelates = calculateProvincePrelates(province, counties, config)
+  const usesCountyCouncil = counties.length > 20
+  const prelates = usesCountyCouncil
+    ? calculateProvincePrelatesCouncil(counties, config)
+    : calculateProvincePrelates(province, counties, config)
+  const prelateSeatCount = usesCountyCouncil ? counties.length : province.prelates
   const national_prelate_delegation = apportionDHondt(assembly.vote_shares, province.prelates, {
     threshold: THRESHOLDS.nationalPrelates,
     rawScores: assembly.adjusted_scores,
@@ -256,12 +290,12 @@ function buildProvinceResult(data, row, config, rowsByName = new Map()) {
     })),
     provincial_population: province.provincial_population,
     assemblypeople: province.assemblypeople,
-    prelates: province.prelates,
+    raw_prelate_count: province.prelates,
     political_features: province.political_features,
     assembly,
     prelates: {
       ...prelates,
-      seat_count: province.prelates,
+      seat_count: prelateSeatCount,
     },
     national_prelate_delegation,
     counties: counties.map((county) => ({
@@ -346,7 +380,7 @@ function calculateNational(provinces, config) {
   const localWeight = num(config.voteBlend?.nationalAssemblyLocalWeight, 0.7)
   const voteShares = blendVoteShares(localVoteShares, climateVoteShares, localWeight)
   const assemblySeatCount = provinces.reduce((sum, province) => sum + num(province.assemblypeople), 0)
-  const prelateSeatCount = provinces.reduce((sum, province) => sum + num(province.prelates.seat_count), 0)
+  const prelateSeatCount = provinces.reduce((sum, province) => sum + num(province.raw_prelate_count), 0)
   const assemblySeats = apportionSainteLague(voteShares, assemblySeatCount, {
     threshold: THRESHOLDS.nationalAssembly,
     rawScores: adjustedScores,

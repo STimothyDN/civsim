@@ -263,14 +263,14 @@ describe('narrativePlanner LLM prompts', () => {
             },
             {
               level: 'province',
-              party: 'green',
+              party: 'chartreuse',
               magnitude: 0.1,
             },
           ],
         },
         {
           label: 'Invalid Custom Trend',
-          effects: [{ level: 'region', party: 'green', magnitude: 1 }],
+          effects: [{ level: 'region', party: 'chartreuse', magnitude: 1 }],
         },
       ],
     }))

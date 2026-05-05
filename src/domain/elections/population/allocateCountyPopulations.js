@@ -41,8 +41,13 @@ function terrainName(county) {
   return String(county?.terrain || '')
 }
 
+function hasImprovement(county) {
+  return String(county?.improvement?.name || '').trim().length > 0
+}
+
 export function countyAllowsAmbientPopulation(county) {
   if (Math.max(0, num(county?.citizens_working)) > 0) return true
+  if (hasImprovement(county)) return true
   const terrain = terrainName(county)
   return !AMBIENT_POPULATION_BLOCKED_TERRAINS.some((blockedTerrain) => terrain.includes(blockedTerrain))
 }
