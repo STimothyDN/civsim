@@ -157,6 +157,7 @@ function calculateProvincePrelates(province, counties, config) {
 function calculateProvincePrelatesCouncil(counties, config) {
   const seats = createEmptySeats()
   counties.forEach((county) => {
+    if (num(county.county_population) <= 0) return
     let winner = null
     let winnerShare = -Infinity
     for (const party of Object.keys(county.vote_shares)) {
@@ -263,7 +264,9 @@ function buildProvinceResult(data, row, config, rowsByName = new Map()) {
   const prelates = usesCountyCouncil
     ? calculateProvincePrelatesCouncil(counties, config)
     : calculateProvincePrelates(province, counties, config)
-  const prelateSeatCount = usesCountyCouncil ? counties.length : province.prelates
+  const prelateSeatCount = usesCountyCouncil
+    ? counties.filter((county) => num(county.county_population) > 0).length
+    : province.prelates
   const national_prelate_delegation = apportionDHondt(assembly.vote_shares, province.prelates, {
     threshold: THRESHOLDS.nationalPrelates,
     rawScores: assembly.adjusted_scores,
