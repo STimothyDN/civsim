@@ -24,7 +24,7 @@ function dominantParty(seats = {}) {
   })[0]
 }
 
-function coalitionPartnerScore(leaderParty, partnerParty, seats = {}, trends = []) {
+function coalitionPartnerScore(leaderParty, partnerParty, seats = {}, trends = [], secondLargestParty = null) {
   const naturalOrder = NATURAL_PARTNERS[leaderParty] || []
   const naturalRank = naturalOrder.indexOf(partnerParty)
   const naturalScore = naturalRank >= 0 ? (naturalOrder.length - naturalRank) / naturalOrder.length : 0
@@ -34,7 +34,14 @@ function coalitionPartnerScore(leaderParty, partnerParty, seats = {}, trends = [
 
   // Trend effect DOUBLED AGAIN for seismic coalition shifts (1.6 -> 3.2)
   // Total 4x increase from original (0.8 -> 3.2)
-  return naturalScore * 1.35 + seatScore * 1.1 + climateScore * 3.2
+  let score = naturalScore * 1.35 + seatScore * 1.1 + climateScore * 3.2
+
+  // Apply penalty to second largest party to discourage large party coalitions
+  if (partnerParty === secondLargestParty) {
+    score *= 0.4 // 60% penalty for second largest party
+  }
+
+  return score
 }
 
 export function determineHouseControl(seats = {}, trends = [], partyNames = PARTY_NAMES) {
@@ -42,6 +49,14 @@ export function determineHouseControl(seats = {}, trends = [], partyNames = PART
   const majority = Math.floor(totalSeats / 2) + 1
   const leaderParty = dominantParty(seats)
   const leaderSeats = num(seats[leaderParty])
+
+  // Calculate second largest party (excluding leader party)
+  const secondLargestParty = [...PARTIES]
+    .filter((party) => party !== leaderParty && num(seats[party]) > 0)
+    .sort((a, b) => {
+      const seatDiff = num(seats[b]) - num(seats[a])
+      return seatDiff || PARTIES.indexOf(a) - PARTIES.indexOf(b)
+    })[0]
 
   if (!totalSeats) {
     return {
@@ -72,7 +87,7 @@ export function determineHouseControl(seats = {}, trends = [], partyNames = PART
   const partners = PARTIES
     .filter((party) => party !== leaderParty && num(seats[party]) > 0)
     .sort((a, b) => {
-      const scoreDiff = coalitionPartnerScore(leaderParty, b, seats, trends) - coalitionPartnerScore(leaderParty, a, seats, trends)
+      const scoreDiff = coalitionPartnerScore(leaderParty, b, seats, trends, secondLargestParty) - coalitionPartnerScore(leaderParty, a, seats, trends, secondLargestParty)
       return scoreDiff || num(seats[b]) - num(seats[a]) || PARTIES.indexOf(a) - PARTIES.indexOf(b)
     })
 

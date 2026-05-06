@@ -26,11 +26,19 @@
 
     <div class="trend-chip-list">
       <span v-if="!electionStore.trends.length" class="trend-chip trend-chip--baseline">Baseline climate</span>
-      <span v-for="trend in electionStore.trends" :key="trend.id" class="trend-chip" :title="trend.narrative?.reason || trend.description">
+      <span
+        v-for="trend in electionStore.trends"
+        :key="trend.id"
+        class="trend-chip"
+        @mouseenter="showTrendDetail(trend, $event)"
+        @mouseleave="hideTrendDetail"
+      >
         <PartyBadge :party="trend.party" short />
         {{ trend.label }}
       </span>
     </div>
+
+    <TrendDetailModal ref="trendDetailModalRef" />
 
     <div v-if="partyShifts.length" class="party-shift-list">
       <div v-for="shift in partyShifts" :key="shift.party" class="party-shift-card" :style="shift.style">
@@ -71,10 +79,11 @@ import { requestElectionClimateSummary } from '../../domain/elections/narrativeP
 import LlmStatusIndicator from './LlmStatusIndicator.vue'
 import { climateLlmStatus } from './llmStatusCopy'
 import PartyBadge from './PartyBadge.vue'
+import TrendDetailModal from './TrendDetailModal.vue'
 
 export default {
   name: 'ElectionScenarioControls',
-  components: { BrainCircuit, LlmStatusIndicator, Loader2, PartyBadge, RotateCcw, Shuffle },
+  components: { BrainCircuit, LlmStatusIndicator, Loader2, PartyBadge, RotateCcw, Shuffle, TrendDetailModal },
   props: {
     currentShares: { type: Object, default: () => ({}) },
     baselineShares: { type: Object, default: () => ({}) },
@@ -84,6 +93,7 @@ export default {
     const formStore = useFormStore()
     const uiStore = useUiStore()
     const llmStatus = ref(null)
+    const trendDetailModalRef = ref(null)
     const isNamingScenario = computed(() => electionStore.scenarioMetadataStatus === 'loading')
 
     const partyShifts = computed(() => {
@@ -130,7 +140,15 @@ export default {
       }
     }
 
-    return { electionStore, generateClimateDescription, isNamingScenario, llmStatus, partyShifts, randomizeElectionClimate }
+    function showTrendDetail(trend, event) {
+      trendDetailModalRef.value?.showTrend(trend, event)
+    }
+
+    function hideTrendDetail() {
+      trendDetailModalRef.value?.hideTrend()
+    }
+
+    return { electionStore, generateClimateDescription, isNamingScenario, llmStatus, partyShifts, randomizeElectionClimate, showTrendDetail, hideTrendDetail, trendDetailModalRef }
   },
 }
 </script>
