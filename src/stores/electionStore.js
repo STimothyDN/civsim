@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { BASELINE_ELECTION_CONFIG, generateRandomTrendPackage } from '../domain/elections'
 import { makeSeed } from '../domain/elections/randomness/seededRandom'
+import { generateRepresentativeNames } from '../domain/elections/representativeNames'
 
 const RANDOM_SCENARIO_NAME = 'Randomized Election Climate'
 const RANDOM_SCENARIO_DESCRIPTION = 'A randomized set of climate signals is shaping the electorate.'
@@ -18,6 +19,7 @@ function cloneBaseline() {
     trends: [],
     scenarioMetadataStatus: 'idle',
     scenarioMetadataError: null,
+    representativeNames: {}, // Map of "{party}_{seatIndex}" -> "Full Name"
   }
 }
 
@@ -100,6 +102,19 @@ export const useElectionStore = defineStore('election', {
       if (trendPackageId && trendPackageId !== this.trendPackageId) return
       this.scenarioMetadataStatus = 'error'
       this.scenarioMetadataError = message || 'Scenario description could not be generated.'
+    },
+    generateAndStoreRepresentativeNames(seatDetails, provinces, countryName, seed) {
+      const names = generateRepresentativeNames(seatDetails, provinces, `${countryName}_${seed}`)
+      // Merge with existing names instead of overwriting
+      this.representativeNames = { ...this.representativeNames, ...names }
+      return names
+    },
+    clearRepresentativeNames() {
+      this.representativeNames = {}
+    },
+    getRepresentativeName(party, seatIndex) {
+      const key = `${party}_${seatIndex}`
+      return this.representativeNames[key] || null
     },
   },
 })

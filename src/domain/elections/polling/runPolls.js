@@ -9,46 +9,94 @@ import { createSeededRng } from '../randomness/seededRandom'
 
 export const POLLSTERS = [
   {
-    id: 'climate-heavy',
-    name: 'Aurora Public Opinion',
-    tagline: 'Reading the temper of the realm.',
-    methodology: 'Uses climate-weighted vote shares and leans toward the strongest active climate signal.',
-    marginOfError: 0.035,
-  },
-  {
-    id: 'local-weighted',
-    name: 'Parish & Precinct',
-    tagline: 'Door-to-door, hearth to hearth.',
-    methodology: 'Uses local vote shares and gives a small edge to parties with localist or agrarian appeal.',
+    id: 'imperial-gazette',
+    name: 'Imperial Gazette Polling',
+    tagline: 'The voice of the capital.',
+    methodology: 'State-affiliated polling with institutional credibility. Samples urban centers and government employees. Tends to reflect establishment preferences.',
     marginOfError: 0.025,
+    segment: 'establishment',
+    biasParty: 'yellow',
   },
   {
-    id: 'likely-voter',
-    name: 'Civitas Standard-Bearer',
-    tagline: 'Counting the citizens who will actually vote.',
-    methodology: 'Uses likely-voter turnout weighting, stricter thresholds, and incumbent-seat strength.',
-    marginOfError: 0.02,
-  },
-  {
-    id: 'tracking',
-    name: 'Sentinel Daily Tracker',
-    tagline: 'The pulse, refreshed at dawn.',
-    methodology: 'Uses current vote shares with deterministic daily-tracker sampling noise.',
-    marginOfError: 0.03,
-  },
-  {
-    id: 'mandate-memory',
-    name: 'Mandate Memory Research',
-    tagline: 'Late deciders remember the last mandate.',
-    methodology: 'Blends current vote shares with baseline election shares to model voters drifting back toward familiar coalitions.',
+    id: 'rural-voice',
+    name: 'Rural Voice Network',
+    tagline: 'Heartland perspectives.',
+    methodology: 'Independent rural polling organization. Focuses on agricultural regions and military communities. Known for conservative-leaning results.',
     marginOfError: 0.028,
+    segment: 'rural-conservative',
+    biasParty: 'red',
   },
   {
-    id: 'seat-efficiency',
-    name: 'Chamberline Analytics',
-    tagline: 'Finding where votes become seats.',
-    methodology: 'Blends current vote shares with assembly seat efficiency, emphasizing parties whose support is geographically productive.',
+    id: 'workers-council',
+    name: 'Workers Council Research',
+    tagline: 'Polling for the working class.',
+    methodology: 'Labor-affiliated polling targeting industrial workers and urban labor unions. historically favorable to labor-aligned parties.',
+    marginOfError: 0.03,
+    segment: 'labor',
+    biasParty: 'orange',
+  },
+  {
+    id: 'civic-freedom',
+    name: 'Civic Freedom Institute',
+    tagline: 'Measuring the pulse of liberty.',
+    methodology: 'Liberal think tank polling. Samples educated urban professionals and reform-minded demographics. Leans toward decentralist and reform parties.',
     marginOfError: 0.026,
+    segment: 'liberal-intellectual',
+    biasParty: 'blue',
+  },
+  {
+    id: 'american-autonomy',
+    name: 'American Autonomy Polls',
+    tagline: 'Regional interests, national voice.',
+    methodology: 'American provincial interest group polling. Focuses on American-majority regions and autonomy advocates. Strong regional bias.',
+    marginOfError: 0.032,
+    segment: 'regionalist',
+    biasParty: 'white',
+  },
+  {
+    id: 'lotus-institute',
+    name: 'Lotus Institute surveys',
+    tagline: 'Tradition measured with wisdom.',
+    methodology: 'Religious-cultural research organization. Polls within Taoist and restorationist communities. Reflects minority cultural perspectives.',
+    marginOfError: 0.035,
+    segment: 'cultural-religious',
+    biasParty: 'purple',
+  },
+  {
+    id: 'ecology-matters',
+    name: 'Ecology Matters Research',
+    tagline: 'The planet has a vote.',
+    methodology: 'Environmental advocacy polling. Targets younger demographics and urban environmentalists. Historically favorable to green parties.',
+    marginOfError: 0.033,
+    segment: 'environmental',
+    biasParty: 'green',
+  },
+  {
+    id: 'independent-consensus',
+    name: 'Independent Consensus',
+    tagline: 'Beyond partisan lines.',
+    methodology: 'Non-partisan academic polling. Uses stratified sampling across all demographics. Attempts to minimize bias but tends toward centrist results.',
+    marginOfError: 0.022,
+    segment: 'centrist-academic',
+    biasParty: null,
+  },
+  {
+    id: 'market-dynamics',
+    name: 'Market Dynamics Group',
+    tagline: 'Politics as markets.',
+    methodology: 'Corporate market research firm. Polls business owners, investors, and economic elites. Leans toward pro-business and stability-oriented parties.',
+    marginOfError: 0.024,
+    segment: 'business-elite',
+    biasParty: 'yellow',
+  },
+  {
+    id: 'grassroots-pulse',
+    name: 'Grassroots Pulse',
+    tagline: 'From the ground up.',
+    methodology: 'Grassroots activist polling. Uses community-based sampling and social media outreach. Tends to amplify anti-establishment and reform sentiment.',
+    marginOfError: 0.036,
+    segment: 'grassroots-activist',
+    biasParty: 'blue',
   },
 ]
 
@@ -211,52 +259,106 @@ function apportionPrelates(voteShares, seatCount) {
 
 function baseSharesForPollster(pollsterId, scopeUnit, results) {
   const assembly = scopeUnit.unit?.assembly || {}
-  if (pollsterId === 'climate-heavy') return assembly.climate_vote_shares || assembly.vote_shares
-  if (pollsterId === 'local-weighted') return assembly.local_vote_shares || assembly.vote_shares
-  if (pollsterId === 'mandate-memory') {
-    return blendShares(assembly.vote_shares, scopeUnit.baselineUnit?.assembly?.vote_shares || assembly.vote_shares, 0.64)
+  const pollster = POLLSTERS.find((p) => p.id === pollsterId)
+  
+  // Segment-based sampling: different pollsters weight different demographic signals
+  if (pollsterId === 'imperial-gazette') {
+    // Establishment: weight urban and government-aligned signals
+    return blendShares(assembly.vote_shares, assembly.climate_vote_shares || assembly.vote_shares, 0.7)
   }
-  if (pollsterId === 'seat-efficiency') {
-    return blendShares(assembly.vote_shares, seatEfficiencyShares(scopeUnit.unit), 0.72)
+  if (pollsterId === 'rural-voice') {
+    // Rural conservative: weight local and traditional signals
+    return blendShares(assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.65)
+  }
+  if (pollsterId === 'workers-council') {
+    // Labor: weight economic and urban worker signals
+    return blendShares(assembly.vote_shares, assembly.climate_vote_shares || assembly.vote_shares, 0.6)
+  }
+  if (pollsterId === 'civic-freedom') {
+    // Liberal intellectual: weight reform and decentralization signals
+    return blendShares(assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.6)
+  }
+  if (pollsterId === 'american-autonomy') {
+    // Regionalist: weight local vote shares heavily
+    return assembly.local_vote_shares || assembly.vote_shares
+  }
+  if (pollsterId === 'lotus-institute') {
+    // Cultural-religious: blend current with traditional patterns
+    return blendShares(assembly.vote_shares, scopeUnit.baselineUnit?.assembly?.vote_shares || assembly.vote_shares, 0.55)
+  }
+  if (pollsterId === 'ecology-matters') {
+    // Environmental: weight climate signals heavily
+    return assembly.climate_vote_shares || assembly.vote_shares
+  }
+  if (pollsterId === 'independent-consensus') {
+    // Centrist academic: use raw vote shares with minimal adjustment
+    return assembly.vote_shares
+  }
+  if (pollsterId === 'market-dynamics') {
+    // Business elite: weight seat efficiency (establishment stability)
+    return blendShares(assembly.vote_shares, seatEfficiencyShares(scopeUnit.unit), 0.68)
+  }
+  if (pollsterId === 'grassroots-pulse') {
+    // Grassroots activist: weight local signals and blend with baseline for change sentiment
+    return blendShares(assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.55)
   }
   return assembly.vote_shares
 }
 
 function pollsterHouseEffect(pollsterId, scopeUnit, results) {
+  const pollster = POLLSTERS.find((p) => p.id === pollsterId)
   const baseShares = scopeUnit.unit?.assembly?.vote_shares || {}
-  if (pollsterId === 'climate-heavy') {
-    return { party: climateTrendParty(results.config?.trends || [], baseShares), points: 0.012 }
+  
+  // If pollster has an explicit bias party, use it with appropriate magnitude
+  if (pollster?.biasParty && PARTIES.includes(pollster.biasParty)) {
+    // Different segments have different bias strengths
+    const biasStrengths = {
+      'establishment': 0.015,
+      'rural-conservative': 0.018,
+      'labor': 0.016,
+      'liberal-intellectual': 0.014,
+      'regionalist': 0.02,
+      'cultural-religious': 0.012,
+      'environmental': 0.014,
+      'centrist-academic': 0.004,
+      'business-elite': 0.012,
+      'grassroots-activist': 0.016,
+    }
+    return { 
+      party: pollster.biasParty, 
+      points: biasStrengths[pollster.segment] || 0.01 
+    }
   }
-  if (pollsterId === 'local-weighted') {
-    return { party: localistParty(results.config?.partyMeta || results.parties), points: 0.008 }
-  }
-  if (pollsterId === 'likely-voter') {
-    return { party: houseSeatLeader(scopeUnit.unit), points: 0.006 }
-  }
-  if (pollsterId === 'mandate-memory') {
-    return { party: topParty(scopeUnit.baselineUnit?.assembly?.vote_shares || baseShares), points: 0.005 }
-  }
-  if (pollsterId === 'seat-efficiency') {
-    return { party: houseSeatLeader(scopeUnit.unit), points: 0.01 }
-  }
-  return { party: topParty(baseShares), points: 0 }
+  
+  // Fallback for pollsters without explicit bias (centrist academic)
+  return { party: topParty(baseShares), points: 0.003 }
 }
 
 function pollsterShares(pollster, scopeUnit, results, pollSeed) {
   const rng = createSeededRng(`${pollSeed}:${pollster.id}:${scopeUnit.scopeKey}`)
   const base = normalizeShares(baseSharesForPollster(pollster.id, scopeUnit, results))
   const effect = pollsterHouseEffect(pollster.id, scopeUnit, results)
-  const adjustedBase = pollster.id === 'likely-voter' ? likelyVoterShares(base) : base
+  
+  // Apply likely-voter adjustment for establishment and business-elite pollsters
+  const adjustedBase = (pollster.id === 'imperial-gazette' || pollster.id === 'market-dynamics') 
+    ? likelyVoterShares(base) 
+    : base
+  
   const withEffect = applyHouseEffect(adjustedBase, effect.party, effect.points)
-  const noiseScale = pollster.id === 'tracking'
-    ? 0.58
-    : pollster.id === 'climate-heavy'
-      ? 0.24
-      : pollster.id === 'seat-efficiency'
+  
+  // Noise scale based on segment: academic/establishment more precise, grassroots/religious less precise
+  const noiseScale = pollster.id === 'independent-consensus'
+    ? 0.12
+    : pollster.id === 'imperial-gazette' || pollster.id === 'market-dynamics'
+      ? 0.16
+      : pollster.id === 'rural-voice' || pollster.id === 'workers-council'
         ? 0.22
-        : pollster.id === 'mandate-memory'
-          ? 0.16
-          : 0.18
+        : pollster.id === 'grassroots-pulse' || pollster.id === 'lotus-institute'
+          ? 0.28
+          : pollster.id === 'ecology-matters'
+            ? 0.24
+            : 0.18
+  
   return {
     voteShares: addPollingNoise(withEffect, rng, pollster.marginOfError, noiseScale),
     houseEffect: effect,
@@ -274,7 +376,7 @@ function projectedSeats(scope, voteShares, unit, strictThreshold = false) {
 
 function buildPollsterResult(pollster, scopeUnit, results, pollSeed) {
   const { voteShares, houseEffect } = pollsterShares(pollster, scopeUnit, results, pollSeed)
-  const seats = projectedSeats(scopeUnit.scope, voteShares, scopeUnit.unit, pollster.id === 'likely-voter')
+  const seats = projectedSeats(scopeUnit.scope, voteShares, scopeUnit.unit, false)
   const leader = topParty(voteShares)
 
   return {
@@ -282,6 +384,7 @@ function buildPollsterResult(pollster, scopeUnit, results, pollSeed) {
     name: pollster.name,
     tagline: pollster.tagline,
     methodology: pollster.methodology,
+    segment: pollster.segment,
     houseEffect: {
       party: houseEffect.party,
       points: Number((houseEffect.points * 100).toFixed(1)),

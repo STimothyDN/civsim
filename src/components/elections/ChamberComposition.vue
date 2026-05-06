@@ -64,14 +64,14 @@
             v-for="seat in parliamentLayout.seats"
             :key="seat.key"
             class="chamber-svg-seat"
-            :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party) }"
+            :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party), 'chamber-seat--hover': hoveredSeat?.key === seat.key }"
             :cx="seat.x"
             :cy="seat.y"
-            :r="seat.r"
+            :r="hoveredSeat?.key === seat.key ? seat.r * 1.3 : seat.r"
             :fill="seat.color"
-          >
-            <title>{{ seat.title }}</title>
-          </circle>
+            @mouseenter="onSeatHover($event, seat)"
+            @mouseleave="onSeatLeave"
+          />
           <text
             class="chamber-svg-hemi-label chamber-svg-hemi-label--gov"
             :x="parliamentLayout.labelGov.x"
@@ -98,14 +98,14 @@
             v-for="seat in gridLayout.seats"
             :key="seat.key"
             class="chamber-svg-seat chamber-svg-seat--grid"
-            :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party) }"
+            :class="{ 'chamber-seat--coalition': coalitionParties.has(seat.party), 'chamber-seat--hover': hoveredSeat?.key === seat.key }"
             :cx="seat.x"
             :cy="seat.y"
-            :r="seat.r"
+            :r="hoveredSeat?.key === seat.key ? seat.r * 1.3 : seat.r"
             :fill="seat.color"
-          >
-            <title>{{ seat.title }}</title>
-          </circle>
+            @mouseenter="onSeatHover($event, seat)"
+            @mouseleave="onSeatLeave"
+          />
         </g>
       </svg>
     </div>
@@ -116,6 +116,20 @@
         <strong>{{ party.seats }}</strong>
       </div>
     </div>
+
+    <SeatTooltip
+      :visible="!!hoveredSeat"
+      :target-el="hoveredTargetEl"
+      :party="hoveredSeat?.party"
+      :party-name="hoveredPartyName"
+      :jurisdiction="hoveredJurisdiction"
+      :jurisdiction-label="chamberType === 'prelates' ? 'Responsible for' : 'Strongest support from'"
+      :vote-share="hoveredVoteShare"
+      :support-metric="hoveredSupportMetric"
+      :chamber-type="chamberType"
+      :representative-name="hoveredRepresentativeName"
+      :representative-title="hoveredRepresentativeTitle"
+    />
   </section>
 </template>
 
@@ -126,12 +140,16 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { PARTIES } from '../../domain/elections'
 import { buildGridSeatLayout, buildParliamentSeatLayout, CHAMBER_VIZ_VIEWBOX } from '../../domain/elections/chambers/parliamentLayout'
 import { chamberControlStyle } from '../../domain/elections/chambers/controlStyles'
+import { formatSeatTooltip, generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
+import { num } from '../../domain/elections/normalization/numbers'
+import { useElectionStore } from '../../stores/electionStore'
 import { useFormStore } from '../../stores/formStore'
 import PartyBadge from './PartyBadge.vue'
+import SeatTooltip from './SeatTooltip.vue'
 
 export default {
   name: 'ChamberComposition',
-  components: { PartyBadge },
+  components: { PartyBadge, SeatTooltip },
   props: {
     title: { type: String, required: true },
     eyebrow: { type: String, default: 'House Makeup' },
@@ -139,9 +157,17 @@ export default {
     control: { type: Object, default: null },
     compact: { type: Boolean, default: false },
     defaultView: { type: String, default: 'congress' },
+    jurisdictionLabels: { type: Array, default: null },
+    chamberType: { type: String, default: 'assembly' }, // 'assembly' | 'prelates'
+    scope: { type: String, default: 'national' }, // 'national' | 'regional' | 'provincial'
+    provinces: { type: Array, default: () => [] },
+    selectedProvince: { type: Object, default: null },
+    selectedRegionName: { type: String, default: null },
+    seatDetails: { type: Array, default: null }, // Full seat data with vote shares
   },
   setup(props) {
     const store = useFormStore()
+    const electionStore = useElectionStore()
     const viewMode = ref(props.defaultView === 'dots' ? 'dots' : 'congress')
     const coalitionParties = computed(() => new Set(props.control?.parties || []))
     const controlCardStyle = computed(() => chamberControlStyle(props.control, store.partyMeta))
@@ -159,15 +185,24 @@ export default {
       .filter((party) => party.seats > 0)
       .sort((a, b) => b.seats - a.seats || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party)))
 
-    const seatList = computed(() => orderedParties.value.flatMap((party) => {
-      const seatCount = Number(props.seats?.[party] || 0)
-      return Array.from({ length: seatCount }, (_, index) => ({
-        key: `${party}-${index}`,
-        party,
-        color: store.partyMeta[party]?.color || '#9b9a97',
-        title: `${store.partyMeta[party]?.name || party} seat`,
-      }))
-    }))
+    const seatList = computed(() => {
+      let seatIndex = 0
+      return orderedParties.value.flatMap((party) => {
+        const seatCount = Number(props.seats?.[party] || 0)
+        return Array.from({ length: seatCount }, (_, index) => {
+          const jurisdiction = props.jurisdictionLabels?.[seatIndex]
+          const partyName = store.partyMeta[party]?.name || party
+          const title = formatSeatTooltip(partyName, jurisdiction, props.chamberType)
+          seatIndex += 1
+          return {
+            key: `${party}-${index}`,
+            party,
+            color: store.partyMeta[party]?.color || '#9b9a97',
+            title,
+          }
+        })
+      })
+    })
 
     const parliamentLayout = computed(() => buildParliamentSeatLayout(seatList.value, { compact: props.compact }))
     const gridLayout = computed(() => buildGridSeatLayout(seatList.value, { compact: props.compact }))
@@ -181,6 +216,177 @@ export default {
     const zoomAttachedTo = ref(null)
     const zoomBehavior = ref(null)
     const zoomTransform = ref(zoomIdentity)
+
+    // Seat hover state for custom tooltip
+    const hoveredSeat = ref(null)
+    const hoveredTargetEl = ref(null)
+    const hoveredPartyName = computed(() => {
+      if (!hoveredSeat.value?.party) return ''
+      return store.partyMeta[hoveredSeat.value.party]?.name || hoveredSeat.value.party
+    })
+    const hoveredJurisdiction = computed(() => {
+      if (!hoveredSeat.value) return ''
+      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
+      return props.jurisdictionLabels?.[seatIndex] || ''
+    })
+
+    const hoveredVoteShare = computed(() => {
+      if (!hoveredSeat.value) return null
+      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
+      return computedSeatDetails.value?.[seatIndex]?.voteShare ?? null
+    })
+
+    const hoveredSupportMetric = computed(() => {
+      if (!hoveredSeat.value) return null
+      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
+      return computedSeatDetails.value?.[seatIndex]?.supportMetric ?? null
+    })
+
+    const hoveredRepresentativeName = computed(() => {
+      if (!hoveredSeat.value) return ''
+      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
+      const seat = computedSeatDetails.value?.[seatIndex]
+      if (!seat) return ''
+      // Calculate offset based on scope and chamber type to avoid collisions
+      let offset = 0
+      if (props.scope === 'national') {
+        offset = props.chamberType === 'prelates' ? 2500 : 0
+      } else if (props.scope === 'regional') {
+        offset = props.chamberType === 'prelates' ? 7500 : 5000
+      } else if (props.scope === 'provincial') {
+        offset = props.chamberType === 'prelates' ? 12500 : 10000
+      }
+      const nameIndex = seat.seatIndex + offset
+      return electionStore.getRepresentativeName(seat.party, nameIndex) || ''
+    })
+
+    const hoveredRepresentativeTitle = computed(() => {
+      return props.chamberType === 'prelates' ? 'Prelate' : 'Assemblyperson'
+    })
+
+    // Generate seat details if not provided (for backward compatibility)
+    const computedSeatDetails = computed(() => {
+      if (props.seatDetails) return props.seatDetails
+      if (!props.jurisdictionLabels) return []
+
+      return generateSeatDetails({
+        seats: props.seats,
+        chamberType: props.chamberType,
+        scope: props.scope,
+        provinces: props.provinces,
+        selectedProvince: props.selectedProvince,
+        selectedRegionName: props.selectedRegionName,
+      })
+    })
+
+    // Build caucus lists with detailed seat information
+    const caucusLists = computed(() => {
+      if (computedSeatDetails.value.length === 0) return []
+
+      // Group seats by party
+      const byParty = {}
+      for (const detail of computedSeatDetails.value) {
+        if (!byParty[detail.party]) {
+          byParty[detail.party] = []
+        }
+        byParty[detail.party].push(detail)
+      }
+
+      const caucuses = []
+
+      for (const party of PARTIES) {
+        const partySeats = byParty[party]
+        if (!partySeats || partySeats.length === 0) continue
+
+        const color = store.partyMeta[party]?.color || '#9b9a97'
+
+        // Sort seats by support metric (strongest first)
+        const sortedSeats = [...partySeats].sort((a, b) => {
+          const aVal = num(a.supportMetric)
+          const bVal = num(b.supportMetric)
+          if (!isFinite(aVal)) return 1
+          if (!isFinite(bVal)) return -1
+          return bVal - aVal
+        })
+
+        // Calculate average support for the caucus
+        const validSupports = sortedSeats.map((s) => num(s.supportMetric)).filter((v) => isFinite(v) && v >= 0)
+        const avgSupport = validSupports.length > 0
+          ? validSupports.reduce((sum, v) => sum + v, 0) / validSupports.length
+          : 0
+
+        // Identify caucus leader (seat with highest support)
+        const caucusLeader = sortedSeats[0] || null
+
+        // Check if this party is the governing/leading party
+        const isGoverningCaucus = props.control?.leaderParty === party
+
+        caucuses.push({
+          party,
+          seatCount: partySeats.length,
+          seats: sortedSeats,
+          avgSupport,
+          caucusLeader,
+          isGoverningCaucus,
+          cardStyle: {
+            borderColor: `${color}44`,
+            backgroundColor: `${color}0a`,
+          },
+        })
+      }
+
+      // Sort caucuses by average support (strongest first)
+      return caucuses.sort((a, b) => {
+        const aVal = num(a.avgSupport)
+        const bVal = num(b.avgSupport)
+        if (!isFinite(aVal)) return 1
+        if (!isFinite(bVal)) return -1
+        return bVal - aVal
+      })
+    })
+
+    function formatVoteShare(share) {
+      const safe = num(share)
+      if (!isFinite(safe) || safe < 0) return '0.0%'
+      return `${(safe * 100).toFixed(1)}%`
+    }
+
+    function formatSupport(metric) {
+      const safe = num(metric)
+      if (!isFinite(safe) || safe < 0) return '0.0'
+      return `${safe.toFixed(1)}`
+    }
+
+    function getRepresentativeTitle(party, seatIndex, type) {
+      // Calculate offset based on scope and chamber type to avoid collisions
+      let offset = 0
+      if (props.scope === 'national') {
+        offset = type === 'prelates' ? 2500 : 0
+      } else if (props.scope === 'regional') {
+        offset = type === 'prelates' ? 7500 : 5000
+      } else if (props.scope === 'provincial') {
+        offset = type === 'prelates' ? 12500 : 10000
+      }
+      const nameIndex = seatIndex + offset
+      // Check if we have a custom name
+      const customName = electionStore.getRepresentativeName(party, nameIndex)
+      if (customName) {
+        const role = type === 'prelates' ? 'Prelate' : 'Assemblyperson'
+        return `${role} ${customName}`
+      }
+      // Fall back to generic title
+      return type === 'prelates' ? 'Prelate' : 'Assemblyperson'
+    }
+
+    function onSeatHover(event, seat) {
+      hoveredSeat.value = seat
+      hoveredTargetEl.value = event.target
+    }
+
+    function onSeatLeave() {
+      hoveredSeat.value = null
+      hoveredTargetEl.value = null
+    }
 
     const zoomTransformStr = computed(() => zoomTransform.value.toString())
 
@@ -263,6 +469,19 @@ export default {
       vizAriaLabel,
       vizSvgRef,
       zoomTransformStr,
+      hoveredSeat,
+      hoveredTargetEl,
+      hoveredPartyName,
+      hoveredJurisdiction,
+      hoveredVoteShare,
+      hoveredSupportMetric,
+      hoveredRepresentativeName,
+      hoveredRepresentativeTitle,
+      onSeatHover,
+      onSeatLeave,
+      formatVoteShare,
+      formatSupport,
+      getRepresentativeTitle,
     }
   },
 }

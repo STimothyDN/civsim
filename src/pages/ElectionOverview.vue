@@ -35,12 +35,38 @@
           <div class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.assembly.control)">
             <span>Assembly Control</span>
             <strong>{{ results.national.assembly.control.label }}</strong>
-            <small>{{ results.national.assembly.control.detail }}</small>
+            <small class="control-detail">{{ assemblyControlInfo?.leaderPartySeatCount }}/{{ assemblyControlInfo?.totalSeats || results.national.assembly.control.detail }} seats won</small>
+            <small v-if="assemblyControlInfo?.isMinority" class="leader-support-line">
+              with support from <span v-html="formatListWithOxfordComma(assemblyControlInfo.supportInfo.map(formatSupportPartyWithColor))"></span>
+            </small>
+            <small v-if="assemblyControlInfo?.isMinority" class="control-detail">{{ assemblyControlInfo.totalGovernmentSeats }}/{{ assemblyControlInfo.totalSeats }} seats total</small>
           </div>
           <div class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.prelates.control)">
             <span>Council Control</span>
             <strong>{{ results.national.prelates.control.label }}</strong>
-            <small>{{ results.national.prelates.control.detail }}</small>
+            <small class="control-detail">{{ councilControlInfo?.leaderPartySeatCount }}/{{ councilControlInfo?.totalSeats || results.national.prelates.control.detail }} seats won</small>
+            <small v-if="councilControlInfo?.isMinority" class="leader-support-line">
+              with support from <span v-html="formatListWithOxfordComma(councilControlInfo.supportInfo.map(formatSupportPartyWithColor))"></span>
+            </small>
+            <small v-if="councilControlInfo?.isMinority" class="control-detail">{{ councilControlInfo.totalGovernmentSeats }}/{{ councilControlInfo.totalSeats }} seats total</small>
+          </div>
+        </div>
+        <div v-if="assemblyLeader || councilLeader" class="overview-hero-calls">
+          <div v-if="assemblyLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.assembly.control)">
+            <span>Assembly Leader</span>
+            <strong>{{ lowerHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex) || '' }}</strong>
+            <small class="leader-line">from {{ assemblyLeader.jurisdiction }} ({{ store.partyMeta[assemblyLeader.party]?.abbreviation || assemblyLeader.party }})</small>
+            <small v-if="assemblySupportLeaders?.length" class="leader-support-line">
+              with support from <span v-html="formatListWithOxfordComma(assemblySupportLeaders.map(formatSupportLeaderWithColor))"></span>
+            </small>
+          </div>
+          <div v-if="councilLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.prelates.control)">
+            <span>Council Leader</span>
+            <strong>{{ upperHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + 2500) || '' }}</strong>
+            <small class="leader-line">from {{ councilLeader.jurisdiction }} ({{ store.partyMeta[councilLeader.party]?.abbreviation || councilLeader.party }})</small>
+            <small v-if="councilSupportLeaders?.length" class="leader-support-line">
+              with support from <span v-html="formatListWithOxfordComma(councilSupportLeaders.map(formatSupportLeaderWithColor))"></span>
+            </small>
           </div>
         </div>
       </header>
@@ -116,12 +142,43 @@
           eyebrow="National Lower House"
           :seats="results.national.assembly.seats"
           :control="results.national.assembly.control"
+          chamber-type="assembly"
+          scope="national"
+          :provinces="results.provinces"
+          :jurisdiction-labels="overviewAssemblyJurisdictionLabels"
         />
         <ChamberComposition
           title="Council of Prelates"
           eyebrow="National Upper House"
           :seats="results.national.prelates.seats"
           :control="results.national.prelates.control"
+          chamber-type="prelates"
+          scope="national"
+          :provinces="results.provinces"
+          :jurisdiction-labels="overviewCouncilJurisdictionLabels"
+        />
+      </div>
+
+      <div class="election-dashboard-grid">
+        <CaucusListCard
+          title="Assembly Caucuses"
+          eyebrow="Lower House Breakdown"
+          :seats="results.national.assembly.seats"
+          :control="results.national.assembly.control"
+          chamber-type="assembly"
+          scope="national"
+          :provinces="results.provinces"
+          :jurisdiction-labels="overviewAssemblyJurisdictionLabels"
+        />
+        <CaucusListCard
+          title="Council Caucuses"
+          eyebrow="Upper House Breakdown"
+          :seats="results.national.prelates.seats"
+          :control="results.national.prelates.control"
+          chamber-type="prelates"
+          scope="national"
+          :provinces="results.provinces"
+          :jurisdiction-labels="overviewCouncilJurisdictionLabels"
         />
       </div>
 
@@ -215,8 +272,9 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
+import CaucusListCard from '../components/elections/CaucusListCard.vue'
 import ControlCallBoard from '../components/elections/ControlCallBoard.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
@@ -225,8 +283,10 @@ import ProvinceChart from '../components/ProvinceChart.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
 import { usePollingStore } from '../stores/pollingStore'
+import { useElectionStore } from '../stores/electionStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
-import { PARTIES, formatShare, lowerHouseName, upperHouseName, winnerControlStyle } from '../domain/elections'
+import { PARTIES, formatShare, lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle, winnerControlStyle } from '../domain/elections'
+import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
 import { orderRegionsByReference } from '../domain/elections/viewHelpers'
 
@@ -252,10 +312,11 @@ function countControlLeaders(units, chamber, partyMeta) {
 
 export default {
   name: 'ElectionOverview',
-  components: { BrainCircuit, ChamberComposition, ControlCallBoard, ElectionTickerCard, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
+  components: { BrainCircuit, ChamberComposition, CaucusListCard, ControlCallBoard, ElectionTickerCard, FilePlus2, LayoutDashboard, PartyBadge, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
     const pollingStore = usePollingStore()
+    const electionStore = useElectionStore()
     const { hasData, results, store } = useElectionResults()
     const tickerRequestId = ref(0)
     const tickerScope = ref('overview')
@@ -264,6 +325,170 @@ export default {
     const popularVoteLeader = computed(() => leaderFromShares(results.value.national.assembly.vote_shares))
     const regionOrder = computed(() => store.currentData?.province_groups || [])
     const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value))
+
+    const overviewAssemblyJurisdictionLabels = computed(() => generateJurisdictionLabels({
+      seats: results.value.national.assembly.seats,
+      chamberType: 'assembly',
+      scope: 'national',
+      provinces: results.value.provinces,
+    }))
+
+    const overviewCouncilJurisdictionLabels = computed(() => generateJurisdictionLabels({
+      seats: results.value.national.prelates.seats,
+      chamberType: 'prelates',
+      scope: 'national',
+      provinces: results.value.provinces,
+    }))
+
+    // Generate seat details to find leaders
+    const overviewAssemblySeatDetails = computed(() => generateSeatDetails({
+      seats: results.value.national.assembly.seats,
+      chamberType: 'assembly',
+      scope: 'national',
+      provinces: results.value.provinces,
+    }))
+
+    const overviewCouncilSeatDetails = computed(() => generateSeatDetails({
+      seats: results.value.national.prelates.seats,
+      chamberType: 'prelates',
+      scope: 'national',
+      provinces: results.value.provinces,
+    }))
+
+    // Find leaders (highest support in governing party)
+    const assemblyLeader = computed(() => {
+      const leaderParty = results.value.national.assembly.control?.leaderParty
+      if (!leaderParty) return null
+      const partySeats = overviewAssemblySeatDetails.value.filter((s) => s.party === leaderParty)
+      if (partySeats.length === 0) return null
+      // Sort by support and get the top one
+      const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
+      return leader
+    })
+
+    const councilLeader = computed(() => {
+      const leaderParty = results.value.national.prelates.control?.leaderParty
+      if (!leaderParty) return null
+      const partySeats = overviewCouncilSeatDetails.value.filter((s) => s.party === leaderParty)
+      if (partySeats.length === 0) return null
+      const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
+      return leader
+    })
+
+    // Get control party seat count and support info for Assembly
+    const assemblyControlInfo = computed(() => {
+      const control = results.value.national.assembly.control
+      const leaderParty = control?.leaderParty
+      if (!leaderParty) return null
+      
+      const partySeats = overviewAssemblySeatDetails.value.filter((s) => s.party === leaderParty)
+      const leaderPartySeatCount = partySeats.length
+      const totalSeats = results.value.national.assembly.seat_count
+      
+      const supportParties = control?.supportParties || []
+      const supportInfo = supportParties.map(party => {
+        const seats = overviewAssemblySeatDetails.value.filter((s) => s.party === party).length
+        return {
+          party,
+          name: store.partyMeta[party]?.abbreviation || party,
+          color: store.partyMeta[party]?.color || '#d4a843',
+          seatCount: seats,
+        }
+      })
+      
+      const totalGovernmentSeats = leaderPartySeatCount + supportInfo.reduce((sum, p) => sum + p.seatCount, 0)
+      
+      return {
+        leaderPartySeatCount,
+        supportInfo,
+        totalGovernmentSeats,
+        totalSeats,
+        isMinority: supportParties.length > 0,
+      }
+    })
+
+    // Get control party seat count and support info for Council
+    const councilControlInfo = computed(() => {
+      const control = results.value.national.prelates.control
+      const leaderParty = control?.leaderParty
+      if (!leaderParty) return null
+      
+      const partySeats = overviewCouncilSeatDetails.value.filter((s) => s.party === leaderParty)
+      const leaderPartySeatCount = partySeats.length
+      const totalSeats = results.value.national.prelates.seat_count
+      
+      const supportParties = control?.supportParties || []
+      const supportInfo = supportParties.map(party => {
+        const seats = overviewCouncilSeatDetails.value.filter((s) => s.party === party).length
+        return {
+          party,
+          name: store.partyMeta[party]?.abbreviation || party,
+          color: store.partyMeta[party]?.color || '#d4a843',
+          seatCount: seats,
+        }
+      })
+      
+      const totalGovernmentSeats = leaderPartySeatCount + supportInfo.reduce((sum, p) => sum + p.seatCount, 0)
+      
+      return {
+        leaderPartySeatCount,
+        supportInfo,
+        totalGovernmentSeats,
+        totalSeats,
+        isMinority: supportParties.length > 0,
+      }
+    })
+
+    // Get caucus leader names for support parties
+    const assemblySupportLeaders = computed(() => {
+      const control = results.value.national.assembly.control
+      const leaderParty = control?.leaderParty
+      if (!leaderParty) return []
+      
+      const leaders = []
+      
+      // Add support party caucus leaders for minority governments
+      const supportParties = control?.supportParties || []
+      supportParties.forEach(party => {
+        const partySeats = overviewAssemblySeatDetails.value.filter((s) => s.party === party)
+        if (partySeats.length === 0) return
+        const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
+        const name = electionStore.getRepresentativeName(party, leader.seatIndex)
+        leaders.push({
+          party,
+          name: name || store.partyMeta[party]?.abbreviation || party,
+          title: 'Caucus Leader',
+          jurisdiction: leader.jurisdiction,
+        })
+      })
+      
+      return leaders
+    })
+
+    const councilSupportLeaders = computed(() => {
+      const control = results.value.national.prelates.control
+      const leaderParty = control?.leaderParty
+      if (!leaderParty) return []
+      
+      const leaders = []
+      
+      // Add support party caucus leaders for minority governments
+      const supportParties = control?.supportParties || []
+      supportParties.forEach(party => {
+        const partySeats = overviewCouncilSeatDetails.value.filter((s) => s.party === party)
+        if (partySeats.length === 0) return
+        const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
+        const name = electionStore.getRepresentativeName(party, leader.seatIndex + 2500)
+        leaders.push({
+          party,
+          name: name || store.partyMeta[party]?.abbreviation || party,
+          title: 'Caucus Leader',
+          jurisdiction: leader.jurisdiction,
+        })
+      })
+      
+      return leaders
+    })
     const topRegionRows = computed(() => regionRows.value.slice(0, 6))
     const topProvinceRows = computed(() => [...results.value.provinces].sort((a, b) => b.provincial_population - a.provincial_population).slice(0, 8))
     const regionalChartOption = computed(() => regionalStackedSeatOption(results.value.regions, 'assembly', store.partyMeta, regionOrder.value))
@@ -365,6 +590,22 @@ export default {
       tickerRequestId.value += 1
     }
 
+    function formatListWithOxfordComma(items) {
+      if (items.length === 0) return ''
+      if (items.length === 1) return items[0]
+      if (items.length === 2) return `${items[0]} and ${items[1]}`
+      return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
+    }
+
+    function formatSupportLeaderWithColor(leader) {
+      const partyColor = store.partyMeta[leader.party]?.color || '#d4a843'
+      return `${leader.title} <span style="color: ${partyColor}">${leader.name}</span> from ${leader.jurisdiction} (<span style="color: ${partyColor}">${store.partyMeta[leader.party]?.abbreviation || leader.party}</span>)`
+    }
+
+    function formatSupportPartyWithColor(party) {
+      return `<span style="color: ${party.color}">${party.name}</span> (${party.seatCount})`
+    }
+
     return {
       climateDescription,
       climateName,
@@ -374,6 +615,7 @@ export default {
       formatNumber,
       formatShare,
       hasData,
+      lowerHouseLeaderTitle,
       lowerHouseNameFor,
       mergedControlBoards,
       overviewMetrics,
@@ -392,7 +634,20 @@ export default {
       topProvinceRows,
       topRegionRows,
       uiStore,
+      upperHouseLeaderTitle,
       upperHouseNameFor,
+      overviewAssemblyJurisdictionLabels,
+      overviewCouncilJurisdictionLabels,
+      assemblyLeader,
+      councilLeader,
+      assemblySupportLeaders,
+      councilSupportLeaders,
+      assemblyControlInfo,
+      councilControlInfo,
+      electionStore,
+      formatListWithOxfordComma,
+      formatSupportLeaderWithColor,
+      formatSupportPartyWithColor,
     }
   },
 }

@@ -2316,3 +2316,214 @@ export async function requestElectionTicker({
 
   return stripThinkBlocks(content).replace(/\s+/g, ' ').trim()
 }
+
+// Representative naming constants and functions
+// Context window is 262144 tokens, so we can use a generous budget for detailed naming
+const REPRESENTATIVE_NAMING_TOKEN_BUDGET = 8000
+
+function representativeNamingSystemPrompt() {
+  return [
+    'You are a Khmer Empire naming historian for a Civilization-style simulator.',
+    'Generate culturally appropriate personal names for elected representatives based on province demographics.',
+    '',
+    'RULES:',
+    '- Return ONLY valid JSON: {"party_seatIndex": "Full Name"}',
+    '- Names must match the demographic profile of each representative\'s province',
+    '- All names must be unique',
+    '- No markdown, commentary, or reasoning blocks',
+    '',
+    'CONTEXT:',
+    'Traditional Khmer names (Given + Surname): Sokha Prak, Bopha Chan, Vannak Kim',
+    'Western-influenced: David Kim, Marcus Lim, Maria Oum',
+    'Names should reflect: core Khmer %, American influence, Roman influence, frontier character, urbanization.',
+  ].join('\n')
+}
+
+function calculateProvinceDemographics(province, allProvinces, countryData) {
+  if (!province || !allProvinces?.length) return {}
+
+  // Calculate demographic percentages based on province features
+  const features = province.features || {}
+  const originIndex = features.imperial_origin_index || 0
+  const foreignIndex = features.foreign_origin_index || 0
+  const americanIdentity = features.american_identity_index || 0
+  const romanIdentity = features.roman_identity_index || 0
+  const connectedness = features.connectedness_index || 0.5
+  const urbanization = features.urbanization_index || 0.5
+  const frontier = features.frontier_index || 0
+
+  // Core Khmer population (native to province)
+  const coreKhmer = Math.max(0, 1 - originIndex - foreignIndex)
+
+  // Diaspora from other provinces (internal migration)
+  const internalDiaspora = originIndex * (1 - connectedness * 0.5)
+
+  // Foreign diaspora (globalization effect)
+  const foreignDiaspora = foreignIndex * connectedness
+
+  // Cultural influences
+  const americanInfluence = americanIdentity * 0.3
+  const romanInfluence = romanIdentity * 0.2
+  const frontierWilderness = frontier * 0.4
+
+  return {
+    coreKhmerPercent: Math.round(coreKhmer * 100),
+    internalDiasporaPercent: Math.round(internalDiaspora * 100),
+    foreignDiasporaPercent: Math.round(foreignDiaspora * 100),
+    americanInfluence: Math.round(americanInfluence * 100),
+    romanInfluence: Math.round(romanInfluence * 100),
+    frontierCharacter: Math.round(frontierWilderness * 100),
+    urbanization: Math.round(urbanization * 100),
+    connectedness: Math.round(connectedness * 100),
+    originalCountry: countryData?.basic_info?.name || 'Khmer Empire',
+    provinceName: province.name,
+    provincePopulation: province.provincial_population,
+  }
+}
+
+function buildSeatNamingContext(seatDetails, provinces, countryData) {
+  // Create compact seat info with only necessary demographic data
+  const seats = []
+
+  for (const seat of seatDetails || []) {
+    // Find the province for this seat's jurisdiction
+    const province = provinces?.find((p) =>
+      p.name === seat.jurisdiction ||
+      p.counties?.some((c) => c.name === seat.jurisdiction)
+    )
+
+    const features = province?.features || {}
+    const originIndex = features.imperial_origin_index || 0
+    const foreignIndex = features.foreign_origin_index || 0
+
+    seats.push({
+      key: `${seat.party}_${seat.seatIndex}`,
+      party: seat.party,
+      idx: seat.seatIndex,
+      place: seat.jurisdiction,
+      core: Math.round(Math.max(0, 1 - originIndex - foreignIndex) * 100),
+      am: Math.round((features.american_identity_index || 0) * 100),
+      ro: Math.round((features.roman_identity_index || 0) * 100),
+      fr: Math.round((features.frontier_index || 0) * 100),
+      ur: Math.round((features.urbanization_index || 0) * 100),
+      sup: Math.round(seat.supportMetric || 0),
+    })
+  }
+
+  return seats
+}
+
+function representativeNamingUserPrompt({ seatDetails, provinces, countryData, scope = 'national' }) {
+  const context = buildSeatNamingContext(seatDetails, provinces, countryData)
+
+  // Compact province info - only what's needed for naming
+  const provinceInfo = provinces?.map((p) => ({
+    name: p.name,
+    pop: p.provincial_population,
+    region: p.group,
+    coreKhmer: Math.round((1 - (p.features?.imperial_origin_index || 0) - (p.features?.foreign_origin_index || 0)) * 100),
+    american: Math.round((p.features?.american_identity_index || 0) * 100),
+    roman: Math.round((p.features?.roman_identity_index || 0) * 100),
+    frontier: Math.round((p.features?.frontier_index || 0) * 100),
+    urban: Math.round((p.features?.urbanization_index || 0) * 100),
+  })) || []
+
+  const promptParts = [
+    'Generate personal names for elected representatives of the Khmer Empire.',
+    '',
+    'EMPIRE:',
+    `- Country: ${countryData?.basic_info?.name || 'Khmer Empire'}`,
+    `- Scope: ${scope}`,
+    `- Provinces: ${provinces?.length || 0}`,
+    `- Population: ${countryData?.population?.total?.toLocaleString() || 'Unknown'}`,
+    '',
+    'NAMING TRADITIONS:',
+    '- Khmer names: Given name + surname (Sokha Prak, Bopha Chan)',
+    '- Given names: Sokha, Sopheap, Vannak, Dara, Bopha, Srey, Chhaya, Rithy, Sopheap',
+    '- Surnames: Prak, Chan, Sim, Kim, Lim, Oum, Nhem, Sun, Mao, Khun, San, Khem, Tep',
+    '- Western names (for diaspora areas): David, John, Maria, Sarah, Marcus, Julia',
+    '',
+    'RULES BY DEMOGRAPHICS:',
+    '- Core Khmer >70%: Traditional Khmer names (Sokha Prak)',
+    '- American >20%: Western given + Khmer surname (David Kim)',
+    '- Roman >15%: Latin given + Khmer surname (Marcus Sim)',
+    '- Frontier >30%: Rugged, nature-connected names (Rithy Nhem)',
+    '- Urban >70%: Modern, cosmopolitan acceptable (Maria Lim)',
+    '- Mixed influences: Blend styles appropriately',
+    '',
+    'PROVINCES:',
+    JSON.stringify(provinceInfo),
+    '',
+    'SEATS TO NAME:',
+    JSON.stringify(context),
+    '',
+    'INSTRUCTIONS:',
+    '1. Generate ONE unique name per seat',
+    '2. Match name style to province demographics',
+    '3. Higher support = more traditional/prestigious names',
+    '4. Mix male/female names for balance',
+    '',
+    'OUTPUT: JSON object {"party_seatIndex": "Full Name"}',
+    'Example: {"yellow_0": "Sokha Prak", "green_0": "David Kim", "red_0": "Marcus Lim"}',
+    '',
+    'Generate names:',
+  ]
+
+  return promptParts.join('\n')
+}
+
+export async function requestRepresentativeNames({
+  seatDetails,
+  provinces,
+  countryData,
+  scope = 'national',
+  endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
+  model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
+  onStatus,
+} = {}) {
+  emitLlmStatus(onStatus, {
+    phase: 'preparing',
+    progress: 0.1,
+    message: 'Preparing representative naming brief.',
+    detail: `Compiling ${seatDetails?.length || 0} seats with demographic context.`,
+  })
+
+  const messages = [
+    { role: 'system', content: representativeNamingSystemPrompt() },
+    { role: 'user', content: representativeNamingUserPrompt({ seatDetails, provinces, countryData, scope }) },
+  ]
+
+  emitLlmStatus(onStatus, {
+    phase: 'connecting',
+    progress: 0.25,
+    message: 'Connecting to naming historian.',
+    detail: 'Sending demographic data and seat jurisdictions.',
+  })
+
+  const content = await requestChatCompletion({
+    endpoint,
+    model,
+    temperature: 0.7,
+    max_tokens: REPRESENTATIVE_NAMING_TOKEN_BUDGET,
+    messages,
+    onStatus,
+  })
+
+  emitLlmStatus(onStatus, {
+    phase: 'parsing',
+    progress: 0.8,
+    message: 'Parsing representative names.',
+    detail: 'Extracting names from historian response.',
+  })
+
+  const parsed = extractJsonObject(stripThinkBlocks(content))
+
+  emitLlmStatus(onStatus, {
+    phase: 'complete',
+    progress: 1,
+    message: 'Representatives named.',
+    detail: `Generated ${Object.keys(parsed || {}).length} representative names.`,
+  })
+
+  return parsed || {}
+}

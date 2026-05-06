@@ -84,14 +84,18 @@ describe('runPolls', () => {
   it('includes the full concord of pollsters', () => {
     const scopes = runPolls({ results: sampleResults(), baselineResults: sampleResults(), pollSeed: 'fixed-poll' })
 
-    expect(POLLSTERS).toHaveLength(6)
+    expect(POLLSTERS).toHaveLength(10)
     expect(scopes[0].pollsters.map((pollster) => pollster.name)).toEqual([
-      'Aurora Public Opinion',
-      'Parish & Precinct',
-      'Civitas Standard-Bearer',
-      'Sentinel Daily Tracker',
-      'Mandate Memory Research',
-      'Chamberline Analytics',
+      'Imperial Gazette Polling',
+      'Rural Voice Network',
+      'Workers Council Research',
+      'Civic Freedom Institute',
+      'American Autonomy Polls',
+      'Lotus Institute surveys',
+      'Ecology Matters Research',
+      'Independent Consensus',
+      'Market Dynamics Group',
+      'Grassroots Pulse',
     ])
   })
 

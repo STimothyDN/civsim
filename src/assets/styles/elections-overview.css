@@ -9,12 +9,13 @@
   gap: 18px;
   align-items: stretch;
   min-width: 0;
-  padding: 22px;
+  padding: 24px 28px;
   background:
-    linear-gradient(135deg, rgba(212, 168, 67, 0.16), transparent 42%),
+    linear-gradient(135deg, rgba(212, 168, 67, 0.12), transparent 45%),
     var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .election-decision-hero {
@@ -23,9 +24,9 @@
 
 .election-decision-hero-main {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
-  align-items: center;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: start;
   min-width: 0;
 }
 
@@ -41,6 +42,14 @@
 
 .election-decision-hero .election-page-icon-wrap {
   margin: 0;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, rgba(212, 168, 67, 0.15), rgba(212, 168, 67, 0.05));
+  border: 1px solid rgba(212, 168, 67, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--accent);
 }
 
 .overview-hero-calls {
@@ -131,6 +140,44 @@
 .broadcast-ai-mark {
   margin-left: 2px;
   opacity: 0.7;
+}
+
+.election-select {
+  display: grid;
+  gap: 6px;
+  width: 200px;
+  margin-top: 12px;
+}
+
+.election-select span {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.election-select select {
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.election-select select:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.1);
+}
+
+.election-select select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.15);
 }
 
 .election-ticker-card {
@@ -383,6 +430,25 @@
   min-width: 0;
   color: var(--text-secondary);
   overflow-wrap: anywhere;
+}
+
+.overview-hero-call .leader-line {
+  color: var(--winner-color, var(--text-secondary));
+  font-weight: 700;
+  font-size: 0.82rem;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+  letter-spacing: 0.02em;
+}
+
+.overview-hero-call .leader-support-line {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.72rem;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .overview-call-grid {
@@ -756,6 +822,11 @@
 
   .election-decision-hero-main {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .election-select {
+    width: 100%;
   }
 
   .popular-vote-board-header {

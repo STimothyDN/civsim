@@ -18,8 +18,14 @@
           <div class="election-page-icon-wrap"><Map :size="26" /></div>
           <div>
             <p class="eyebrow">Regional Elections</p>
-            <h2>Regional Decision Desk</h2>
+            <h2>{{ selectedRegion?.name || 'Regional' }} Decision Desk</h2>
             <p>{{ formatCompactNumber(totalRegionalPopulation) }} people · {{ regionRows.length }} regions · {{ formatNumber(totalRegionalAssemblySeats) }} assemblypersons</p>
+            <label class="election-select">
+              <span>Region</span>
+              <select v-model="selectedRegionName">
+                <option v-for="region in regionRows" :key="region.name" :value="region.name">{{ region.name }}</option>
+              </select>
+            </label>
             <div v-if="selectedRegion" class="overview-hero-actions">
               <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('regional', selectedRegionName)">
                 <Radio :size="16" />
@@ -38,12 +44,38 @@
           <div class="overview-hero-call winner-control-card" :style="controlCardStyle(selectedRegion.assembly.control)">
             <span>Assembly Control</span>
             <strong>{{ selectedRegion.assembly.control.label }}</strong>
-            <small>{{ selectedRegion.assembly.control.detail }}</small>
+            <small class="control-detail">{{ assemblyControlInfo?.leaderPartySeatCount }}/{{ assemblyControlInfo?.totalSeats || selectedRegion.assembly.control.detail }} seats won</small>
+            <small v-if="assemblyControlInfo?.isMinority" class="leader-support-line">
+              with support from <span v-html="formatListWithOxfordComma(assemblyControlInfo.supportInfo.map(formatSupportPartyWithColor))"></span>
+            </small>
+            <small v-if="assemblyControlInfo?.isMinority" class="control-detail">{{ assemblyControlInfo.totalGovernmentSeats }}/{{ assemblyControlInfo.totalSeats }} seats total</small>
           </div>
           <div class="overview-hero-call winner-control-card" :style="controlCardStyle(selectedRegion.prelates.control)">
             <span>Council Control</span>
             <strong>{{ selectedRegion.prelates.control.label }}</strong>
-            <small>{{ selectedRegion.prelates.control.detail }}</small>
+            <small class="control-detail">{{ councilControlInfo?.leaderPartySeatCount }}/{{ councilControlInfo?.totalSeats || selectedRegion.prelates.control.detail }} seats won</small>
+            <small v-if="councilControlInfo?.isMinority" class="leader-support-line">
+              with support from <span v-html="formatListWithOxfordComma(councilControlInfo.supportInfo.map(formatSupportPartyWithColor))"></span>
+            </small>
+            <small v-if="councilControlInfo?.isMinority" class="control-detail">{{ councilControlInfo.totalGovernmentSeats }}/{{ councilControlInfo.totalSeats }} seats total</small>
+          </div>
+        </div>
+        <div v-if="selectedRegion && (assemblyLeader || councilLeader)" class="overview-hero-calls">
+          <div v-if="assemblyLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(selectedRegion.assembly.control)">
+            <span>Assembly Leader</span>
+            <strong>{{ lowerHouseLeaderTitle('regional') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex + 5000) || '' }}</strong>
+            <small class="leader-line">from {{ assemblyLeader.jurisdiction }} ({{ store.partyMeta[assemblyLeader.party]?.abbreviation || assemblyLeader.party }})</small>
+            <small v-if="assemblySupportLeaders?.length" class="leader-support-line">
+              with support from <span v-html="formatListWithOxfordComma(assemblySupportLeaders.map(formatSupportLeaderWithColor))"></span>
+            </small>
+          </div>
+          <div v-if="councilLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(selectedRegion.prelates.control)">
+            <span>Council Leader</span>
+            <strong>{{ upperHouseLeaderTitle('regional') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + 7500) || '' }}</strong>
+            <small class="leader-line">from {{ councilLeader.jurisdiction }} ({{ store.partyMeta[councilLeader.party]?.abbreviation || councilLeader.party }})</small>
+            <small v-if="councilSupportLeaders?.length" class="leader-support-line">
+              with support from <span v-html="formatListWithOxfordComma(councilSupportLeaders.map(formatSupportLeaderWithColor))"></span>
+            </small>
           </div>
         </div>
       </header>
@@ -74,12 +106,6 @@
             <p class="eyebrow">Selected Region</p>
             <h3>{{ selectedRegion?.name || 'No Region' }}</h3>
           </div>
-          <label class="election-select">
-            <span>Region</span>
-            <select v-model="selectedRegionName">
-              <option v-for="region in regionRows" :key="region.name" :value="region.name">{{ region.name }}</option>
-            </select>
-          </label>
         </div>
 
         <div v-if="selectedRegion" class="election-summary-grid election-summary-grid--tight">
@@ -120,6 +146,11 @@
             eyebrow="Regional Delegation"
             :seats="selectedRegion.assembly.seats"
             :control="selectedRegion.assembly.control"
+            chamber-type="assembly"
+            scope="regional"
+            :provinces="results.provinces"
+            :selected-region-name="selectedRegion.name"
+            :jurisdiction-labels="regionalAssemblyJurisdictionLabels"
             compact
           />
         </section>
@@ -137,9 +168,41 @@
             eyebrow="Regional Delegation"
             :seats="selectedRegion.prelates.seats"
             :control="selectedRegion.prelates.control"
+            chamber-type="prelates"
+            scope="regional"
+            :provinces="results.provinces"
+            :selected-region-name="selectedRegion.name"
+            :jurisdiction-labels="regionalCouncilJurisdictionLabels"
             compact
           />
         </section>
+      </div>
+
+      <div class="election-dashboard-grid">
+        <CaucusListCard
+          v-if="selectedRegion"
+          title="Assembly Caucuses"
+          eyebrow="Lower House Breakdown"
+          :seats="selectedRegion.assembly.seats"
+          :control="selectedRegion.assembly.control"
+          chamber-type="assembly"
+          scope="regional"
+          :provinces="results.provinces"
+          :selected-region-name="selectedRegion.name"
+          :jurisdiction-labels="regionalAssemblyJurisdictionLabels"
+        />
+        <CaucusListCard
+          v-if="selectedRegion"
+          title="Council Caucuses"
+          eyebrow="Upper House Breakdown"
+          :seats="selectedRegion.prelates.seats"
+          :control="selectedRegion.prelates.control"
+          chamber-type="prelates"
+          scope="regional"
+          :provinces="results.provinces"
+          :selected-region-name="selectedRegion.name"
+          :jurisdiction-labels="regionalCouncilJurisdictionLabels"
+        />
       </div>
 
       <section v-if="selectedRegion" class="election-panel">
@@ -225,21 +288,24 @@ import { computed, ref, watch } from 'vue'
 import { BrainCircuit, FilePlus2, Map, Radio } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
+import CaucusListCard from '../components/elections/CaucusListCard.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useUiStore } from '../stores/uiStore'
+import { useElectionStore } from '../stores/electionStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
-import { lowerHouseName, PARTIES, formatShare, trendHasMatchingEffect, upperHouseName, winnerControlStyle } from '../domain/elections'
+import { lowerHouseName, PARTIES, formatShare, trendHasMatchingEffect, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle, winnerControlStyle } from '../domain/elections'
+import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
 import { regionFeatureRadarOption as buildRegionFeatureRadarOption } from '../domain/elections/charts/electionChartOptions'
 import { orderRegionsByReference, partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
 import { usePollingStore } from '../stores/pollingStore'
 
 export default {
   name: 'RegionalElectionResults',
-  components: { BrainCircuit, ChamberComposition, ElectionTickerCard, FilePlus2, Map, PartyBadge, PartySwingCards, PopularVoteBoard, ProvinceChart, Radio },
+  components: { BrainCircuit, ChamberComposition, CaucusListCard, ElectionTickerCard, FilePlus2, Map, PartyBadge, PartySwingCards, PopularVoteBoard, ProvinceChart, Radio },
   setup() {
     const uiStore = useUiStore()
     const pollingStore = usePollingStore()
@@ -259,6 +325,174 @@ export default {
     })
     const selectedLowerHouseName = computed(() => lowerHouseName('regional', selectedRegion.value?.name))
     const selectedUpperHouseName = computed(() => upperHouseName('regional', selectedRegion.value?.name))
+
+    const regionalAssemblyJurisdictionLabels = computed(() => generateJurisdictionLabels({
+      seats: selectedRegion.value?.assembly?.seats,
+      chamberType: 'assembly',
+      scope: 'regional',
+      provinces: results.value.provinces,
+      selectedRegionName: selectedRegion.value?.name,
+    }))
+
+    const regionalCouncilJurisdictionLabels = computed(() => generateJurisdictionLabels({
+      seats: selectedRegion.value?.prelates?.seats,
+      chamberType: 'prelates',
+      scope: 'regional',
+      provinces: results.value.provinces,
+      selectedRegionName: selectedRegion.value?.name,
+    }))
+
+    // Generate seat details to find leaders
+    const regionalAssemblySeatDetails = computed(() => generateSeatDetails({
+      seats: selectedRegion.value?.assembly?.seats,
+      chamberType: 'assembly',
+      scope: 'regional',
+      provinces: results.value.provinces,
+      selectedRegionName: selectedRegion.value?.name,
+    }))
+
+    const regionalCouncilSeatDetails = computed(() => generateSeatDetails({
+      seats: selectedRegion.value?.prelates?.seats,
+      chamberType: 'prelates',
+      scope: 'regional',
+      provinces: results.value.provinces,
+      selectedRegionName: selectedRegion.value?.name,
+    }))
+
+    // Find leaders (highest support in governing party)
+    const assemblyLeader = computed(() => {
+      const leaderParty = selectedRegion.value?.assembly?.control?.leaderParty
+      if (!leaderParty) return null
+      const partySeats = regionalAssemblySeatDetails.value.filter((s) => s.party === leaderParty)
+      if (partySeats.length === 0) return null
+      const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
+      return leader
+    })
+
+    const councilLeader = computed(() => {
+      const leaderParty = selectedRegion.value?.prelates?.control?.leaderParty
+      if (!leaderParty) return null
+      const partySeats = regionalCouncilSeatDetails.value.filter((s) => s.party === leaderParty)
+      if (partySeats.length === 0) return null
+      const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
+      return leader
+    })
+
+    // Get control party seat count and support info for Assembly
+    const assemblyControlInfo = computed(() => {
+      const control = selectedRegion.value?.assembly?.control
+      const leaderParty = control?.leaderParty
+      if (!leaderParty) return null
+      
+      const partySeats = regionalAssemblySeatDetails.value.filter((s) => s.party === leaderParty)
+      const leaderPartySeatCount = partySeats.length
+      const totalSeats = selectedRegion.value?.assembly?.seat_count || 0
+      
+      const supportParties = control?.supportParties || []
+      const supportInfo = supportParties.map(party => {
+        const seats = regionalAssemblySeatDetails.value.filter((s) => s.party === party).length
+        return {
+          party,
+          name: store.partyMeta[party]?.abbreviation || party,
+          color: store.partyMeta[party]?.color || '#d4a843',
+          seatCount: seats,
+        }
+      })
+      
+      const totalGovernmentSeats = leaderPartySeatCount + supportInfo.reduce((sum, p) => sum + p.seatCount, 0)
+      
+      return {
+        leaderPartySeatCount,
+        supportInfo,
+        totalGovernmentSeats,
+        totalSeats,
+        isMinority: supportParties.length > 0,
+      }
+    })
+
+    // Get control party seat count and support info for Council
+    const councilControlInfo = computed(() => {
+      const control = selectedRegion.value?.prelates?.control
+      const leaderParty = control?.leaderParty
+      if (!leaderParty) return null
+      
+      const partySeats = regionalCouncilSeatDetails.value.filter((s) => s.party === leaderParty)
+      const leaderPartySeatCount = partySeats.length
+      const totalSeats = selectedRegion.value?.prelates?.seat_count || 0
+      
+      const supportParties = control?.supportParties || []
+      const supportInfo = supportParties.map(party => {
+        const seats = regionalCouncilSeatDetails.value.filter((s) => s.party === party).length
+        return {
+          party,
+          name: store.partyMeta[party]?.abbreviation || party,
+          color: store.partyMeta[party]?.color || '#d4a843',
+          seatCount: seats,
+        }
+      })
+      
+      const totalGovernmentSeats = leaderPartySeatCount + supportInfo.reduce((sum, p) => sum + p.seatCount, 0)
+      
+      return {
+        leaderPartySeatCount,
+        supportInfo,
+        totalGovernmentSeats,
+        totalSeats,
+        isMinority: supportParties.length > 0,
+      }
+    })
+
+    // Get caucus leader names for support parties
+    const assemblySupportLeaders = computed(() => {
+      const control = selectedRegion.value?.assembly?.control
+      const leaderParty = control?.leaderParty
+      if (!leaderParty) return []
+      
+      const leaders = []
+      
+      // Add support party caucus leaders for minority governments
+      const supportParties = control?.supportParties || []
+      supportParties.forEach(party => {
+        const partySeats = regionalAssemblySeatDetails.value.filter((s) => s.party === party)
+        if (partySeats.length === 0) return
+        const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
+        const name = electionStore.getRepresentativeName(party, leader.seatIndex + 5000)
+        leaders.push({
+          party,
+          name: name || store.partyMeta[party]?.abbreviation || party,
+          title: 'Caucus Leader',
+          jurisdiction: leader.jurisdiction,
+        })
+      })
+      
+      return leaders
+    })
+
+    const councilSupportLeaders = computed(() => {
+      const control = selectedRegion.value?.prelates?.control
+      const leaderParty = control?.leaderParty
+      if (!leaderParty) return []
+      
+      const leaders = []
+      
+      // Add support party caucus leaders for minority governments
+      const supportParties = control?.supportParties || []
+      supportParties.forEach(party => {
+        const partySeats = regionalCouncilSeatDetails.value.filter((s) => s.party === party)
+        if (partySeats.length === 0) return
+        const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
+        const name = electionStore.getRepresentativeName(party, leader.seatIndex + 7500)
+        leaders.push({
+          party,
+          name: name || store.partyMeta[party]?.abbreviation || party,
+          title: 'Caucus Leader',
+          jurisdiction: leader.jurisdiction,
+        })
+      })
+      
+      return leaders
+    })
+
     const featureRadarOption = computed(() => buildRegionFeatureRadarOption(selectedRegion.value, selectedRegionProvinces.value))
     const totalRegionalPopulation = computed(() => regionRows.value.reduce((sum, region) => sum + Number(region.population || 0), 0))
     const totalRegionalAssemblySeats = computed(() => regionRows.value.reduce((sum, region) => sum + sumSeats(region.assembly.seats), 0))
@@ -320,6 +554,22 @@ export default {
       tickerRequestId.value += 1
     }
 
+    function formatListWithOxfordComma(items) {
+      if (items.length === 0) return ''
+      if (items.length === 1) return items[0]
+      if (items.length === 2) return `${items[0]} and ${items[1]}`
+      return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
+    }
+
+    function formatSupportPartyWithColor(party) {
+      return `<span style="color: ${party.color}">${party.name}</span> (${party.seatCount})`
+    }
+
+    function formatSupportLeaderWithColor(leader) {
+      const partyColor = store.partyMeta[leader.party]?.color || '#d4a843'
+      return `${leader.title} <span style="color: ${partyColor}">${leader.name}</span> from ${leader.jurisdiction} (<span style="color: ${partyColor}">${store.partyMeta[leader.party]?.abbreviation || leader.party}</span>)`
+    }
+
     watch(regionRows, (regions) => {
       if (!regions.length) {
         selectedRegionName.value = ''
@@ -365,6 +615,20 @@ export default {
       totalRegionalAssemblySeats,
       totalRegionalPopulation,
       uiStore,
+      regionalAssemblyJurisdictionLabels,
+      regionalCouncilJurisdictionLabels,
+      assemblyLeader,
+      councilLeader,
+      assemblySupportLeaders,
+      councilSupportLeaders,
+      assemblyControlInfo,
+      councilControlInfo,
+      electionStore,
+      formatListWithOxfordComma,
+      formatSupportPartyWithColor,
+      formatSupportLeaderWithColor,
+      lowerHouseLeaderTitle,
+      upperHouseLeaderTitle,
     }
   },
 }

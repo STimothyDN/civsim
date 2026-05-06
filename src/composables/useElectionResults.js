@@ -1,8 +1,9 @@
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { BASELINE_ELECTION_CONFIG, simulateElection } from '../domain/elections'
 import { buildProvinceComparisonRows } from '../domain/provinceVisualizations'
 import { useElectionStore } from '../stores/electionStore'
 import { useFormStore } from '../stores/formStore'
+import { generateAllScopeNames } from '../domain/elections/representativeNames'
 
 export function useElectionResults() {
   const store = useFormStore()
@@ -20,6 +21,16 @@ export function useElectionResults() {
     provinceRows: provinceRows.value,
     electionConfig: BASELINE_ELECTION_CONFIG,
   }))
+
+  // Generate all representative names when results change
+  watch(
+    () => [results.value, hasData.value],
+    ([resultsValue, hasDataValue]) => {
+      if (!hasDataValue || !resultsValue?.provinces) return
+      generateAllScopeNames(resultsValue, store, electionStore)
+    },
+    { immediate: true }
+  )
 
   return {
     baselineResults,

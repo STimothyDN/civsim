@@ -18,7 +18,7 @@ export { simulateElection, formatShare } from './simulateElection'
 export { generateRandomTrendPackage, generateTrendPackageFromSelections, RANDOM_TREND_TEMPLATES } from './trends/randomizeTrends'
 export { matchesSelector, trendClimateScore, trendEffect, trendEffects, trendHasMatchingEffect, trendTags } from './trends/matchTrend'
 export { determineHouseControl, NATURAL_PARTNERS } from './coalitions/houseControl'
-export { lowerHouseName, upperHouseName } from './chambers/names'
+export { lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } from './chambers/names'
 export { chamberControlStyle, controlStyleVars, winnerControlStyle } from './chambers/controlStyles'
 export {
   apportionDHondt,

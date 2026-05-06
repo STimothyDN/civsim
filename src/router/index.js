@@ -7,6 +7,7 @@ const ElectionOverview = () => import('../pages/ElectionOverview.vue')
 const NationalElectionResults = () => import('../pages/NationalElectionResults.vue')
 const RegionalElectionResults = () => import('../pages/RegionalElectionResults.vue')
 const ProvincialElectionResults = () => import('../pages/ProvincialElectionResults.vue')
+const RepresentativeDirectory = () => import('../pages/RepresentativeDirectory.vue')
 
 const routes = [
   {
@@ -56,6 +57,12 @@ const routes = [
         name: 'ProvincialElectionResults',
         component: ProvincialElectionResults,
         meta: { title: 'Civ Sim — Provincial Election Results' },
+      },
+      {
+        path: 'directory',
+        name: 'RepresentativeDirectory',
+        component: RepresentativeDirectory,
+        meta: { title: 'Civ Sim — Representative Directory' },
       },
     ],
   },

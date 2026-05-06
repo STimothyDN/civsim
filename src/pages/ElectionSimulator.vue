@@ -29,7 +29,7 @@
 <script>
 import { markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { BrainCircuit, Building2, ClipboardList, LayoutDashboard, Map, Vote } from 'lucide-vue-next'
+import { BrainCircuit, Building2, ClipboardList, LayoutDashboard, Map, Users, Vote } from 'lucide-vue-next'
 import { useUiStore } from '../stores/uiStore'
 
 export default {
@@ -46,6 +46,7 @@ export default {
       { to: '/elections/national', label: 'National Elections', icon: markRaw(Vote) },
       { to: '/elections/regional', label: 'Regional Elections', icon: markRaw(Map) },
       { to: '/elections/provincial', label: 'Provincial Elections', icon: markRaw(Building2) },
+      { to: '/elections/directory', label: 'Representative Directory', icon: markRaw(Users) },
     ]
 
     return { route, router, tabs, uiStore }

@@ -10,3 +10,21 @@ export function upperHouseName(level, placeName = '') {
   return `Council of Prelates of ${name}`
 }
 
+export function lowerHouseLeaderTitle(level) {
+  switch (level) {
+    case 'national': return 'Prime Minister'
+    case 'regional': return 'Premier'
+    case 'provincial': return 'Governor'
+    default: return 'Assembly Leader'
+  }
+}
+
+export function upperHouseLeaderTitle(level) {
+  switch (level) {
+    case 'national': return 'Principal Chancellor'
+    case 'regional': return 'Head Chancellor'
+    case 'provincial': return 'Chancellor'
+    default: return 'Council Leader'
+  }
+}
+
