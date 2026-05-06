@@ -1588,7 +1588,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 21694820,
+      "provincial_population": 21630684,
       "assemblypeople": 30,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -3151,9 +3151,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 35877406,
+      "provincial_population": 26452525,
       "assemblypeople": 33,
-      "prelates": 9,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -3244,9 +3244,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 20888720,
+      "provincial_population": 22773016,
       "assemblypeople": 28,
-      "prelates": 7,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -3308,9 +3308,9 @@
           "yields": {
             "amenities": null,
             "food": "2",
-            "production": "1",
+            "production": "2",
             "gold": null,
-            "culture": null,
+            "culture": "1",
             "science": null,
             "faith": null,
             "tourism": null
@@ -3338,7 +3338,7 @@
           "appeal": "7",
           "yields": {
             "amenities": null,
-            "food": "4",
+            "food": "10",
             "production": "2",
             "gold": "1",
             "culture": null,
@@ -3515,9 +3515,9 @@
           "appeal": null,
           "yields": {
             "amenities": null,
-            "food": "6",
-            "production": null,
-            "gold": "9",
+            "food": "9",
+            "production": "3",
+            "gold": "41",
             "culture": null,
             "science": null,
             "faith": null,
@@ -3667,7 +3667,7 @@
           }
         },
         {
-          "name": "Holy Site Fire Temple",
+          "name": "Vohu Manas Fire Temple",
           "tile_id": "tile_14",
           "distance_from_center": 2,
           "terrain": "Plains",
@@ -3688,12 +3688,12 @@
           "appeal": "4",
           "yields": {
             "amenities": null,
-            "food": "2",
+            "food": "12",
             "production": null,
             "gold": null,
             "culture": null,
             "science": null,
-            "faith": "11",
+            "faith": "30",
             "tourism": null
           }
         },
@@ -3810,7 +3810,7 @@
             "production": null,
             "gold": null,
             "culture": null,
-            "science": "12",
+            "science": "37",
             "faith": null,
             "tourism": null
           }
@@ -3871,7 +3871,7 @@
             "food": null,
             "production": null,
             "gold": null,
-            "culture": "15",
+            "culture": "41",
             "science": null,
             "faith": null,
             "tourism": null
@@ -3933,7 +3933,7 @@
             "food": null,
             "production": null,
             "gold": null,
-            "culture": null,
+            "culture": "1",
             "science": null,
             "faith": null,
             "tourism": null
@@ -3963,7 +3963,7 @@
             "amenities": null,
             "food": null,
             "production": null,
-            "gold": "12",
+            "gold": "81",
             "culture": null,
             "science": null,
             "faith": null,
@@ -4083,11 +4083,72 @@
           }
         },
         {
-          "name": "",
+          "name": "Park District 1",
           "tile_id": "tile_28",
-          "distance_from_center": null,
-          "terrain": "",
-          "features": {},
+          "distance_from_center": 4,
+          "terrain": "Grassland",
+          "features": {
+            "Cattle": true,
+            "Mahendraparvata National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Cattle",
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "3",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Park District 2",
+          "tile_id": "tile_29",
+          "distance_from_center": 4,
+          "terrain": "Grassland",
+          "features": {
+            "Mahendraparvata National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "4",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Desert Link",
+          "tile_id": "tile_30",
+          "distance_from_center": 4,
+          "terrain": "Desert",
+          "features": {
+            "Bledowska Desert": true
+          },
           "improvement": {
             "name": "",
             "buildings": {},
@@ -4096,8 +4157,8 @@
           "resource": null,
           "citizens_working": null,
           "river": null,
-          "has_railroad": false,
-          "appeal": null,
+          "has_railroad": true,
+          "appeal": "3",
           "yields": {
             "amenities": null,
             "food": null,
@@ -4105,6 +4166,179 @@
             "gold": null,
             "culture": null,
             "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Wedgewoods",
+          "tile_id": "tile_31",
+          "distance_from_center": 4,
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Se Kong River",
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Far Riverbend",
+          "tile_id": "tile_32",
+          "distance_from_center": 4,
+          "terrain": "Grassland",
+          "features": {},
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Se Kong River",
+          "has_railroad": false,
+          "appeal": "5",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Atomic Junction",
+          "tile_id": "tile_33",
+          "distance_from_center": 5,
+          "terrain": "Grassland",
+          "features": {
+            "Uranium": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": "Uranium",
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": true,
+          "appeal": "1",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "2",
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Park District 3",
+          "tile_id": "tile_34",
+          "distance_from_center": 5,
+          "terrain": "Grassland",
+          "features": {
+            "Mahendraparvata National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "3",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": null,
+            "gold": null,
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Park Entrance",
+          "tile_id": "tile_35",
+          "distance_from_center": 5,
+          "terrain": "Grassland",
+          "features": {
+            "Woods (old-growth)": true,
+            "Mahendraparvata National Park": true
+          },
+          "improvement": {
+            "name": "National Park",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": null,
+          "has_railroad": false,
+          "appeal": "2",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": "2",
+            "culture": null,
+            "science": null,
+            "faith": null,
+            "tourism": null
+          }
+        },
+        {
+          "name": "Mahendra's Wedge",
+          "tile_id": "tile_36",
+          "distance_from_center": 5,
+          "terrain": "Plains",
+          "features": {
+            "Rainforest": true
+          },
+          "improvement": {
+            "name": "",
+            "buildings": {},
+            "great_works": {}
+          },
+          "resource": null,
+          "citizens_working": null,
+          "river": "Se Kong River",
+          "has_railroad": false,
+          "appeal": "6",
+          "yields": {
+            "amenities": null,
+            "food": "2",
+            "production": "1",
+            "gold": "2",
+            "culture": null,
+            "science": "1",
             "faith": null,
             "tourism": null
           }
@@ -4137,9 +4371,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 20533751,
+      "provincial_population": 26241900,
       "assemblypeople": 29,
-      "prelates": 7,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -4230,7 +4464,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 19130188,
+      "provincial_population": 21443359,
       "assemblypeople": 27,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -4319,7 +4553,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 12159012,
+      "provincial_population": 9921921,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -4408,7 +4642,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1696661,
+      "provincial_population": 1542049,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -4497,7 +4731,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2169819,
+      "provincial_population": 2000707,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -4586,7 +4820,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1725809,
+      "provincial_population": 1512195,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -5987,9 +6221,9 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 38609706,
+      "provincial_population": 36635689,
       "assemblypeople": 36,
-      "prelates": 10,
+      "prelates": 9,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -7092,9 +7326,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 28621646,
+      "provincial_population": 35036699,
       "assemblypeople": 32,
-      "prelates": 8,
+      "prelates": 9,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -8155,9 +8389,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 32206301,
+      "provincial_population": 22931650,
       "assemblypeople": 31,
-      "prelates": 9,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -8248,7 +8482,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 14204415,
+      "provincial_population": 11741610,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -8341,7 +8575,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 12430611,
+      "provincial_population": 14219574,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -8434,7 +8668,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 16393154,
+      "provincial_population": 17240935,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -8523,7 +8757,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 439925,
+      "provincial_population": 392432,
       "assemblypeople": 5,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8612,7 +8846,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 859507,
+      "provincial_population": 970831,
       "assemblypeople": 7,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8701,7 +8935,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 956241,
+      "provincial_population": 817363,
       "assemblypeople": 7,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8790,7 +9024,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1682992,
+      "provincial_population": 1660455,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8879,7 +9113,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1489950,
+      "provincial_population": 1495182,
       "assemblypeople": 9,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -8968,7 +9202,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1981724,
+      "provincial_population": 2065648,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9057,7 +9291,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 1778709,
+      "provincial_population": 2011716,
       "assemblypeople": 10,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9146,7 +9380,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2221452,
+      "provincial_population": 2573270,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9235,7 +9469,7 @@
         }
       ],
       "original_country": "",
-      "provincial_population": 2336754,
+      "provincial_population": 2767616,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9324,7 +9558,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 2201377,
+      "provincial_population": 2222937,
       "assemblypeople": 11,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9413,7 +9647,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 3608354,
+      "provincial_population": 3186291,
       "assemblypeople": 12,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9502,7 +9736,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 4806022,
+      "provincial_population": 4368912,
       "assemblypeople": 14,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9591,7 +9825,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 5854923,
+      "provincial_population": 6853533,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9680,7 +9914,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 6688865,
+      "provincial_population": 6099152,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9773,7 +10007,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 5451560,
+      "provincial_population": 6593366,
       "assemblypeople": 16,
       "prelates": 5,
       "dominant_religion": "Taoism"
@@ -9862,7 +10096,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 5841469,
+      "provincial_population": 7191086,
       "assemblypeople": 17,
       "prelates": 5,
       "dominant_religion": "Zoroastrianism"
@@ -9951,9 +10185,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 5983407,
+      "provincial_population": 7982230,
       "assemblypeople": 17,
-      "prelates": 5,
+      "prelates": 6,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -10044,7 +10278,7 @@
         }
       ],
       "original_country": "Spain",
-      "provincial_population": 9205924,
+      "provincial_population": 9194498,
       "assemblypeople": 18,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10133,9 +10367,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 8384483,
+      "provincial_population": 6931440,
       "assemblypeople": 18,
-      "prelates": 6,
+      "prelates": 5,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -10226,9 +10460,9 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 8595963,
+      "provincial_population": 7346703,
       "assemblypeople": 18,
-      "prelates": 6,
+      "prelates": 5,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -10319,7 +10553,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 8508576,
+      "provincial_population": 8462288,
       "assemblypeople": 18,
       "prelates": 6,
       "dominant_religion": "Taoism"
@@ -10408,7 +10642,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 8570267,
+      "provincial_population": 8092589,
       "assemblypeople": 19,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10501,7 +10735,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 10380059,
+      "provincial_population": 8119951,
       "assemblypeople": 19,
       "prelates": 6,
       "dominant_religion": "Sikhism"
@@ -10590,7 +10824,7 @@
         }
       ],
       "original_country": "",
-      "provincial_population": 11067750,
+      "provincial_population": 8679482,
       "assemblypeople": 20,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10679,7 +10913,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 8947093,
+      "provincial_population": 9740713,
       "assemblypeople": 20,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10772,7 +11006,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 11229048,
+      "provincial_population": 10378839,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -10865,7 +11099,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 11735992,
+      "provincial_population": 11211833,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Taoism"
@@ -10958,7 +11192,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 10015980,
+      "provincial_population": 12254268,
       "assemblypeople": 21,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -11047,7 +11281,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 10241948,
+      "provincial_population": 14848438,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -11140,7 +11374,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 13553554,
+      "provincial_population": 12642313,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -11229,7 +11463,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 11602720,
+      "provincial_population": 13511262,
       "assemblypeople": 22,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -11318,7 +11552,7 @@
         }
       ],
       "original_country": "Maori",
-      "provincial_population": 14062165,
+      "provincial_population": 11444264,
       "assemblypeople": 23,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -11411,9 +11645,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 12099275,
+      "provincial_population": 15767732,
       "assemblypeople": 23,
-      "prelates": 6,
+      "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -11504,9 +11738,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 13154412,
+      "provincial_population": 17015346,
       "assemblypeople": 24,
-      "prelates": 6,
+      "prelates": 7,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -11597,7 +11831,7 @@
         }
       ],
       "original_country": "Rome",
-      "provincial_population": 18292921,
+      "provincial_population": 17760773,
       "assemblypeople": 25,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -11686,7 +11920,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 20386515,
+      "provincial_population": 15425051,
       "assemblypeople": 26,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -11779,7 +12013,7 @@
         }
       ],
       "original_country": "Maori",
-      "provincial_population": 21513647,
+      "provincial_population": 16840246,
       "assemblypeople": 26,
       "prelates": 7,
       "dominant_religion": "Zoroastrianism"
@@ -11820,7 +12054,7 @@
       "net_food": "46.3",
       "counties": [
         {
-          "name": "",
+          "name": "City Center",
           "tile_id": "tile_1",
           "terrain": "",
           "features": {},
@@ -11844,7 +12078,7 @@
             "faith": null,
             "tourism": null
           },
-          "distance_from_center": null
+          "distance_from_center": 0
         }
       ],
       "group": "Union of the Free Gondwanan Provinces",
@@ -11872,7 +12106,7 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 22773643,
+      "provincial_population": 25903788,
       "assemblypeople": 29,
       "prelates": 8,
       "dominant_religion": "Zoroastrianism"
@@ -12991,9 +13225,9 @@
         }
       ],
       "original_country": "Khmer Empire",
-      "provincial_population": 21819836,
+      "provincial_population": 22796122,
       "assemblypeople": 30,
-      "prelates": 7,
+      "prelates": 8,
       "dominant_religion": "Zoroastrianism"
     },
     {
@@ -13084,7 +13318,7 @@
         }
       ],
       "original_country": "America",
-      "provincial_population": 14675134,
+      "provincial_population": 14105643,
       "assemblypeople": 25,
       "prelates": 6,
       "dominant_religion": "Zoroastrianism"
@@ -13093,63 +13327,63 @@
   "province_groups": [
     {
       "name": "Capital Region",
-      "regional_population": 88861426,
+      "regional_population": 79448489,
       "assemblypeople": 111,
-      "prelates": 29
+      "prelates": 28
     },
     {
       "name": "Roraima Land",
-      "regional_population": 47014760,
+      "regional_population": 54069867,
       "assemblypeople": 85,
-      "prelates": 29
+      "prelates": 31
     },
     {
       "name": "Federation of American Provinces",
-      "regional_population": 96313020,
+      "regional_population": 93943451,
       "assemblypeople": 132,
-      "prelates": 35
-    },
-    {
-      "name": "Provinces of Western Pannotia and the Bering Sea",
-      "regional_population": 57831246,
-      "assemblypeople": 113,
       "prelates": 34
     },
     {
+      "name": "Provinces of Western Pannotia and the Bering Sea",
+      "regional_population": 72194981,
+      "assemblypeople": 113,
+      "prelates": 36
+    },
+    {
       "name": "Union of the Free Adriatic Provinces",
-      "regional_population": 97421910,
+      "regional_population": 82337800,
       "assemblypeople": 130,
       "prelates": 35
     },
     {
       "name": "Duchy of Western Rome",
-      "regional_population": 47137296,
+      "regional_population": 45928945,
       "assemblypeople": 97,
       "prelates": 33
     },
     {
       "name": "Royal Provinces of the Eastern Romaioi",
-      "regional_population": 44660634,
+      "regional_population": 46006295,
       "assemblypeople": 101,
-      "prelates": 34
+      "prelates": 33
     },
     {
       "name": "Imperial Avalonia",
-      "regional_population": 21180887,
+      "regional_population": 19440667,
       "assemblypeople": 76,
       "prelates": 36
     },
     {
       "name": "Confederation of Eastern Avalonian Provinces",
-      "regional_population": 38937529,
+      "regional_population": 36655242,
       "assemblypeople": 78,
-      "prelates": 24
+      "prelates": 23
     },
     {
       "name": "Union of the Free Gondwanan Provinces",
-      "regional_population": 93983447,
+      "regional_population": 99024378,
       "assemblypeople": 151,
-      "prelates": 44
+      "prelates": 46
     }
   ],
   "global_religions": [

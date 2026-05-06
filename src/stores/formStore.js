@@ -74,6 +74,24 @@ const AUTOSAVE_DELAY = 350
 let autosaveStop = null
 let autosaveTimer = null
 
+// Memoization cache for unique value collections
+const uniqueValueCache = new Map()
+let cacheVersion = 0
+
+function invalidateUniqueValueCache() {
+  cacheVersion++
+}
+
+function getMemoizedUniqueValue(key, computeFn) {
+  const cacheKey = `${key}-${cacheVersion}`
+  if (uniqueValueCache.has(cacheKey)) {
+    return uniqueValueCache.get(cacheKey)
+  }
+  const value = computeFn()
+  uniqueValueCache.set(cacheKey, value)
+  return value
+}
+
 function clearPendingAutosave() {
   if (autosaveTimer) {
     clearTimeout(autosaveTimer)
@@ -103,31 +121,31 @@ export const useFormStore = defineStore('form', {
     },
     uniqueTerrains(state) {
       void state._recalcVersion
-      return collectUniqueCountyField(state.currentData, 'terrain')
+      return getMemoizedUniqueValue('terrains', () => collectUniqueCountyField(state.currentData, 'terrain'))
     },
     uniqueResources(state) {
       void state._recalcVersion
-      return collectUniqueCountyField(state.currentData, 'resource')
+      return getMemoizedUniqueValue('resources', () => collectUniqueCountyField(state.currentData, 'resource'))
     },
     uniqueRivers(state) {
       void state._recalcVersion
-      return collectUniqueCountyField(state.currentData, 'river')
+      return getMemoizedUniqueValue('rivers', () => collectUniqueCountyField(state.currentData, 'river'))
     },
     uniqueImprovementNames(state) {
       void state._recalcVersion
-      return collectUniqueCountyField(state.currentData, 'improvement.name')
+      return getMemoizedUniqueValue('improvementNames', () => collectUniqueCountyField(state.currentData, 'improvement.name'))
     },
     uniqueFeatures(state) {
       void state._recalcVersion
-      return collectUniqueCountyKeys(state.currentData, 'features')
+      return getMemoizedUniqueValue('features', () => collectUniqueCountyKeys(state.currentData, 'features'))
     },
     uniqueBuildings(state) {
       void state._recalcVersion
-      return collectUniqueCountyKeys(state.currentData, 'improvement.buildings')
+      return getMemoizedUniqueValue('buildings', () => collectUniqueCountyKeys(state.currentData, 'improvement.buildings'))
     },
     uniqueGreatWorks(state) {
       void state._recalcVersion
-      return collectUniqueCountyKeys(state.currentData, 'improvement.great_works')
+      return getMemoizedUniqueValue('greatWorks', () => collectUniqueCountyKeys(state.currentData, 'improvement.great_works'))
     },
     partyMeta(state) {
       void state._recalcVersion
@@ -148,6 +166,7 @@ export const useFormStore = defineStore('form', {
     },
     loadTemplate(template, options = {}) {
       resetJitterCache()
+      invalidateUniqueValueCache()
       this.currentData = normalizeTemplateInput(template || defaultTemplate)
       if (!options.silent) this.showToast('Template loaded successfully', 'success')
     },
@@ -156,7 +175,20 @@ export const useFormStore = defineStore('form', {
     },
     setValueAtPath(path, value) {
       if (!this.currentData) return
+
+      // Get previous value for resource field to clean up old feature
+      const resourceMatch = path.match(/^(provinces\[\d+\]\.counties\[\d+\])\.resource$/)
+      let previousResource = null
+      if (resourceMatch) {
+        previousResource = getValueAtPath(this.currentData, path)
+      }
+
       setValueAtPath(this.currentData, path, value)
+
+      // Invalidate cache when county data changes
+      if (path.includes('.counties[')) {
+        invalidateUniqueValueCache()
+      }
 
       const improvementMatch = path.match(/^(provinces\[\d+\]\.counties\[\d+\])\.improvement\.name$/)
       if (improvementMatch) {
@@ -169,9 +201,16 @@ export const useFormStore = defineStore('form', {
         })
       }
 
-      const resourceMatch = path.match(/^(provinces\[\d+\]\.counties\[\d+\])\.resource$/)
-      if (resourceMatch && typeof value === 'string' && value.trim()) {
-        setValueAtPath(this.currentData, `${resourceMatch[1]}.features.${value.trim()}`, true)
+      if (resourceMatch) {
+        const featuresPath = `${resourceMatch[1]}.features`
+        // Remove previous resource from features if it existed
+        if (previousResource && typeof previousResource === 'string' && previousResource.trim()) {
+          removeValueAtPath(this.currentData, `${featuresPath}.${previousResource.trim()}`)
+        }
+        // Add new resource to features if it's non-empty
+        if (typeof value === 'string' && value.trim()) {
+          setValueAtPath(this.currentData, `${featuresPath}.${value.trim()}`, true)
+        }
       }
 
       const closestProvinceMatch = path.match(/^(provinces\[\d+\]\.closest_provinces)\[\d+\]\.(province_name|distance)$/)
@@ -190,6 +229,11 @@ export const useFormStore = defineStore('form', {
       const blank = createBlankArrayItem(path) || (arr.length > 0 ? deepClone(arr[0]) : null)
       arr.push(blank)
       normalizeIds(this.currentData)
+
+      // Invalidate cache when counties are added
+      if (path.includes('.counties')) {
+        invalidateUniqueValueCache()
+      }
     },
     removeArrayItem(path, index) {
       if (!this.currentData) return
@@ -197,6 +241,11 @@ export const useFormStore = defineStore('form', {
       if (!Array.isArray(arr)) return
       arr.splice(index, 1)
       normalizeIds(this.currentData)
+
+      // Invalidate cache when counties are removed
+      if (path.includes('.counties')) {
+        invalidateUniqueValueCache()
+      }
     },
     removeObjectKey(path) {
       if (!this.currentData) return
