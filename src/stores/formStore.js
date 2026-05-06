@@ -254,6 +254,15 @@ export const useFormStore = defineStore('form', {
       if (closestProvinceMatch) {
         sortClosestProvinces(getValueAtPath(this.currentData, closestProvinceMatch[1]))
       }
+
+      // Trigger autosave on data changes instead of relying on deep watch
+      this.scheduleAutosave()
+      
+      // Bump recalc version only for fields that actually affect calculations
+      // This prevents unnecessary re-renders of computed properties
+      if (!path.match(/^(provinces\[\d+\]\.counties\[\d+\]\.(name|terrain|resource|river|improvement\.name))$/)) {
+        this._recalcVersion++
+      }
     },
     getValueAtPath(path) {
       if (!this.currentData) return undefined
@@ -272,6 +281,8 @@ export const useFormStore = defineStore('form', {
         // Adding/removing counties affects all unique value collections
         invalidateUniqueValueCache()
       }
+
+      this.scheduleAutosave()
     },
     removeArrayItem(path, index) {
       if (!this.currentData) return
@@ -285,6 +296,8 @@ export const useFormStore = defineStore('form', {
         // Adding/removing counties affects all unique value collections
         invalidateUniqueValueCache()
       }
+
+      this.scheduleAutosave()
     },
     removeObjectKey(path) {
       if (!this.currentData) return
@@ -302,6 +315,8 @@ export const useFormStore = defineStore('form', {
           invalidateUniqueValueCache()
         }
       }
+
+      this.scheduleAutosave()
     },
     exportTemplate() {
       return buildExportTemplate(this.currentData, this.provinceCalcs, this.regionalTotals)
@@ -336,38 +351,47 @@ export const useFormStore = defineStore('form', {
     addProvinceGroup(name) {
       if (!this.currentData) return
       this.currentData.province_groups = addNamedItem(this.currentData.province_groups, name)
+      this.scheduleAutosave()
     },
     removeProvinceGroup(index) {
       removeProvinceGroup(this.currentData, index)
+      this.scheduleAutosave()
     },
     renameProvinceGroup(index, newName) {
       renameProvinceGroup(this.currentData, index, newName)
+      this.scheduleAutosave()
     },
     setProvinceGroupForProvince(provinceIndex, groupName) {
       if (!this.currentData || !Array.isArray(this.currentData.provinces)) return
       if (!this.currentData.provinces[provinceIndex]) return
       this.currentData.provinces[provinceIndex].group = groupName || null
+      this.scheduleAutosave()
     },
     addGlobalReligion(name) {
       if (!this.currentData) return
       this.currentData.global_religions = addNamedItem(this.currentData.global_religions, name)
+      this.scheduleAutosave()
     },
     removeGlobalReligion(index) {
       if (!this.currentData || !Array.isArray(this.currentData.global_religions)) return
       this.currentData.global_religions.splice(index, 1)
+      this.scheduleAutosave()
     },
     renameGlobalReligion(index, newName) {
       renameGlobalReligion(this.currentData, index, newName)
+      this.scheduleAutosave()
     },
     setPartyName(party, name) {
       if (!this.currentData?.election_parties?.[party]) return
       this.currentData.election_parties[party].name = String(name || '').trim()
       this._recalcVersion++
+      this.scheduleAutosave()
     },
     setPartyAbbreviation(party, abbreviation) {
       if (!this.currentData?.election_parties?.[party]) return
       this.currentData.election_parties[party].abbreviation = String(abbreviation || '').trim().toUpperCase().replace(/\s+/g, '').slice(0, 8)
       this._recalcVersion++
+      this.scheduleAutosave()
     },
     setPartyColor(party, color) {
       if (!this.currentData?.election_parties?.[party]) return
@@ -375,6 +399,7 @@ export const useFormStore = defineStore('form', {
       this.currentData.election_parties[party].colorName = option.name
       this.currentData.election_parties[party].color = option.color
       this._recalcVersion++
+      this.scheduleAutosave()
     },
     setPartyColorName(party, colorName) {
       if (!this.currentData?.election_parties?.[party]) return
@@ -382,22 +407,27 @@ export const useFormStore = defineStore('form', {
       this.currentData.election_parties[party].colorName = option.name
       this.currentData.election_parties[party].color = option.color
       this._recalcVersion++
+      this.scheduleAutosave()
     },
     setNationalCapital(provinceIndex) {
       setNationalCapital(this.currentData, provinceIndex)
+      this.scheduleAutosave()
     },
     clearNationalCapital(provinceIndex) {
       if (!this.currentData || !Array.isArray(this.currentData.provinces)) return
       const province = this.currentData.provinces[provinceIndex]
       if (province) province.is_national_capital = false
+      this.scheduleAutosave()
     },
     setRegionalCapital(provinceIndex) {
       setRegionalCapital(this.currentData, provinceIndex)
+      this.scheduleAutosave()
     },
     clearRegionalCapital(provinceIndex) {
       if (!this.currentData || !Array.isArray(this.currentData.provinces)) return
       const province = this.currentData.provinces[provinceIndex]
       if (province) province.is_regional_capital = false
+      this.scheduleAutosave()
     },
     recalculate() {
       resetJitterCache()
@@ -438,15 +468,8 @@ export const useFormStore = defineStore('form', {
       }, AUTOSAVE_DELAY)
     },
     startAutosave() {
-      if (autosaveStop) return
-
-      autosaveStop = watch(
-        () => this.currentData,
-        () => {
-          this.scheduleAutosave()
-        },
-        { deep: true, flush: 'post' }
-      )
+      // Autosave is now manually triggered from data-modifying actions
+      // No deep watch needed - it was causing performance issues
     },
     stopAutosave() {
       if (autosaveStop) {
