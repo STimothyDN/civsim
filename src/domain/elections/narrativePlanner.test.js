@@ -412,7 +412,7 @@ describe('narrativePlanner LLM prompts', () => {
     let body = lastRequestBody()
     let userPayload = JSON.parse(body.input)
 
-    expect(body.system_prompt).toContain('Treat polling.aggregate')
+    expect(body.system_prompt).toContain('POLLING CONTEXT: When polling.aggregate is provided')
     expect(userPayload.polling).toMatchObject({
       scope: 'national',
       scopeLabel: 'National',

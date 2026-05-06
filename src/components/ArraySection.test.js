@@ -129,8 +129,8 @@ describe('ArraySection province sidebar ordering', () => {
     await wrapper.get('.add-sidebar-btn').trigger('click')
     await flushPromises()
     await nextTick()
-    for (let attempt = 0; attempt < 25 && document.activeElement?.id !== 'provinces[0].counties[1].name'; attempt += 1) {
-      await new Promise((resolve) => setTimeout(resolve, 0))
+    for (let attempt = 0; attempt < 50 && document.activeElement?.id !== 'provinces[0].counties[1].name'; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 10))
       await flushPromises()
       await nextTick()
     }

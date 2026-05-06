@@ -492,12 +492,12 @@ export default {
     }
 
     async function focusSelectedCounty() {
-      for (let attempt = 0; attempt < 20; attempt += 1) {
+      for (let attempt = 0; attempt < 50; attempt += 1) {
         await nextTick()
         expandSelectedCounty()
         await nextTick()
         if (focusFirstCountyField()) return
-        await waitForRenderedCounty()
+        await new Promise((resolve) => setTimeout(resolve, 10))
       }
     }
 

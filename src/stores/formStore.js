@@ -76,14 +76,32 @@ let autosaveTimer = null
 
 // Memoization cache for unique value collections
 const uniqueValueCache = new Map()
-let cacheVersion = 0
+const cacheVersions = {
+  terrains: 0,
+  resources: 0,
+  rivers: 0,
+  improvementNames: 0,
+  features: 0,
+  buildings: 0,
+  greatWorks: 0,
+}
+
+function invalidateCacheForKey(key) {
+  if (cacheVersions.hasOwnProperty(key)) {
+    cacheVersions[key]++
+  }
+}
 
 function invalidateUniqueValueCache() {
-  cacheVersion++
+  // Invalidate all caches (fallback for bulk operations)
+  Object.keys(cacheVersions).forEach(key => {
+    cacheVersions[key]++
+  })
 }
 
 function getMemoizedUniqueValue(key, computeFn) {
-  const cacheKey = `${key}-${cacheVersion}`
+  const version = cacheVersions[key] || 0
+  const cacheKey = `${key}-${version}`
   if (uniqueValueCache.has(cacheKey)) {
     return uniqueValueCache.get(cacheKey)
   }
@@ -185,9 +203,28 @@ export const useFormStore = defineStore('form', {
 
       setValueAtPath(this.currentData, path, value)
 
-      // Invalidate cache when county data changes
+      // Selective cache invalidation based on what changed
       if (path.includes('.counties[')) {
-        invalidateUniqueValueCache()
+        if (path.endsWith('.terrain')) {
+          invalidateCacheForKey('terrains')
+        } else if (path.endsWith('.resource')) {
+          invalidateCacheForKey('resources')
+          invalidateCacheForKey('features')
+        } else if (path.endsWith('.river')) {
+          invalidateCacheForKey('rivers')
+        } else if (path.endsWith('.improvement.name')) {
+          invalidateCacheForKey('improvementNames')
+          invalidateCacheForKey('buildings')
+        } else if (path.includes('.improvement.buildings')) {
+          invalidateCacheForKey('buildings')
+        } else if (path.includes('.improvement.great_works')) {
+          invalidateCacheForKey('greatWorks')
+        } else if (path.includes('.features')) {
+          invalidateCacheForKey('features')
+        } else {
+          // For other county fields, invalidate all as fallback
+          invalidateUniqueValueCache()
+        }
       }
 
       const improvementMatch = path.match(/^(provinces\[\d+\]\.counties\[\d+\])\.improvement\.name$/)
@@ -230,8 +267,9 @@ export const useFormStore = defineStore('form', {
       arr.push(blank)
       normalizeIds(this.currentData)
 
-      // Invalidate cache when counties are added
+      // Selective cache invalidation when counties are added
       if (path.includes('.counties')) {
+        // Adding/removing counties affects all unique value collections
         invalidateUniqueValueCache()
       }
     },
@@ -242,14 +280,28 @@ export const useFormStore = defineStore('form', {
       arr.splice(index, 1)
       normalizeIds(this.currentData)
 
-      // Invalidate cache when counties are removed
+      // Selective cache invalidation when counties are removed
       if (path.includes('.counties')) {
+        // Adding/removing counties affects all unique value collections
         invalidateUniqueValueCache()
       }
     },
     removeObjectKey(path) {
       if (!this.currentData) return
       removeValueAtPath(this.currentData, path)
+
+      // Selective cache invalidation for removed keys
+      if (path.includes('.counties[')) {
+        if (path.includes('.features')) {
+          invalidateCacheForKey('features')
+        } else if (path.includes('.improvement.buildings')) {
+          invalidateCacheForKey('buildings')
+        } else if (path.includes('.improvement.great_works')) {
+          invalidateCacheForKey('greatWorks')
+        } else {
+          invalidateUniqueValueCache()
+        }
+      }
     },
     exportTemplate() {
       return buildExportTemplate(this.currentData, this.provinceCalcs, this.regionalTotals)
@@ -361,6 +413,7 @@ export const useFormStore = defineStore('form', {
       if (!template) return false
 
       resetJitterCache()
+      invalidateUniqueValueCache()
       this.currentData = template
       this.lastAutosavedAt = savedAt
       this.showToast('Autosaved template restored', 'success')
@@ -392,7 +445,7 @@ export const useFormStore = defineStore('form', {
         () => {
           this.scheduleAutosave()
         },
-        { deep: true }
+        { deep: true, flush: 'post' }
       )
     },
     stopAutosave() {
