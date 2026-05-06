@@ -558,7 +558,8 @@
 }
 
 .overview-control-panel--merged {
-  gap: 14px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .overview-control-panel-header {
@@ -566,6 +567,10 @@
   align-items: end;
   justify-content: space-between;
   gap: 10px;
+}
+
+.overview-control-panel--merged .overview-control-panel-header {
+  gap: 8px;
 }
 
 .overview-control-panel-header h3 {
@@ -579,43 +584,59 @@
   font-size: 1.35rem;
 }
 
+.overview-control-panel--merged .overview-control-panel-header strong {
+  font-size: 1.15rem;
+}
+
 .overview-control-list {
   display: grid;
-  gap: 7px;
+  gap: 5px;
 }
 
 .overview-control-summary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .overview-control-summary {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
+  padding: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
 }
 
 .overview-control-summary > span {
   color: var(--text-muted);
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .overview-control-row {
   display: grid;
-  grid-template-columns: minmax(94px, 0.9fr) minmax(86px, 1fr) auto;
+  grid-template-columns: minmax(110px, 0.9fr) minmax(90px, 1fr) auto;
   gap: 8px;
   align-items: center;
   min-width: 0;
-  padding: 8px;
+  padding: 6px 8px;
   background:
     linear-gradient(90deg, var(--winner-bg, transparent), transparent 82%),
     var(--bg-input);
   border: 1px solid var(--winner-border, var(--border-subtle));
   border-radius: var(--radius-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.overview-control-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .overview-control-track {
@@ -634,7 +655,8 @@
 
 .overview-control-row > strong {
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 600;
 }
 
 .overview-party-board,
