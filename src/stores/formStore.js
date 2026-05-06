@@ -5,7 +5,7 @@ import { getValueAtPath, setValueAtPath, removeValueAtPath } from '../utils/path
 import { deepClone } from '../utils/object'
 import { computeAllProvinceCalcs, computeRegionalTotals, resetJitterCache } from '../utils/calculatedFields'
 import { clearAutosavedTemplate, readAutosavedTemplate, writeAutosavedTemplate } from '../domain/autosave'
-import { partyColorsFromConfig, partyMetaFromConfig, partyNamesFromConfig, partyPaletteOption } from '../domain/elections/constants/parties'
+import { partyMetaFromConfig, partyPaletteOption } from '../domain/elections/constants/parties'
 import { buildExportTemplate, normalizeTemplateInput } from '../domain/templateCodec'
 import {
   addNamedItem,
@@ -130,13 +130,7 @@ export const useFormStore = defineStore('form', {
       void state._recalcVersion
       return computeAllProvinceCalcs(state.currentData?.provinces)
     },
-    regionalTotals(state) {
-      void state._recalcVersion
-      return computeRegionalTotals(
-        state.currentData?.provinces,
-        this.provinceCalcs
-      )
-    },
+
     uniqueTerrains(state) {
       void state._recalcVersion
       return getMemoizedUniqueValue('terrains', () => collectUniqueCountyField(state.currentData, 'terrain'))
@@ -168,14 +162,6 @@ export const useFormStore = defineStore('form', {
     partyMeta(state) {
       void state._recalcVersion
       return partyMetaFromConfig(state.currentData?.election_parties)
-    },
-    partyNames(state) {
-      void state._recalcVersion
-      return partyNamesFromConfig(state.currentData?.election_parties)
-    },
-    partyColors(state) {
-      void state._recalcVersion
-      return partyColorsFromConfig(state.currentData?.election_parties)
     },
   },
   actions: {
@@ -319,7 +305,11 @@ export const useFormStore = defineStore('form', {
       this.scheduleAutosave()
     },
     exportTemplate() {
-      return buildExportTemplate(this.currentData, this.provinceCalcs, this.regionalTotals)
+      const regionalTotals = computeRegionalTotals(
+        this.currentData?.provinces,
+        this.provinceCalcs
+      )
+      return buildExportTemplate(this.currentData, this.provinceCalcs, regionalTotals)
     },
     downloadJson() {
       const output = this.exportTemplate()

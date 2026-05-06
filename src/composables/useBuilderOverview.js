@@ -1,11 +1,11 @@
 import { computed } from 'vue'
 import {
   PROVINCE_YIELD_KEYS,
-  buildProvinceComparisonRows,
   formatCompactNumber,
   formatNumber,
   toNumber,
 } from '../domain/provinceVisualizations'
+import { useCivilizationStore } from '../stores/civilizationStore'
 
 function labelForKey(key) {
   if (!key || key === 'none') return 'None'
@@ -76,18 +76,13 @@ function createRegion(name) {
 }
 
 export function useBuilderOverview(store) {
+  const civStore = useCivilizationStore()
   const country = computed(() => store.currentData?.country || {})
   const countryInfo = computed(() => country.value.basic_info || {})
   const economy = computed(() => country.value.economy || {})
   const provinces = computed(() => store.currentData?.provinces || [])
-  const provinceCalcs = computed(() => store.provinceCalcs)
-  const rows = computed(() => buildProvinceComparisonRows(store.currentData, provinceCalcs.value))
-  const configuredGroups = computed(() => {
-    return (store.currentData?.province_groups || [])
-      .map((group) => (group && typeof group === 'object' ? group.name : group))
-      .map((name) => String(name || '').trim())
-      .filter(Boolean)
-  })
+  const rows = computed(() => civStore.provinceRows)
+  const configuredGroups = computed(() => civStore.configuredGroups)
 
   const countryName = computed(() => countryInfo.value.name || 'Untitled Civilization')
   const provinceCount = computed(() => rows.value.length)

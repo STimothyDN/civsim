@@ -1,3 +1,8 @@
+// Re-export formatters from the canonical source so existing import sites
+// (that import { formatNumber } from '../domain/provinceVisualizations') keep working.
+export { toNumber, formatNumber, formatCompactNumber } from './formatting'
+import { toNumber } from './formatting'
+
 export const PROVINCE_YIELD_KEYS = ['amenities', 'food', 'production', 'gold', 'culture', 'science', 'faith']
 export const COUNTY_YIELD_KEYS = [...PROVINCE_YIELD_KEYS, 'tourism']
 
@@ -49,11 +54,7 @@ const STATUS_FIELDS = [
   ['is_conquered', 'Conquered'],
 ]
 
-export function toNumber(value) {
-  if (value === null || value === undefined || value === '') return 0
-  const number = Number(value)
-  return Number.isFinite(number) ? number : 0
-}
+// toNumber is now imported from domain/formatting.js and re-exported above.
 
 function createNumericMap(source, keys) {
   return keys.reduce((result, key) => {
@@ -248,16 +249,8 @@ export function buildProvinceComparisonRows(data, provinceCalcs = []) {
   })
 }
 
-export function formatNumber(value) {
-  return toNumber(value).toLocaleString(undefined, { maximumFractionDigits: 1 })
-}
-
-export function formatCompactNumber(value) {
-  return toNumber(value).toLocaleString(undefined, {
-    maximumFractionDigits: 1,
-    notation: 'compact',
-  })
-}
+// formatNumber and formatCompactNumber are now imported from
+// domain/formatting.js and re-exported at the top of this file.
 
 function formatLabel(rawKey) {
   return String(rawKey || '')

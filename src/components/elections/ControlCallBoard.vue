@@ -28,7 +28,7 @@
 
 <script>
 import { computed } from 'vue'
-import { formatCompactNumber } from '../../domain/provinceVisualizations'
+import { formatCompactNumber } from '../../domain/formatting'
 import { winnerControlStyle } from '../../domain/elections'
 import PartyBadge from './PartyBadge.vue'
 

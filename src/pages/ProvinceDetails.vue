@@ -229,10 +229,10 @@ import { computed, ref, watch } from 'vue'
 import { ChartNoAxesColumnIncreasing, CheckCheck, FilePlus2, Search, Trophy, X as XIcon } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import { useFormStore } from '../stores/formStore'
+import { useCivilizationStore } from '../stores/civilizationStore'
 import {
   PROVINCE_YIELD_KEYS,
   PROVINCE_VISUALIZATION_MODES,
-  buildProvinceComparisonRows,
   buildProvinceVisualizationOption,
   civicRiskScore,
   countyReadinessScore,
@@ -266,13 +266,14 @@ export default {
   components: { ChartNoAxesColumnIncreasing, CheckCheck, FilePlus2, ProvinceChart, Search, Trophy, XIcon },
   setup() {
     const store = useFormStore()
+    const civStore = useCivilizationStore()
     const selectedMode = ref(PROVINCE_VISUALIZATION_MODES[0].id)
     const selectedIndices = ref([])
     const query = ref('')
     const groupFilter = ref('all')
     const sortMode = ref('provincial-population')
 
-    const rows = computed(() => buildProvinceComparisonRows(store.currentData, store.provinceCalcs))
+    const rows = computed(() => civStore.provinceRows)
     const hasData = computed(() => rows.value.length > 0)
     const modes = PROVINCE_VISUALIZATION_MODES
     const currentMode = computed(() => modes.find((mode) => mode.id === selectedMode.value) || modes[0])

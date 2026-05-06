@@ -1,15 +1,16 @@
 import { computed, watch } from 'vue'
 import { BASELINE_ELECTION_CONFIG, simulateElection } from '../domain/elections'
-import { buildProvinceComparisonRows } from '../domain/provinceVisualizations'
 import { useElectionStore } from '../stores/electionStore'
 import { useFormStore } from '../stores/formStore'
+import { useCivilizationStore } from '../stores/civilizationStore'
 import { generateAllScopeNames } from '../domain/elections/representativeNames'
 
 export function useElectionResults() {
   const store = useFormStore()
+  const civStore = useCivilizationStore()
   const electionStore = useElectionStore()
 
-  const provinceRows = computed(() => buildProvinceComparisonRows(store.currentData, store.provinceCalcs))
+  const provinceRows = computed(() => civStore.provinceRows)
   const hasData = computed(() => provinceRows.value.length > 0)
   const results = computed(() => simulateElection({
     data: store.currentData,

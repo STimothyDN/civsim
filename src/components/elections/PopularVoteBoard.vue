@@ -57,7 +57,7 @@
 <script>
 import { computed } from 'vue'
 import { PARTIES, formatShare } from '../../domain/elections'
-import { formatCompactNumber, formatNumber } from '../../domain/provinceVisualizations'
+import { formatCompactNumber, formatNumber } from '../../domain/formatting'
 import { useFormStore } from '../../stores/formStore'
 import PartyBadge from './PartyBadge.vue'
 

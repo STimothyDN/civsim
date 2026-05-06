@@ -198,6 +198,7 @@ import { useFormStore } from '../stores/formStore'
 import { humanize, getSingularLabel } from '../utils/text'
 import { isObject } from '../utils/object'
 import { groupColor as getGroupColor } from '../domain/colors'
+import { computeRegionalTotals } from '../utils/calculatedFields'
 
 export default {
   name: 'ArraySection',
@@ -244,7 +245,7 @@ export default {
     const groupSummary = computed(() => {
       if (!isProvincesArray.value) return []
       const provs = arr.value
-      const totals = store.regionalTotals
+      const totals = computeRegionalTotals(store.currentData?.provinces, store.provinceCalcs)
       return groups.value.map(g => {
         const groupProvs = provs.filter(p => p.group === g)
         const regionalCap = groupProvs.find(p => p.is_regional_capital)

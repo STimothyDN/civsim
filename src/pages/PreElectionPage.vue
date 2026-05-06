@@ -46,7 +46,7 @@ import { ClipboardList, FilePlus2, RefreshCcw } from 'lucide-vue-next'
 import ElectionPollsCard from '../components/elections/ElectionPollsCard.vue'
 import ElectionScenarioControls from '../components/elections/ElectionScenarioControls.vue'
 import { useElectionResults } from '../composables/useElectionResults'
-import { formatNumber } from '../domain/provinceVisualizations'
+import { formatNumber } from '../domain/formatting'
 import { usePollingStore } from '../stores/pollingStore'
 
 export default {
