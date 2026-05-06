@@ -98,9 +98,8 @@
         <article
           v-for="card in summaryCards"
           :key="card.label"
-          class="election-summary-card"
-          :class="{ 'election-summary-card--winner winner-control-card': card.control }"
-          :style="card.control ? controlCardStyle(card.control) : null"
+          class="election-summary-card election-summary-card--winner winner-control-card"
+          :style="card.control ? controlCardStyle(card.control) : partyWinnerStyle(card.party)"
         >
           <span>{{ card.label }}</span>
           <strong>{{ card.value }}</strong>
@@ -290,7 +289,7 @@ import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/provinceVisualizations'
 import { APPORTIONMENT, PARTIES, THRESHOLDS, formatShare, lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle, winnerControlStyle } from '../domain/elections'
 import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
-import { orderRegionsByReference, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
+import { orderRegionsByReference, partyWinnerStyle, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
 import { usePollingStore } from '../stores/pollingStore'
 import { useElectionStore } from '../stores/electionStore'
 
@@ -491,16 +490,19 @@ export default {
         label: 'Assemblypersons',
         value: formatNumber(results.value.national.assembly.seat_count),
         detail: 'Assembly of the Empire',
+        control: results.value.national.assembly.control,
       },
       {
         label: 'Popular Vote Leader',
         value: store.partyMeta[topParty(results.value.national.assembly.vote_shares)]?.name || topParty(results.value.national.assembly.vote_shares),
         detail: `${formatShare(results.value.national.assembly.vote_shares[topParty(results.value.national.assembly.vote_shares)])} national vote`,
+        party: topParty(results.value.national.assembly.vote_shares),
       },
       {
         label: 'Prelates',
         value: formatNumber(results.value.national.prelates.seat_count),
         detail: 'Council of Prelates',
+        control: results.value.national.prelates.control,
       },
     ])
 
@@ -584,6 +586,7 @@ export default {
     return {
       baselineResults,
       controlCardStyle: (control) => winnerControlStyle(control, store.partyMeta),
+      partyWinnerStyle: (party) => partyWinnerStyle(party, store.partyMeta),
       countryName,
       formatCompactNumber,
       formatNumber,

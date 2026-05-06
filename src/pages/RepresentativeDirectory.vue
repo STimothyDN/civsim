@@ -26,6 +26,16 @@
 
       <section class="directory-filters">
         <div class="filter-group">
+          <label>Search</label>
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="filter-input"
+            placeholder="Search by name or jurisdiction..."
+          />
+        </div>
+
+        <div class="filter-group">
           <label>Group By</label>
           <div class="filter-buttons">
             <button
@@ -37,6 +47,39 @@
               @click="groupBy = option.value"
             >
               {{ option.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Sort By</label>
+          <select v-model="sortBy" class="filter-select">
+            <option value="support">Support</option>
+            <option value="name">Name</option>
+            <option value="party">Party</option>
+            <option value="jurisdiction">Jurisdiction</option>
+            <option value="seat">Seat Number</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Sort Order</label>
+          <div class="filter-buttons">
+            <button
+              type="button"
+              class="filter-btn"
+              :class="{ 'filter-btn--active': sortDirection === 'desc' }"
+              @click="sortDirection = 'desc'"
+            >
+              ↓ Desc
+            </button>
+            <button
+              type="button"
+              class="filter-btn"
+              :class="{ 'filter-btn--active': sortDirection === 'asc' }"
+              @click="sortDirection = 'asc'"
+            >
+              ↑ Asc
             </button>
           </div>
         </div>
@@ -75,6 +118,16 @@
             <option value="prelates">Council (Upper House)</option>
           </select>
         </div>
+
+        <div class="filter-group">
+          <label>Filter Status</label>
+          <select v-model="selectedStatus" class="filter-select">
+            <option value="all">All Statuses</option>
+            <option value="leader">Leaders Only</option>
+            <option value="government">Government Only</option>
+            <option value="opposition">Opposition Only</option>
+          </select>
+        </div>
       </section>
 
       <section class="directory-content">
@@ -101,6 +154,9 @@
                   <th class="col-scope">Scope</th>
                   <th class="col-chamber">Chamber</th>
                   <th class="col-jurisdiction">Jurisdiction</th>
+                  <th class="col-region">Region/Province</th>
+                  <th class="col-seat">Seat #</th>
+                  <th class="col-vote">Vote Share</th>
                   <th class="col-support">Support</th>
                 </tr>
               </thead>
@@ -128,6 +184,9 @@
                     {{ rep.chamberType === 'assembly' ? 'Assembly' : 'Council' }}
                   </td>
                   <td class="col-jurisdiction">{{ rep.jurisdiction }}</td>
+                  <td class="col-region">{{ rep.regionName || rep.provinceName || '-' }}</td>
+                  <td class="col-seat">{{ rep.seatIndex + 1 }}</td>
+                  <td class="col-vote">{{ formatVoteShare(rep.voteShare) }}</td>
                   <td class="col-support">
                     <div class="support-bar-mini">
                       <div class="support-bar-mini-fill" :style="{ width: `${rep.supportMetric}%` }"></div>
@@ -164,14 +223,20 @@ export default {
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
 
     const groupBy = ref('scope')
+    const sortBy = ref('support')
+    const sortDirection = ref('desc')
+    const searchQuery = ref('')
     const selectedScope = ref('all')
     const selectedParty = ref('all')
     const selectedChamber = ref('all')
+    const selectedStatus = ref('all')
 
     const groupOptions = [
       { value: 'scope', label: 'Scope' },
       { value: 'party', label: 'Party' },
-      { value: 'title', label: 'Title' },
+      { value: 'chamber', label: 'Chamber' },
+      { value: 'jurisdiction', label: 'Jurisdiction' },
+      { value: 'status', label: 'Status' },
     ]
 
     const scopeOptions = [
@@ -308,9 +373,30 @@ export default {
 
     // Filter representatives
     const filteredRepresentatives = computed(() => {
+      const query = searchQuery.value.toLowerCase().trim()
       return allRepresentatives.value.filter((rep) => {
+        // Search filter
+        if (query) {
+          const nameMatch = rep.title.toLowerCase().includes(query)
+          const jurisdictionMatch = rep.jurisdiction.toLowerCase().includes(query)
+          const regionMatch = rep.regionName?.toLowerCase().includes(query)
+          const provinceMatch = rep.provinceName?.toLowerCase().includes(query)
+          if (!nameMatch && !jurisdictionMatch && !regionMatch && !provinceMatch) return false
+        }
+
+        // Party filter
         if (selectedParty.value !== 'all' && rep.party !== selectedParty.value) return false
+
+        // Chamber filter
         if (selectedChamber.value !== 'all' && rep.chamberType !== selectedChamber.value) return false
+
+        // Status filter
+        if (selectedStatus.value !== 'all') {
+          if (selectedStatus.value === 'leader' && !rep.isLeader) return false
+          if (selectedStatus.value === 'government' && !rep.isGoverning) return false
+          if (selectedStatus.value === 'opposition' && rep.isGoverning) return false
+        }
+
         return true
       })
     })
@@ -332,9 +418,28 @@ export default {
             key = rep.party
             label = store.partyMeta[rep.party]?.name || rep.party
             break
-          case 'title':
-            key = rep.title.split(' ').slice(1).join(' ') || rep.title
-            label = key || 'Representative'
+          case 'chamber':
+            key = rep.chamberType
+            label = rep.chamberType === 'assembly' ? 'Assembly' : 'Council'
+            break
+          case 'jurisdiction':
+            key = rep.jurisdiction
+            label = rep.jurisdiction
+            break
+          case 'status':
+            if (rep.isLeader && rep.isGoverning) {
+              key = 'government-leader'
+              label = 'Government Leader'
+            } else if (rep.isLeader && !rep.isGoverning) {
+              key = 'opposition-leader'
+              label = 'Opposition Leader'
+            } else if (rep.isGoverning) {
+              key = 'government'
+              label = 'Government Member'
+            } else {
+              key = 'opposition'
+              label = 'Opposition Member'
+            }
             break
           default:
             key = rep.scope
@@ -356,14 +461,47 @@ export default {
         if (groupBy.value === 'party') {
           return b.representatives.length - a.representatives.length
         }
+        if (groupBy.value === 'chamber') {
+          const order = { assembly: 1, prelates: 2 }
+          return order[a.key] - order[b.key]
+        }
+        if (groupBy.value === 'status') {
+          const order = { 'government-leader': 1, 'government': 2, 'opposition-leader': 3, 'opposition': 4 }
+          return order[a.key] - order[b.key]
+        }
         return a.label.localeCompare(b.label)
       }).map((group) => ({
         ...group,
         representatives: group.representatives.sort((a, b) => {
-          // Sort by support (highest first), then by party, then by jurisdiction
-          if (b.supportMetric !== a.supportMetric) {
-            return b.supportMetric - a.supportMetric
+          // Sort based on selected sort option
+          const direction = sortDirection.value === 'asc' ? 1 : -1
+
+          switch (sortBy.value) {
+            case 'support':
+              if (b.supportMetric !== a.supportMetric) {
+                return (a.supportMetric - b.supportMetric) * direction
+              }
+              break
+            case 'name':
+              const nameCompare = a.title.localeCompare(b.title)
+              if (nameCompare !== 0) return nameCompare * direction
+              break
+            case 'party':
+              const partyCompare = a.party.localeCompare(b.party)
+              if (partyCompare !== 0) return partyCompare * direction
+              break
+            case 'jurisdiction':
+              const jurisdictionCompare = a.jurisdiction.localeCompare(b.jurisdiction)
+              if (jurisdictionCompare !== 0) return jurisdictionCompare * direction
+              break
+            case 'seat':
+              if (a.seatIndex !== b.seatIndex) {
+                return (a.seatIndex - b.seatIndex) * direction
+              }
+              break
           }
+
+          // Secondary sort: by party, then by jurisdiction
           if (a.party !== b.party) {
             return a.party.localeCompare(b.party)
           }
@@ -389,14 +527,24 @@ export default {
       return `${safe.toFixed(1)}`
     }
 
+    function formatVoteShare(share) {
+      const safe = num(share)
+      if (!isFinite(safe) || safe < 0) return '0.0%'
+      return `${(safe * 100).toFixed(1)}%`
+    }
+
     return {
       hasData,
       store,
       countryName,
       groupBy,
+      sortBy,
+      sortDirection,
+      searchQuery,
       selectedScope,
       selectedParty,
       selectedChamber,
+      selectedStatus,
       groupOptions,
       scopeOptions,
       parties: PARTIES,
@@ -404,6 +552,7 @@ export default {
       totalRepresentatives,
       scopeLabel,
       formatSupport,
+      formatVoteShare,
     }
   },
 }
@@ -504,6 +653,26 @@ export default {
   color: var(--text-primary);
 }
 
+.filter-input {
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-width: 200px;
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.filter-input::placeholder {
+  color: var(--text-muted);
+}
+
 .filter-select {
   padding: 8px 12px;
   background: var(--bg-input);
@@ -521,6 +690,7 @@ export default {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 20px;
+  overflow-x: auto;
 }
 
 .directory-empty {
@@ -568,6 +738,7 @@ export default {
 
 .directory-table {
   width: 100%;
+  min-width: 1200px;
   border-collapse: collapse;
   font-size: 0.85rem;
 }
@@ -654,6 +825,22 @@ export default {
 
 .col-jurisdiction {
   min-width: 150px;
+  color: var(--text-secondary);
+}
+
+.col-region {
+  min-width: 140px;
+  color: var(--text-secondary);
+}
+
+.col-seat {
+  width: 80px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.col-vote {
+  width: 90px;
   color: var(--text-secondary);
 }
 

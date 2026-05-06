@@ -121,7 +121,7 @@
             <strong>{{ selectedProvince.prelates.control.label }}</strong>
             <small>{{ selectedUpperHouseName }} · {{ formatNumber(sumSeats(selectedProvince.prelates.seats)) }} prelates</small>
           </article>
-          <article class="election-summary-card">
+          <article class="election-summary-card election-summary-card--winner winner-control-card" :style="controlCardStyle(selectedProvince.assembly.control)">
             <span>Counties</span>
             <strong>{{ selectedProvince.counties.length }}</strong>
             <small>{{ formatCompactNumber(selectedProvince.provincial_population) }} allocated</small>
@@ -131,7 +131,7 @@
             <strong>{{ selectedPopularVoteLeaderName }}</strong>
             <small>{{ selectedPopularVoteLeaderShare }} · {{ selectedPopularVoteLeaderVotes }}</small>
           </article>
-          <article class="election-summary-card">
+          <article class="election-summary-card election-summary-card--winner winner-control-card" :style="partyWinnerStyle(topParty(selectedProvince.assembly.vote_shares))">
             <span>Political Climate</span>
             <strong>{{ affectedTrends.length }}</strong>
             <small>active local trends</small>

@@ -102,7 +102,7 @@ function nativeChatResponse(content) {
   const encoder = new TextEncoder()
   const event = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`
   const streamText = [
-    event('chat.start', { model_instance_id: 'qwen/qwen3.5-9b' }),
+    event('chat.start', { model_instance_id: 'liquid/lfm2-24b-a2b' }),
     event('prompt_processing.start', {}),
     event('prompt_processing.progress', { progress: 0.5 }),
     event('prompt_processing.end', {}),
@@ -111,7 +111,7 @@ function nativeChatResponse(content) {
     event('message.end', {}),
     event('chat.end', {
       result: {
-        model_instance_id: 'qwen/qwen3.5-9b',
+        model_instance_id: 'liquid/lfm2-24b-a2b',
         output: [{ type: 'message', content }],
         stats: { input_tokens: 100, total_output_tokens: 30 },
       },

@@ -1,10 +1,11 @@
 import { DEFAULT_VOLATILITY } from './constants/apportionmentRules'
 import { PARTIES, PARTY_META, partyMetaFromConfig } from './constants/parties'
 import { RANDOM_TREND_TEMPLATES, generateTrendPackageFromSelections } from './trends/randomizeTrends'
+import { lowerHouseLeaderTitle, upperHouseLeaderTitle } from './chambers/names'
 
 const DEFAULT_ENDPOINT = 'http://localhost:1234/api/v1/chat'
-const DEFAULT_MODEL = 'qwen/qwen3.5-9b'
-const DEFAULT_CONTEXT_LENGTH = 262144
+const DEFAULT_MODEL = 'liquid/lfm2-24b-a2b'
+const DEFAULT_CONTEXT_LENGTH = 131072
 const MAX_TEMPLATE_DESCRIPTION = 160
 const MAX_TEMPLATE_HOOK = 150
 const MAX_TEMPLATE_BEAT = 90
@@ -530,7 +531,7 @@ function plannerSystemPrompt() {
   return [
     'You are the election-climate planner inside a fictional Civilization-style simulator.',
     'Your job is template selection, not prose writing: map the user narrative to existing trend templates.',
-    'Return ONLY a compact JSON object matching the schema. Do not use markdown, preamble, commentary, hidden reasoning, or <think> blocks.',
+    'Return ONLY a compact JSON object matching the schema. Do not use markdown, preamble, commentary, hidden reasoning, or  blocks.',
     'Make final decisions from the supplied context; never ask the user for more information.',
     'Select 3 to 7 unique template IDs from TREND_TEMPLATES. Prefer 3 to 4 for a narrow narrative and 5 to 7 for a multi-thread crisis.',
     'Include at least one simple template and at least one compound or storyline template when the catalog provides a good fit.',
@@ -603,7 +604,7 @@ function plannerUserPrompt(narrative, data) {
 function climateSummarySystemPrompt() {
   return [
     'You are naming an election climate for a fictional Civilization-style simulator.',
-    'Return ONLY a compact JSON object. No markdown, preamble, commentary, hidden reasoning, or <think> blocks.',
+    'Return ONLY a compact JSON object. No markdown, preamble, commentary, hidden reasoning, or  blocks.',
     'Provide the final scenario name and description immediately. Do not ask for more context or details.',
     'The application has already randomized the trend templates; do not add, remove, rename, or alter trends.',
     'Write a vivid but concise name and one grounded sentence explaining how the fixed trends combine.',
@@ -613,57 +614,61 @@ function climateSummarySystemPrompt() {
 
 function broadcastSystemPrompt(scope = 'national', targetName = null) {
   const scopeMap = {
-    overview: 'Empire-Wide Election Overview Desk',
-    national: 'National Results Desk',
-    regional: `${targetName || 'Regional'} State Broadcasting Service`,
-    provincial: `${targetName || 'Provincial'} Provincial State Broadcast`,
+    overview: 'Empire-Wide Election Night Special',
+    national: 'National Election Center',
+    regional: `${targetName || 'Regional'} Regional News Network`,
+    provincial: `${targetName || 'Provincial'} Local News Center`,
   }
-  const stationName = scopeMap[scope] || 'Khmer State Television'
+  const stationName = scopeMap[scope] || 'Election Night Live'
   const scopeRules = {
-    overview: 'SCOPE: This is the only full-election overview. Consolidate the national board, regions, and notable provinces into one empire-wide top-of-the-hour report.',
-    national: 'SCOPE: Stay focused on national results: imperial chambers, national popular vote, national control, and national trend effects. Use any supplied regional examples only as brief evidence for the national result, never as a region-by-region roundup.',
-    regional: `SCOPE: Stay inside ${targetName || 'this region'}. Write like regional state media serving that region. Discuss only the regional assembly/council and provinces inside this region; do not turn the report into a national roundup.`,
-    provincial: `SCOPE: Stay inside ${targetName || 'this province'}. Write like provincial state media serving this province. Discuss only provincial chambers and counties inside this province; do not turn the report into a regional or national roundup.`,
+    overview: 'SCOPE: This is the only full-election overview. Consolidate the national board, regions, and notable provinces into one empire-wide top-of-the-hour report, like a network election night special.',
+    national: 'SCOPE: Stay focused on national results: imperial chambers, national popular vote, national control, and national trend effects. Use any supplied regional examples only as brief evidence for the national result, never as a region-by-region roundup. Think national network coverage.',
+    regional: `SCOPE: Stay inside ${targetName || 'this region'}. Write like a regional affiliate covering local results for the network. Discuss only the regional assembly/council and provinces inside this region; do not turn the report into a national roundup.`,
+    provincial: `SCOPE: Stay inside ${targetName || 'this province'}. Write like a local station reporting to regional affiliates. Discuss only provincial chambers and counties inside this province; do not turn the report into a regional or national roundup.`,
   }
 
   return [
-    `You are the lead anchor for the ${stationName}.`,
-    'TONE: Professional, authoritative, and analytically sharp; emulate a high-end election night broadcast.',
-    'TASK: Deliver exactly 5 paragraphs that prioritize hard data while maintaining historical consequence.',
+    `You are the lead anchor for ${stationName}, delivering live election night coverage.`,
+    'TONE: Professional broadcast journalism—think CNN, BBC, or major network election night coverage. authoritative but accessible, data-driven but human, urgent but measured.',
+    'TASK: Deliver exactly 5 paragraphs that read like a polished television broadcast script. Weave the data into a compelling narrative story rather than reciting statistics. The numbers should support the story, not be the story.',
     scopeRules[scope] || scopeRules.national,
-    'PROJECTIONS: Use the language of a decision desk (e.g., "We are projecting," "Too close to call," "Seismic shifts in the battlegrounds," "The path to power").',
-    'DATA FIRST: Lead with numbers from the scoped area. Seat counts, control shifts, and popular vote margins must be the foundation of the report.',
-    'STRUCTURE: Paragraph 1 gives the top-of-the-hour overview of what occurred in the scoped area first: the key call, control result, vote movement, and immediate political meaning.',
-    'STRUCTURE: Paragraph 2 gives the scoped math: seats, chamber control, vote shares, and majority thresholds for this area only.',
-    'STRUCTURE: Paragraphs 3 and 4 pull specific examples from the supplied scoped examples, such as decisive provinces, counties, demographic signals, or trend impacts. Keep examples subordinate to the area-wide story.',
-    'STRUCTURE: Paragraph 5 gives the scoped outlook: what this result means for the area now, not a generic empire-wide conclusion unless scope is overview.',
-    'JOURNALISTIC ANALYSIS: Explain why these shifts are occurring based on supplied trends and demographics, but do not speculate outside the data packet.',
-    'Treat polling.aggregate as the latest poll-of-polls expectation; reference the spread to acknowledge uncertainty when relevant.',
-    'Use only supplied facts and numbers; do not invent counties, parties, margins, or quotes.',
-    'Return ONLY the script as five plain-text paragraphs separated by blank lines. No markdown, headings, commentary, hidden reasoning, or <think> blocks.',
+    'BROADCAST STYLE: Use the language and cadence of mainstream election coverage. Phrases like "We can now project," "The numbers are coming in," "A stunning upset in," "This is a developing story," "Let\'s take a look at the board," "The path to victory," "Too close to call," "The battleground state of," "Historic shift underway."',
+    'NARRATIVE FIRST: Tell the story of what this election means for the nation/region/province. Use data as evidence to support your narrative, not as a checklist. Connect the dots between trends, demographics, and results to explain why this outcome happened.',
+    'STRUCTURE: Paragraph 1 is the lead story—the big headline, the major call, the seismic shift, the breaking news that viewers need to know immediately. Hook the audience with what matters.',
+    'STRUCTURE: Paragraph 2 delivers the hard numbers and context—seat counts, chamber control, vote shares, majority thresholds—but frame them as part of the unfolding story, not as a data dump.',
+    'STRUCTURE: Paragraphs 3 and 4 drill down with specific examples: decisive provinces, bellwether counties, demographic breakdowns, trend impacts, and representative names. Use these to illustrate the broader narrative, not to list statistics.',
+    'STRUCTURE: Paragraph 5 is the takeaway and outlook—what this result means for the area going forward, the political landscape, and what to watch next. End with forward-looking analysis.',
+    'JOURNALISTIC ANALYSIS: Explain the "why" behind the numbers using supplied trends, demographics, and representative information. Connect the data to real-world factors without speculation. Make the audience feel they understand the story behind the results.',
+    'HISTORICAL CONTEXT: Use swingPct and strongestSwing to compare current results against the previous election (baselineResults). Frame the narrative: "This represents a shift from the previous election," "Building on the last cycle\'s outcome," "A reversal from the prior mandate," etc.',
+    'POLLING CONTEXT: When polling.aggregate is provided, compare actual results to pre-election expectations. Highlight surprises: "Defying expectations," "Exceeding projections," "Underperforming relative to polls," "The polls missed this shift." This adds drama and shows the election\'s unexpected elements.',
+    'PARTY IDENTITY: Use partyIdentityRules to correctly identify parties. Color labels, party IDs, abbreviations, and formal names are aliases for the same parties. Never treat "Orange Party" and "United Workers Congress" as separate parties if they map to the same identity.',
+    'REPRESENTATIVE REFERENCES: When representatives are provided with personal names, ALWAYS use them. This is critical for authentic election coverage. Examples: "Prime Minister Noeurng Khean from Ostia secures the mandate," "Principal Chancellor Vannak Chan of the National Council gains ground." When only party names are available, reference the party leader by party name. ALWAYS use their exact role title from the data (e.g., "Prime Minister," "Principal Chancellor," "Premier," "Head Chancellor," "Governor," "Chancellor") and include their jurisdiction. Never use generic titles like "Assembly Leader" when specific titles are provided.',
+    'Use only supplied facts and numbers; do not invent counties, parties, margins, quotes, or scenarios.',
+    'Return ONLY the script as five plain-text paragraphs separated by blank lines. No markdown, headings, commentary, hidden reasoning, or  blocks.',
   ].filter(Boolean).join(' ')
 }
 
 function tickerSystemPrompt(scope = 'national', targetName = null) {
   const scopeName = scope === 'overview'
-    ? 'Election Overview'
+    ? 'Election Night Ticker'
     : scope === 'national'
       ? 'National Decision Desk'
       : targetName || scope
   const scopeRules = {
-    overview: 'This is the only all-election ticker; consolidate the national, regional, and provincial picture.',
-    national: 'Stay on national chambers, national vote movement, and national control. Do not summarize the whole regional/provincial map.',
-    regional: `Stay inside ${targetName || 'this region'} and write like regional state media.`,
-    provincial: `Stay inside ${targetName || 'this province'} and write like provincial state media.`,
+    overview: 'This is the only all-election ticker; consolidate the national, regional, and provincial picture like a network chyron.',
+    national: 'Stay on national chambers, national vote movement, and national control. Do not summarize the whole regional/provincial map. Think national ticker.',
+    regional: `Stay inside ${targetName || 'this region'} and write like a regional affiliate ticker feeding into the network.`,
+    provincial: `Stay inside ${targetName || 'this province'} and write like a local station ticker.`,
   }
 
   return [
-    `You are writing one live election ticker paragraph for ${scopeName}.`,
+    `You are writing one live election ticker update for ${scopeName}, like a chyron running on CNN, BBC, or a major network.`,
     'Return exactly one plain-text paragraph, 55 to 85 words.',
     scopeRules[scope] || scopeRules.national,
-    'Lead with the most important control call or vote movement, then explain the main reason using supplied trends and numbers.',
-    'Treat polling.aggregate as the latest poll-of-polls expectation; reference the spread to acknowledge uncertainty when relevant.',
-    'Use hard data, but stay compact enough for an on-page ticker card.',
+    'Lead with the breaking news—the most important control call, vote movement, or projection. Use broadcast language: "BREAKING," "PROJECTED," "CALLED," "LEADERSHIP CHANGES."',
+    'Follow with the key takeaway or reason using supplied trends and numbers. Keep it punchy and viewer-focused.',
+    'Treat polling.aggregate as the pre-election benchmark; reference it to show how results compare to expectations when relevant.',
+    'Use hard data, but stay compact enough for an on-screen ticker or chyron. Think "bottom line" journalism.',
     'Use only supplied facts and numbers; do not invent counties, parties, margins, or quotes.',
     'No markdown, heading, bullets, preamble, hidden reasoning, or <think> blocks.',
   ].join(' ')
@@ -671,18 +676,18 @@ function tickerSystemPrompt(scope = 'national', targetName = null) {
 
 function pollBreakdownSystemPrompt() {
   return [
-    'You are producing a pre-election polling segment for a fictional mainstream political news network.',
+    'You are producing a pre-election polling segment for a mainstream political news network—think CNN, BBC, Fox News, or MSNBC election coverage.',
     'FORMAT: Write exactly 6 plain-text dialogue turns, each as one paragraph beginning with a speaker label such as "HOST:", "POLLING EDITOR:", "DATA ANALYST:", "FIELD ANALYST:", or "CAMPAIGN STRATEGIST:".',
-    'STYLE: This is a polished roundtable of analysts talking through the poll board, not an election-night result call and not a state-media bulletin.',
+    'STYLE: This is a polished roundtable of analysts talking through the poll board on live television. Sound like experienced network analysts—knowledgeable, conversational, data-driven but accessible. Not an election-night result call, not a state-media bulletin.',
     'TIMELINE: The election is upcoming. Treat currentScenario, preElectionStateOfPlay, polling, and allScopePolling as pre-election projections/state of play, never as completed results or incoming returns.',
     'PRIOR ELECTION: Treat priorElectionContext and any priorElection fields as the previous election/reference baseline. Use them only for comparison, not as the election currently happening.',
     'BASELINE SCENARIO: If scenarioContext.isBaselineScenario is true, the current scenario is the neutral baseline state of play for the upcoming election; do not make the segment mostly about the past or about absence of change.',
     'PARTY IDENTITY: Color labels, party IDs, abbreviations, and formal names in partyLegend/partyIdentityRules are aliases for the same parties. Never treat "Orange Party" and "United Workers Congress" as separate parties.',
-    'TASK: Lead with the key takeaways at a high level as the "news of the nation," then turn to polls that may be surprising.',
+    'TASK: Lead with the key takeaways at a high level as the "news of the nation," then turn to polls that may be surprising. Think "top of the hour" polling update.',
     'DATA FIRST: Use preElectionStateOfPlay and allScopePolling to explain the nationwide poll-of-polls picture. Use polling as the current detailed board for individual pollsters, margins of error, spread ranges, projected seats, and house effects.',
     'SURPRISES: Use surprisingPolls and allScopePolling to identify regional or provincial polls that break from the national story, show unusual swings, show close races, or show pollster disagreement.',
     'CONTEXT: Explicitly connect the polling picture to activeTrends, party legend, and scoped result context when explaining why the numbers might look this way.',
-    'IMMERSION: Sound like a television panel already on air. No definitions of the simulator, no tutorial language, no prompt commentary.',
+    'IMMERSION: Sound like a television panel already on air—natural interruptions, follow-up questions, analyst-to-analyst dialogue. No definitions of the simulator, no tutorial language, no prompt commentary.',
     'Use only supplied facts and numbers; do not invent counties, parties, pollsters, margins, or quotes.',
     'Return ONLY the six dialogue paragraphs separated by blank lines. No markdown, headings, bullets, hidden reasoning, or <think> blocks.',
   ].join(' ')
@@ -923,6 +928,9 @@ function chamberContext(chamber = {}, baselineChamber = null, partyMeta = PARTY_
     votePct: chamber?.vote_shares ? voteShareMap(chamber.vote_shares) : null,
     swingPct: baselineChamber?.vote_shares ? getSwings(chamber?.vote_shares, baselineChamber.vote_shares) : null,
     strongestSwing: baselineChamber?.vote_shares ? strongestSwing(chamber?.vote_shares, baselineChamber.vote_shares, partyMeta) : null,
+    leaderParty: chamber?.control?.leaderParty || null,
+    isMinority: Array.isArray(chamber?.control?.supportParties) && chamber.control.supportParties.length > 0,
+    supportParties: chamber?.control?.supportParties || [],
   })
 }
 
@@ -934,6 +942,7 @@ function regionContext(name, region = {}, baselineRegion = null, partyMeta = PAR
     provinces: (region.provinces || []).slice(0, 10),
     assembly: chamberContext(region.assembly, baselineRegion?.assembly, partyMeta),
     council: chamberContext(region.prelates, baselineRegion?.prelates, partyMeta),
+    topProvince: (region.provinces || []).length > 0 ? region.provinces[0] : null,
   })
 }
 
@@ -946,6 +955,7 @@ function provinceResultContext(province = {}, baselineProvince = null, partyMeta
     flags: provinceFlags(province),
     assemblypeople: integerOrNull(province.assemblypeople),
     prelates: integerOrNull(province.prelates?.seat_count),
+    countyCount: integerOrNull(province.counties?.length),
     featureSignals: compactObject({
       urbanization: roundNumber(province.political_features?.urbanization_index, 2),
       industrial: roundNumber(province.political_features?.industrial_index, 2),
@@ -1014,7 +1024,206 @@ function nationalFocusExamples(results = {}, baselineResults = {}, max = 4, part
     .slice(0, max)
 }
 
-function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'national', targetName = null, partyMeta = PARTY_META) {
+function extractImportantRepresentatives(chamber, chamberType, scope, provinces = [], partyMeta = PARTY_META, targetName = null, seatDetails = [], representativeNames = {}) {
+  if (!chamber?.control?.leaderParty) return null
+  
+  const leaderParty = chamber.control.leaderParty
+  const supportParties = chamber.control.supportParties || []
+  
+  // Get proper leader title based on scope and chamber type
+  const leaderTitle = chamberType === 'assembly' 
+    ? lowerHouseLeaderTitle(scope) 
+    : upperHouseLeaderTitle(scope)
+  
+  const representatives = []
+  
+  // Helper to get representative information from seat details
+  const getRepresentativeInfo = (party, isLeader = false) => {
+    const partySeats = seatDetails.filter((s) => s.party === party)
+    if (partySeats.length === 0) return null
+    
+    // For leaders, get the seat with highest support metric
+    const seat = isLeader 
+      ? partySeats.sort((a, b) => (b.supportMetric || 0) - (a.supportMetric || 0))[0]
+      : partySeats[0]
+    
+    if (!seat) return null
+    
+    const key = `${party}_${seat.seatIndex}`
+    const personalName = representativeNames[key] || null
+    
+    return {
+      name: personalName,
+      jurisdiction: seat.jurisdiction,
+      voteShare: seat.voteShare,
+      supportMetric: seat.supportMetric,
+      seatIndex: seat.seatIndex,
+    }
+  }
+  
+  // Add governing party leader with proper title and detailed information
+  const leaderName = partyMeta[leaderParty]?.name || leaderParty
+  const leaderInfo = getRepresentativeInfo(leaderParty, true)
+  representatives.push({
+    role: leaderTitle,
+    party: leaderParty,
+    partyName: leaderName,
+    name: leaderInfo?.name || null,
+    isGoverning: true,
+    isLeader: true,
+    jurisdiction: leaderInfo?.jurisdiction || (targetName || (scope === 'national' ? 'National' : scope === 'regional' ? 'Regional' : 'Provincial')),
+    voteShare: leaderInfo?.voteShare || null,
+    supportMetric: leaderInfo?.supportMetric || null,
+  })
+  
+  // Add support party leaders for minority governments
+  supportParties.forEach((party) => {
+    const partyName = partyMeta[party]?.name || party
+    const supportInfo = getRepresentativeInfo(party, true)
+    representatives.push({
+      role: 'Caucus Leader',
+      party,
+      partyName,
+      name: supportInfo?.name || null,
+      isGoverning: true,
+      isSupport: true,
+      jurisdiction: supportInfo?.jurisdiction || (targetName || (scope === 'national' ? 'National' : scope === 'regional' ? 'Regional' : 'Provincial')),
+      voteShare: supportInfo?.voteShare || null,
+      supportMetric: supportInfo?.supportMetric || null,
+    })
+  })
+  
+  // Add opposition leader (largest non-governing party)
+  const allParties = Object.keys(chamber.seats || {})
+  const oppositionParties = allParties.filter(p => p !== leaderParty && !supportParties.includes(p))
+  if (oppositionParties.length > 0) {
+    const sortedOpposition = oppositionParties.sort((a, b) => (chamber.seats[b] || 0) - (chamber.seats[a] || 0))
+    const oppositionLeaderParty = sortedOpposition[0]
+    const oppositionLeaderName = partyMeta[oppositionLeaderParty]?.name || oppositionLeaderParty
+    const oppositionInfo = getRepresentativeInfo(oppositionLeaderParty, true)
+    representatives.push({
+      role: 'Opposition Leader',
+      party: oppositionLeaderParty,
+      partyName: oppositionLeaderName,
+      name: oppositionInfo?.name || null,
+      isGoverning: false,
+      isOppositionLeader: true,
+      jurisdiction: oppositionInfo?.jurisdiction || (targetName || (scope === 'national' ? 'National' : scope === 'regional' ? 'Regional' : 'Provincial')),
+      voteShare: oppositionInfo?.voteShare || null,
+      supportMetric: oppositionInfo?.supportMetric || null,
+    })
+  }
+  
+  return representatives.length > 0 ? representatives : null
+}
+
+function representativesContext(results = {}, scope = 'national', targetName = null, partyMeta = PARTY_META, seatDetails = [], representativeNames = {}) {
+  const representatives = []
+  
+  if (scope === 'national' || scope === 'overview') {
+    // National assembly representatives
+    const nationalAssemblyReps = extractImportantRepresentatives(
+      results.national?.assembly,
+      'assembly',
+      'national',
+      results.provinces,
+      partyMeta,
+      targetName,
+      seatDetails,
+      representativeNames
+    )
+    if (nationalAssemblyReps) {
+      nationalAssemblyReps.forEach(rep => representatives.push({ ...rep, chamber: 'Assembly', scope: 'National' }))
+    }
+    
+    // National council representatives
+    const nationalCouncilReps = extractImportantRepresentatives(
+      results.national?.prelates,
+      'council',
+      'national',
+      results.provinces,
+      partyMeta,
+      targetName,
+      seatDetails,
+      representativeNames
+    )
+    if (nationalCouncilReps) {
+      nationalCouncilReps.forEach(rep => representatives.push({ ...rep, chamber: 'Council', scope: 'National' }))
+    }
+  }
+  
+  if (scope === 'regional') {
+    const region = results.regions?.[targetName]
+    if (region) {
+      const regionalAssemblyReps = extractImportantRepresentatives(
+        region.assembly,
+        'assembly',
+        'regional',
+        results.provinces,
+        partyMeta,
+        targetName,
+        seatDetails,
+        representativeNames
+      )
+      if (regionalAssemblyReps) {
+        regionalAssemblyReps.forEach(rep => representatives.push({ ...rep, chamber: 'Assembly', scope: 'Regional', region: targetName }))
+      }
+      
+      const regionalCouncilReps = extractImportantRepresentatives(
+        region.prelates,
+        'council',
+        'regional',
+        results.provinces,
+        partyMeta,
+        targetName,
+        seatDetails,
+        representativeNames
+      )
+      if (regionalCouncilReps) {
+        regionalCouncilReps.forEach(rep => representatives.push({ ...rep, chamber: 'Council', scope: 'Regional', region: targetName }))
+      }
+    }
+  }
+  
+  if (scope === 'provincial') {
+    const province = (results.provinces || []).find(p => p.name === targetName)
+    if (province) {
+      const provincialAssemblyReps = extractImportantRepresentatives(
+        province.assembly,
+        'assembly',
+        'provincial',
+        results.provinces,
+        partyMeta,
+        targetName,
+        seatDetails,
+        representativeNames
+      )
+      if (provincialAssemblyReps) {
+        provincialAssemblyReps.forEach(rep => representatives.push({ ...rep, chamber: 'Assembly', scope: 'Provincial', province: targetName }))
+      }
+      
+      const provincialCouncilReps = extractImportantRepresentatives(
+        province.prelates,
+        'council',
+        'provincial',
+        results.provinces,
+        partyMeta,
+        targetName,
+        seatDetails,
+        representativeNames
+      )
+      if (provincialCouncilReps) {
+        provincialCouncilReps.forEach(rep => representatives.push({ ...rep, chamber: 'Council', scope: 'Provincial', province: targetName }))
+      }
+    }
+  }
+  
+  return representatives.length > 0 ? representatives.slice(0, 6) : null
+}
+
+function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'national', targetName = null, partyMeta = PARTY_META, seatDetails = [], representativeNames = {}) {
+  const representatives = representativesContext(results, scope, targetName, partyMeta, seatDetails, representativeNames)
+  
   if (scope === 'overview') {
     return {
       type: 'overview',
@@ -1025,6 +1234,7 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
       }),
       regionalOverview: regionOverview(results, baselineResults, 14, partyMeta),
       provinceHighlights: provinceHighlights(results, baselineResults, 10, partyMeta),
+      representatives,
     }
   }
 
@@ -1041,6 +1251,7 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
       type: 'regional',
       region: regionContext(targetName, region, baselineRegion, partyMeta),
       provinces,
+      representatives,
     }
   }
 
@@ -1056,12 +1267,14 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
       type: 'provincial',
       province: provinceResultContext(province, baselineProvince, partyMeta),
       counties,
+      representatives,
     }
   }
 
   return {
     type: 'national',
     examples: nationalFocusExamples(results, baselineResults, 4, partyMeta),
+    representatives,
   }
 }
 
@@ -1189,7 +1402,7 @@ function allScopePollingContext(pollingScopes = [], baselineResults = {}, partyM
     .filter(Boolean)
 }
 
-function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null) {
+function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null, seatDetails = [], representativeNames = {}) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
   const partyMeta = partyMetaForContext(results)
@@ -1204,7 +1417,15 @@ function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'nation
       regional: `Regional page. Focus only on ${targetName || 'the selected region'} and its provinces.`,
       provincial: `Provincial page. Focus only on ${targetName || 'the selected province'} and its counties.`,
     }[scope] || 'National page.',
+    interpretationRules: [
+      'baselineResults represents the PREVIOUS ELECTION—the last completed election cycle used as a reference point.',
+      'swingPct and strongestSwing fields show how current results compare to the previous election.',
+      'polling.aggregate represents PRE-ELECTION EXPECTATIONS—what polls predicted before voting began.',
+      'Use baseline comparisons to frame the narrative: "This represents a shift from the previous election," "Building on the last cycle\'s outcome," etc.',
+      'Use polling comparisons to highlight surprises: "Defying expectations," "Exceeding projections," "Underperforming relative to polls."',
+    ],
     partyLegend: partyLegend(partyMeta),
+    partyIdentityRules: partyIdentityRules(partyMeta),
     activeTrends: trendSummaries(results.config?.trends || []),
     national: includeNational ? compactObject({
       population: integerOrNull(results.national?.population),
@@ -1212,7 +1433,7 @@ function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'nation
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
     }) : undefined,
     polling: pollingContext(polling),
-    focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
+    focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta, seatDetails, representativeNames),
   })
 }
 
@@ -2213,6 +2434,8 @@ export async function requestElectionBroadcast({
   scope = 'national',
   targetName = null,
   polling = null,
+  seatDetails = [],
+  representativeNames = {},
   endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
   model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
   onStatus,
@@ -2223,14 +2446,26 @@ export async function requestElectionBroadcast({
     message: 'Assembling newsroom packet.',
     detail: 'Collecting control calls, swings, active trends, and local focus data.',
   })
+  
+  const systemPrompt = broadcastSystemPrompt(scope, targetName)
+  const userPrompt = broadcastUserPrompt(results, baselineResults, scope, targetName, polling, seatDetails, representativeNames)
+  
+  console.log('=== ELECTION BROADCAST LLM CONTEXT ===')
+  console.log('Scope:', scope, 'Target:', targetName)
+  console.log('System Prompt:', systemPrompt)
+  console.log('User Prompt:', userPrompt)
+  console.log('Seat Details:', seatDetails)
+  console.log('Representative Names:', representativeNames)
+  console.log('=====================================')
+  
   const content = await requestChatCompletion({
     endpoint,
     model,
     temperature: 0.65,
     max_tokens: 2200,
     messages: [
-      { role: 'system', content: broadcastSystemPrompt(scope, targetName) },
-      { role: 'user', content: broadcastUserPrompt(results, baselineResults, scope, targetName, polling) },
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
     ],
     onStatus,
   })
@@ -2315,28 +2550,6 @@ export async function requestElectionTicker({
   })
 
   return stripThinkBlocks(content).replace(/\s+/g, ' ').trim()
-}
-
-// Representative naming constants and functions
-// Context window is 262144 tokens, so we can use a generous budget for detailed naming
-const REPRESENTATIVE_NAMING_TOKEN_BUDGET = 8000
-
-function representativeNamingSystemPrompt() {
-  return [
-    'You are a Khmer Empire naming historian for a Civilization-style simulator.',
-    'Generate culturally appropriate personal names for elected representatives based on province demographics.',
-    '',
-    'RULES:',
-    '- Return ONLY valid JSON: {"party_seatIndex": "Full Name"}',
-    '- Names must match the demographic profile of each representative\'s province',
-    '- All names must be unique',
-    '- No markdown, commentary, or reasoning blocks',
-    '',
-    'CONTEXT:',
-    'Traditional Khmer names (Given + Surname): Sokha Prak, Bopha Chan, Vannak Kim',
-    'Western-influenced: David Kim, Marcus Lim, Maria Oum',
-    'Names should reflect: core Khmer %, American influence, Roman influence, frontier character, urbanization.',
-  ].join('\n')
 }
 
 function calculateProvinceDemographics(province, allProvinces, countryData) {

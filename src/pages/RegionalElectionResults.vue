@@ -109,7 +109,7 @@
         </div>
 
         <div v-if="selectedRegion" class="election-summary-grid election-summary-grid--tight">
-          <article class="election-summary-card">
+          <article class="election-summary-card election-summary-card--winner winner-control-card" :style="controlCardStyle(selectedRegion.assembly.control)">
             <span>Population</span>
             <strong>{{ formatCompactNumber(selectedRegion.population) }}</strong>
             <small>{{ selectedRegion.province_count }} provinces</small>

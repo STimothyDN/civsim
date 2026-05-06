@@ -73,9 +73,11 @@
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { ArrowRight, FastForward, Radio, X } from 'lucide-vue-next'
 import { useUiStore } from '../../stores/uiStore'
+import { useElectionStore } from '../../stores/electionStore'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { usePolls } from '../../composables/usePolls'
 import { requestElectionBroadcast } from '../../domain/elections/narrativePlanner'
+import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
 import LlmStatusIndicator from './LlmStatusIndicator.vue'
 import { broadcastLlmStatus } from './llmStatusCopy'
 
@@ -84,6 +86,7 @@ export default {
   components: { ArrowRight, FastForward, LlmStatusIndicator, Radio, X },
   setup() {
     const uiStore = useUiStore()
+    const electionStore = useElectionStore()
     const { results, baselineResults } = useElectionResults()
     const { pollingPayloadFor } = usePolls()
 
@@ -124,12 +127,73 @@ export default {
       llmStatus.value = null
 
       try {
+        // Generate seat details based on current scope
+        let seatDetails = []
+        const scope = uiStore.broadcastScope
+        const targetName = uiStore.broadcastTargetName
+        
+        if (scope === 'national' || scope === 'overview') {
+          const assemblyDetails = generateSeatDetails({
+            seats: results.value?.national?.assembly?.seats || {},
+            chamberType: 'assembly',
+            scope: 'national',
+            provinces: results.value?.provinces || [],
+          })
+          const councilDetails = generateSeatDetails({
+            seats: results.value?.national?.prelates?.seats || {},
+            chamberType: 'prelates',
+            scope: 'national',
+            provinces: results.value?.provinces || [],
+          })
+          seatDetails = [...assemblyDetails, ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + 2500 }))]
+        } else if (scope === 'regional') {
+          const region = results.value?.regions?.[targetName]
+          if (region) {
+            const assemblyDetails = generateSeatDetails({
+              seats: region?.assembly?.seats || {},
+              chamberType: 'assembly',
+              scope: 'regional',
+              provinces: results.value?.provinces || [],
+              selectedRegionName: targetName,
+            })
+            const councilDetails = generateSeatDetails({
+              seats: region?.prelates?.seats || {},
+              chamberType: 'prelates',
+              scope: 'regional',
+              provinces: results.value?.provinces || [],
+              selectedRegionName: targetName,
+            })
+            seatDetails = [...assemblyDetails, ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + 7500 }))]
+          }
+        } else if (scope === 'provincial') {
+          const province = (results.value?.provinces || []).find(p => p.name === targetName)
+          if (province) {
+            const assemblyDetails = generateSeatDetails({
+              seats: province?.assembly?.seats || {},
+              chamberType: 'assembly',
+              scope: 'provincial',
+              provinces: results.value?.provinces || [],
+              selectedProvince: province,
+            })
+            const councilDetails = generateSeatDetails({
+              seats: province?.prelates?.seats || {},
+              chamberType: 'prelates',
+              scope: 'provincial',
+              provinces: results.value?.provinces || [],
+              selectedProvince: province,
+            })
+            seatDetails = [...assemblyDetails, ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + 12500 }))]
+          }
+        }
+
         const text = await requestElectionBroadcast({
           results: results.value,
           baselineResults: baselineResults.value,
           scope: uiStore.broadcastScope,
           targetName: uiStore.broadcastTargetName,
           polling: pollingPayloadFor(uiStore.broadcastScope, uiStore.broadcastTargetName),
+          seatDetails,
+          representativeNames: electionStore.representativeNames,
           onStatus: (status) => {
             llmStatus.value = broadcastLlmStatus(status)
           },

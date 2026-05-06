@@ -11,10 +11,10 @@ function mockChatResponse(content) {
   const encoder = new TextEncoder()
   const event = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`
   const streamText = [
-    event('chat.start', { model_instance_id: 'qwen/qwen3.5-9b' }),
-    event('model_load.start', { model_instance_id: 'qwen/qwen3.5-9b' }),
-    event('model_load.progress', { model_instance_id: 'qwen/qwen3.5-9b', progress: 0.65 }),
-    event('model_load.end', { model_instance_id: 'qwen/qwen3.5-9b', load_time_seconds: 1.2 }),
+    event('chat.start', { model_instance_id: 'liquid/lfm2-24b-a2b' }),
+    event('model_load.start', { model_instance_id: 'liquid/lfm2-24b-a2b' }),
+    event('model_load.progress', { model_instance_id: 'liquid/lfm2-24b-a2b', progress: 0.65 }),
+    event('model_load.end', { model_instance_id: 'liquid/lfm2-24b-a2b', load_time_seconds: 1.2 }),
     event('prompt_processing.start', {}),
     event('prompt_processing.progress', { progress: 0.5 }),
     event('prompt_processing.end', {}),
@@ -23,7 +23,7 @@ function mockChatResponse(content) {
     event('message.end', {}),
     event('chat.end', {
       result: {
-        model_instance_id: 'qwen/qwen3.5-9b',
+        model_instance_id: 'liquid/lfm2-24b-a2b',
         output: [{ type: 'message', content }],
         stats: {
           input_tokens: 120,
@@ -210,16 +210,16 @@ describe('narrativePlanner LLM prompts', () => {
       narrative: 'A rail boom is helping the imperial center.',
       data: sampleWorld(),
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     const body = lastRequestBody()
     const userPayload = JSON.parse(body.input)
     const railTemplate = userPayload.TREND_TEMPLATES.find((template) => template.id === 'rail-opening')
 
-    expect(body.model).toBe('qwen/qwen3.5-9b')
+    expect(body.model).toBe('liquid/lfm2-24b-a2b')
     expect(body.max_output_tokens).toBe(1700)
-    expect(body.context_length).toBe(262144)
+    expect(body.context_length).toBe(131072)
     expect(body.stream).toBe(true)
     expect(body.store).toBe(false)
     expect(userPayload.CURRENT_WORLD.country).toMatchObject({ name: 'Khmer Empire', leader: 'Jayavarman VII' })
@@ -279,7 +279,7 @@ describe('narrativePlanner LLM prompts', () => {
       narrative: 'A canal guild revolt is affecting toll counties.',
       data: sampleWorld(),
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     expect(packageDef.trends).toHaveLength(1)
@@ -314,7 +314,7 @@ describe('narrativePlanner LLM prompts', () => {
       seed: 'scenario-test',
       data: sampleWorld(),
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     const body = lastRequestBody()
@@ -334,7 +334,7 @@ describe('narrativePlanner LLM prompts', () => {
       baselineResults: sampleBaselineResults(),
       scope: 'national',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     const body = lastRequestBody()
@@ -361,7 +361,7 @@ describe('narrativePlanner LLM prompts', () => {
       scope: 'regional',
       targetName: 'Capital Region',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     const body = lastRequestBody()
@@ -406,7 +406,7 @@ describe('narrativePlanner LLM prompts', () => {
       scope: 'national',
       polling,
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     let body = lastRequestBody()
@@ -433,7 +433,7 @@ describe('narrativePlanner LLM prompts', () => {
       scope: 'national',
       polling,
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     body = lastRequestBody()
@@ -505,7 +505,7 @@ describe('narrativePlanner LLM prompts', () => {
       polling,
       pollingScopes: [polling, regionalPolling],
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     const body = lastRequestBody()
@@ -602,7 +602,7 @@ describe('narrativePlanner LLM prompts', () => {
       polling,
       pollingScopes: [polling],
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     const body = lastRequestBody()
@@ -630,7 +630,7 @@ describe('narrativePlanner LLM prompts', () => {
       scope: 'provincial',
       targetName: 'Angkor Thom',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     const body = lastRequestBody()
@@ -656,7 +656,7 @@ describe('narrativePlanner LLM prompts', () => {
       baselineResults: sampleBaselineResults(),
       scope: 'national',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     expect(broadcastText).not.toContain('<think>')
@@ -671,7 +671,7 @@ describe('narrativePlanner LLM prompts', () => {
       baselineResults: sampleBaselineResults(),
       scope: 'national',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     expect(tickerText).not.toContain('<think>')
@@ -684,14 +684,14 @@ describe('narrativePlanner LLM prompts', () => {
     const corruptBlock = 'event: message\ndata: not-valid-json\n\n'
     const goodEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`
     const streamText = [
-      goodEvent('chat.start', { model_instance_id: 'qwen/qwen3.5-9b' }),
+      goodEvent('chat.start', { model_instance_id: 'liquid/lfm2-24b-a2b' }),
       corruptBlock,
       goodEvent('message.start', {}),
       goodEvent('message.delta', { content: 'Divinus Sol projected.' }),
       goodEvent('message.end', {}),
       goodEvent('chat.end', {
         result: {
-          model_instance_id: 'qwen/qwen3.5-9b',
+          model_instance_id: 'liquid/lfm2-24b-a2b',
           output: [{ type: 'message', content: 'Divinus Sol projected.' }],
           stats: { input_tokens: 50, total_output_tokens: 10 },
         },
@@ -714,7 +714,7 @@ describe('narrativePlanner LLM prompts', () => {
       baselineResults: sampleBaselineResults(),
       scope: 'national',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
     })
 
     expect(text).toBe('Divinus Sol projected.')
@@ -729,7 +729,7 @@ describe('narrativePlanner LLM prompts', () => {
       baselineResults: sampleBaselineResults(),
       scope: 'overview',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'qwen/qwen3.5-9b',
+      model: 'liquid/lfm2-24b-a2b',
       onStatus: (status) => statuses.push(status),
     })
 
