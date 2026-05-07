@@ -13,7 +13,7 @@
         <span>County Prelate</span>
         <strong>
           <template v-if="prelateName">
-            Prelate {{ prelateName }}
+            {{ representativeTitle }} {{ prelateName }}
             <IncumbencyBadge
               v-if="prelateSeat"
               :party="prelateSeat.party"
@@ -108,6 +108,41 @@ export default {
       )
     })
 
+    const partyAllSeats = computed(() =>
+      !winningParty.value ? [] :
+      councilSeatDetails.value.filter(s => s.party === winningParty.value)
+    )
+
+    const partyLeaderSeat = computed(() => {
+      if (!partyAllSeats.value.length) return null
+      return [...partyAllSeats.value].sort((a, b) => b.supportMetric - a.supportMetric)[0]
+    })
+
+    const isLeaderSeat = computed(() =>
+      !!(prelateSeat.value && partyLeaderSeat.value &&
+         prelateSeat.value.seatIndex === partyLeaderSeat.value.seatIndex)
+    )
+
+    const representativeTitle = computed(() => {
+      if (!prelateSeat.value || !isLeaderSeat.value) return 'Prelate'
+
+      const control = province.value?.prelates?.control
+      const party = winningParty.value
+      if (!control) return 'Caucus Leader'
+
+      if (party === control.leaderParty) return 'Chancellor'
+
+      const governingParties = new Set([control.leaderParty, ...(control.supportParties || [])])
+      const nonGovPartiesBySeats = Object.entries(
+        councilSeatDetails.value
+          .filter(s => !governingParties.has(s.party))
+          .reduce((acc, s) => { acc[s.party] = (acc[s.party] || 0) + 1; return acc }, {})
+      ).sort((a, b) => b[1] - a[1])
+
+      if (nonGovPartiesBySeats[0]?.[0] === party) return 'Opposition Leader'
+      return 'Caucus Leader'
+    })
+
     function formatShareValue(value) {
       const num = Number(value)
       if (!Number.isFinite(num)) return '—'
@@ -121,6 +156,7 @@ export default {
       prelateCardStyle,
       prelateSeat,
       prelateName,
+      representativeTitle,
       partyMeta,
       controlCardStyle,
       formatShareValue,
