@@ -15,6 +15,8 @@ const MAX_WORLD_PROVINCES = 24
 const MAX_GROUP_SUMMARIES = 16
 const MAX_TOP_CONTEXT_VALUES = 8
 const CLIMATE_SUMMARY_TOKEN_BUDGETS = [480, 900]
+const NARRATIVE_PLAN_TOKEN_BUDGETS = [2500, 3500]
+const REPRESENTATIVE_NAMING_TOKEN_BUDGET = 2000
 const MAX_CUSTOM_TRENDS = 3
 const MAX_CUSTOM_EFFECTS = 4
 const CUSTOM_EFFECT_LEVELS = ['national', 'province', 'county']
@@ -146,6 +148,8 @@ function stripThinkBlocks(text) {
   return String(text || '')
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+    .replace(/<\|tool_call_start\|>[\s\S]*?<\|tool_call_end\|>/gi, '')
+    .replace(/<\|tool_call\|>[\s\S]*?<\|\/tool_call\|>/gi, '')
     .trim()
 }
 
@@ -531,7 +535,8 @@ function plannerSystemPrompt() {
   return [
     'You are the election-climate planner inside a fictional Civilization-style simulator.',
     'Your job is template selection, not prose writing: map the user narrative to existing trend templates.',
-    'Return ONLY a compact JSON object matching the schema. Do not use markdown, preamble, commentary, hidden reasoning, or  blocks.',
+    'YOUR ENTIRE RESPONSE MUST BE A SINGLE RAW JSON OBJECT — nothing before the opening { and nothing after the closing }.',
+    'DO NOT call any tools or functions. DO NOT use tool call syntax, XML tags, code fences, markdown, preamble, or reasoning blocks. Just the JSON object.',
     'Make final decisions from the supplied context; never ask the user for more information.',
     'Select 3 to 7 unique template IDs from TREND_TEMPLATES. Prefer 3 to 4 for a narrow narrative and 5 to 7 for a multi-thread crisis.',
     'Include at least one simple template and at least one compound or storyline template when the catalog provides a good fit.',
@@ -546,14 +551,27 @@ function plannerSystemPrompt() {
 function plannerUserPrompt(narrative, data) {
   const partyMeta = partyMetaForContext(data)
   return JSON.stringify({
-    task: 'Select trend templates and election jitter settings for this desired election narrative.',
+    task: 'Select trend templates and election jitter settings for the USER_NARRATIVE below. YOUR RESPONSE MUST BE ONLY a raw JSON object shaped exactly like exampleOutput — same field names, same structure, nothing else.',
     rules: [
       'Use only templateId values present in TREND_TEMPLATES.',
       'Keep reasons under 16 words each.',
       'Use seedHint as lowercase kebab-case with no dates.',
       'If unsure, choose lower intensity and default volatility.',
     ],
-    outputSchema: {
+    exampleOutput: {
+      title: 'Harvest Crisis',
+      summary: 'Soaring bread prices fuel economic anxiety and incumbent backlash, benefiting opposition parties promising relief.',
+      selections: [
+        { templateId: 'bread-price-relief', intensity: 0.72, reason: 'Core driver — food prices dominate voter concern' },
+        { templateId: 'tax-fatigue', intensity: 0.45, reason: 'Amplifies anti-incumbent fiscal resentment' },
+      ],
+      jitter: {
+        seedHint: 'harvest-crisis',
+        volatility: { national: 0.06, region: 0.1, province: 0.14, county: 0.22 },
+      },
+      customTrends: [],
+    },
+    requiredOutputFormat: {
       title: 'short scenario title',
       summary: 'one sentence explaining how the chosen trends tell the story',
       selections: [
@@ -604,7 +622,8 @@ function plannerUserPrompt(narrative, data) {
 function climateSummarySystemPrompt() {
   return [
     'You are naming an election climate for a fictional Civilization-style simulator.',
-    'Return ONLY a compact JSON object. No markdown, preamble, commentary, hidden reasoning, or  blocks.',
+    'YOUR ENTIRE RESPONSE MUST BE A SINGLE RAW JSON OBJECT — nothing before the opening { and nothing after the closing }.',
+    'DO NOT call any tools or functions. DO NOT use tool call syntax, XML tags, code fences, markdown, preamble, or reasoning blocks. Just the JSON object.',
     'Provide the final scenario name and description immediately. Do not ask for more context or details.',
     'The application has already randomized the trend templates; do not add, remove, rename, or alter trends.',
     'Write a vivid but concise name and one grounded sentence explaining how the fixed trends combine.',
@@ -1712,8 +1731,8 @@ function pollBreakdownUserPrompt(results = {}, baselineResults = {}, polling = n
 function climateSummaryUserPrompt({ trends, seed, data }) {
   const partyMeta = partyMetaForContext(data)
   return JSON.stringify({
-    task: 'Create a scenario name and description for this randomized election climate.',
-    outputSchema: {
+    task: 'Create a scenario name and description for this randomized election climate. Respond with ONLY a raw JSON object — no tool calls, no function calls, no extra text.',
+    requiredOutputFormat: {
       scenarioName: 'short scenario name, 3 to 7 words',
       scenarioDescription: 'one sentence describing how the randomized trends combine into an election climate',
     },
@@ -1740,7 +1759,7 @@ function chatContentToText(content) {
 function extractJsonObject(rawText) {
   if (rawText && typeof rawText === 'object' && !Array.isArray(rawText)) return rawText
 
-  const text = chatContentToText(rawText).trim()
+  const text = stripThinkBlocks(chatContentToText(rawText)).trim()
   if (!text) throw new ModelOutputError('The model returned an empty response.', 'empty')
 
   // Try parsing directly first
@@ -1774,7 +1793,11 @@ function extractJsonObject(rawText) {
       }
     }
     
-    throw new ModelOutputError(`Could not find a valid JSON object in model output.`, 'no-json')
+    if (import.meta.env.DEV) console.warn('[narrativePlanner] no-json model output:', text)
+    throw new ModelOutputError(
+      `Could not find a valid JSON object in model output. Output started: ${text.slice(0, 120)}`,
+      'no-json',
+    )
   }
 }
 
@@ -2499,23 +2522,56 @@ export async function requestElectionNarrativePlan({
     message: 'Building election narrative context.',
     detail: 'Packing world data, party legend, trend catalog, and custom trend grammar.',
   })
-  const content = await requestChatCompletion({
-    endpoint,
-    model,
-    temperature: 0.35,
-    max_tokens: 1700,
-    messages: [
-      { role: 'system', content: plannerSystemPrompt() },
-      { role: 'user', content: plannerUserPrompt(narrative, data) },
-    ],
-    onStatus,
-  })
-  emitLlmStatus(onStatus, {
-    phase: 'parsing',
-    progress: 0.82,
-    message: 'Parsing narrative plan.',
-    detail: 'Checking JSON, template selections, volatility, and generated custom trends.',
-  })
+
+  const messages = [
+    { role: 'system', content: plannerSystemPrompt() },
+    { role: 'user', content: plannerUserPrompt(narrative, data) },
+  ]
+
+  if (import.meta.env.DEV) {
+    console.log('=== ELECTION NARRATIVE PLANNER LLM CONTEXT ===')
+    console.log('System Prompt:', messages[0].content)
+    console.log('User Prompt:', messages[1].content)
+    console.log('===============================================')
+  }
+
+  let lastError = null
+  let content = null
+
+  for (const max_tokens of NARRATIVE_PLAN_TOKEN_BUDGETS) {
+    try {
+      content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.35,
+        max_tokens,
+        messages,
+        onStatus,
+      })
+
+      if (import.meta.env.DEV) {
+        console.log('=== NARRATIVE PLANNER RAW OUTPUT ===')
+        console.log(content)
+        console.log('====================================')
+      }
+
+      emitLlmStatus(onStatus, {
+        phase: 'parsing',
+        progress: 0.82,
+        message: 'Parsing narrative plan.',
+        detail: 'Checking JSON, template selections, volatility, and generated custom trends.',
+      })
+
+      break
+    } catch (error) {
+      lastError = error
+      const retryable = ['length', 'empty']
+      if (!retryable.includes(error.code)) throw error
+    }
+  }
+
+  if (!content) throw lastError || new Error('Narrative plan could not be generated.')
+
   const plan = extractJsonObject(content)
   const seed = seedFromPlan(plan, narrative)
   emitLlmStatus(onStatus, {

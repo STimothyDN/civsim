@@ -197,7 +197,7 @@ export function partyColorsFromConfig(value = {}) {
 }
 
 export const PARTY_FLOORS = {
-  yellow: 0.08,
+  yellow: 0.07,
   orange: 0.08,
   red: 0.08,
   blue: 0.08,

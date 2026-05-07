@@ -146,7 +146,7 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
   const americanIdentityIndex = groupIncludes(province, 'American') || textIncludes(origin, 'American') || textIncludes(origin, 'United States') ? 1 : 0
   const romanIdentityIndex = groupIncludes(province, 'Roman') || textIncludes(origin, 'Roman') ? 1 : 0
   const connectivity = provinceConnectivity(province)
-  const sameContinentIndex = (province?.continent && country?.national_capital_continent && province.continent === country.national_capital_continent) ? 1 : 0
+  const sameContinentIndex = (province?.continent && country?.national_capital_continent && province.continent === country.national_capital_continent && province?.is_founded) ? 1 : 0
 
   // Calculate economic diversity index based on yield variation
   const yieldValues = [

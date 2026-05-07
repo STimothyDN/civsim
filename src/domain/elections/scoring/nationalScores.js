@@ -8,17 +8,17 @@ function f(features, key) {
 export function calculateNationalPartyScores(nationalFeatures) {
   return {
     yellow:
-      0.055 +
-      0.2 * f(nationalFeatures, 'imperial_core_index') +
-      0.18 * f(nationalFeatures, 'culture_index') +
-      0.14 * f(nationalFeatures, 'science_index') +
-      0.1 * f(nationalFeatures, 'state_religion_share') +
+      0.056 +
+      0.18 * f(nationalFeatures, 'imperial_core_index') +
+      0.16 * f(nationalFeatures, 'culture_index') +
+      0.125 * f(nationalFeatures, 'science_index') +
+      0.09 * f(nationalFeatures, 'state_religion_share') +
       0.08 * f(nationalFeatures, 'development_index') +
       0.07 * f(nationalFeatures, 'provincial_power_index') +
       0.05 * f(nationalFeatures, 'religious_homogeneity_index') +
       0.04 * f(nationalFeatures, 'civic_monument_index') +
       0.03 * f(nationalFeatures, 'residential_index') +
-      0.08 * f(nationalFeatures, 'loyalty_index'),
+      0.075 * f(nationalFeatures, 'loyalty_index'),
 
     orange:
       0.12 +
@@ -59,6 +59,8 @@ export function calculateNationalPartyScores(nationalFeatures) {
       PARTY_FLOORS.white -
       0.005 +
       0.28 * f(nationalFeatures, 'american_identity_index') +
+      0.04 * f(nationalFeatures, 'urbanization_index') +
+      0.03 * f(nationalFeatures, 'commerce_index') +
       0.03 * f(nationalFeatures, 'localist_index') +
       0.01 * f(nationalFeatures, 'maritime_index') +
       0.008 * f(nationalFeatures, 'wilderness_index'),
@@ -70,6 +72,7 @@ export function calculateNationalPartyScores(nationalFeatures) {
       0.16 * f(nationalFeatures, 'restorationist_index') +
       0.1 * f(nationalFeatures, 'spiritual_index') +
       0.1 * f(nationalFeatures, 'roman_identity_index') +
+      0.04 * f(nationalFeatures, 'urbanization_index') +
       0.018 * f(nationalFeatures, 'wilderness_index') +
       0.015 * f(nationalFeatures, 'mountain_index'),
 

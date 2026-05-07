@@ -35,6 +35,8 @@ export function calculateProvincePartyScores(province) {
     0.005 +
     0.025 * f(province, 'commerce_index') +
     0.02 * f(province, 'localist_index') +
+    0.025 * f(province, 'urbanization_index') +
+    0.02 * f(province, 'connectedness_index') +
     0.015 * conqueredPenalty +
     0.015 * maritimeIndex +
     0.015 * wildernessIndex +
@@ -47,6 +49,8 @@ export function calculateProvincePartyScores(province) {
     0.045 * f(province, 'spiritual_index') +
     0.04 * f(province, 'faith_index') +
     0.03 * f(province, 'minority_religion_share') +
+    0.025 * f(province, 'urbanization_index') +
+    0.02 * f(province, 'connectedness_index') +
     0.025 * f(province, 'restorationist_index') +
     0.025 * wildernessIndex +
     0.015 * mountainIndex +
@@ -76,24 +80,24 @@ export function calculateProvincePartyScores(province) {
 
   return {
     yellow:
-      0.055 +
-      0.26 * f(province, 'imperial_core_index') +
-      0.18 * f(province, 'cultural_elite_index') +
-      0.14 * f(province, 'state_religion_share') +
-      0.11 * f(province, 'science_index') +
-      0.11 * f(province, 'culture_index') +
+      0.056 +
+      0.235 * f(province, 'imperial_core_index') +
+      0.165 * f(province, 'cultural_elite_index') +
+      0.125 * f(province, 'state_religion_share') +
+      0.10 * f(province, 'science_index') +
+      0.10 * f(province, 'culture_index') +
       0.08 * f(province, 'development_index') +
       0.07 * f(province, 'provincial_power_index') +
-      0.09 * f(province, 'loyalty_index') +
+      0.08 * f(province, 'loyalty_index') +
       0.05 * f(province, 'religious_homogeneity_index') +
       0.05 * civicMonumentIndex +
       0.03 * residentialIndex +
       0.04 * connectednessIndex +
       0.04 * sameContinentIndex -
-      0.2 * conqueredPenalty -
-      0.1 * f(province, 'localist_index') -
-      0.08 * foreignOriginIndex -
-      0.04 * frontierIndex,
+      0.215 * conqueredPenalty -
+      0.11 * f(province, 'localist_index') -
+      0.09 * foreignOriginIndex -
+      0.05 * frontierIndex,
 
     orange:
       0.12 +

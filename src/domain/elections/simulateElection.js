@@ -137,7 +137,7 @@ function calculateProvinceAssembly(province, counties, config) {
   }
 }
 
-function calculateProvincePrelates(province, counties, config) {
+function calculateProvincePrelates(province, counties, config, priorControl = null) {
   const voteShares = weightedVoteShares(
     counties,
     (county) => county.county_population,
@@ -150,11 +150,11 @@ function calculateProvincePrelates(province, counties, config) {
   return {
     vote_shares: voteShares,
     seats,
-    control: determineHouseControl(seats, config.trends, config.partyNames),
+    control: determineHouseControl(seats, config.trends, config.partyNames, priorControl),
   }
 }
 
-function calculateProvincePrelatesCouncil(counties, config) {
+function calculateProvincePrelatesCouncil(counties, config, priorControl = null) {
   const seats = createEmptySeats()
   counties.forEach((county) => {
     if (num(county.county_population) <= 0) return
@@ -181,7 +181,7 @@ function calculateProvincePrelatesCouncil(counties, config) {
   return {
     vote_shares: voteShares,
     seats,
-    control: determineHouseControl(seats, config.trends, config.partyNames),
+    control: determineHouseControl(seats, config.trends, config.partyNames, priorControl),
   }
 }
 
@@ -270,8 +270,8 @@ function buildProvinceResult(data, row, config, rowsByName = new Map()) {
   const assembly = calculateProvinceAssembly(province, counties, provinceConfig)
   const usesCountyCouncil = counties.length > 20
   const prelates = usesCountyCouncil
-    ? calculateProvincePrelatesCouncil(counties, config)
-    : calculateProvincePrelates(province, counties, config)
+    ? calculateProvincePrelatesCouncil(counties, config, assembly.control)
+    : calculateProvincePrelates(province, counties, config, assembly.control)
   const prelateSeatCount = usesCountyCouncil
     ? counties.filter((county) => num(county.county_population) > 0).length
     : province.prelates
@@ -371,7 +371,7 @@ function aggregateRegions(provinces) {
 function addRegionControls(regions, trends, partyNames) {
   Object.values(regions).forEach((region) => {
     region.assembly.control = determineHouseControl(region.assembly.seats, trends, partyNames)
-    region.prelates.control = determineHouseControl(region.prelates.seats, trends, partyNames)
+    region.prelates.control = determineHouseControl(region.prelates.seats, trends, partyNames, region.assembly.control)
     region.dominant_party = region.assembly.control.leaderParty
   })
   return regions
@@ -418,7 +418,7 @@ function calculateNational(provinces, config) {
     },
     prelates: {
       seats: prelateSeats,
-      control: determineHouseControl(prelateSeats, config.trends, config.partyNames),
+      control: determineHouseControl(prelateSeats, config.trends, config.partyNames, determineHouseControl(assemblySeats, config.trends, config.partyNames)),
       seat_count: prelateSeatCount,
     },
   }

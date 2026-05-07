@@ -36,8 +36,8 @@ export function calculateCountyPartyScores(county, province) {
   const whiteDiasporaScore =
     PARTY_FLOORS.white -
     0.005 +
-    0.03 * f(county, 'commercial_index') +
-    0.022 * f(county, 'urban_index') +
+    0.035 * f(county, 'commercial_index') +
+    0.025 * f(county, 'urban_index') +
     0.018 * localistIndex +
     0.013 * maritimeIndex +
     0.013 * wildernessIndex
@@ -47,6 +47,8 @@ export function calculateCountyPartyScores(county, province) {
     0.055 * f(county, 'spiritual_index') +
     0.04 * f(county, 'faith_index') +
     0.03 * religiousMinorityIndex +
+    0.02 * f(county, 'urban_index') +
+    0.015 * f(county, 'commercial_index') +
     0.025 * f(county, 'restorationist_index') +
     0.025 * wildernessIndex +
     0.015 * mountainIndex
@@ -77,9 +79,9 @@ export function calculateCountyPartyScores(county, province) {
   return {
     yellow:
       PARTY_FLOORS.yellow -
-      0.03 +
-      0.18 * imperialCore +
-      0.16 * f(county, 'cultural_elite_index') +
+      0.025 +
+      0.165 * imperialCore +
+      0.145 * f(county, 'cultural_elite_index') +
       0.12 * f(county, 'intellectual_index') +
       0.09 * f(county, 'infrastructure_index') +
       0.08 * f(county, 'improved_status_index') +
@@ -87,9 +89,9 @@ export function calculateCountyPartyScores(county, province) {
       0.05 * f(county, 'religious_homogeneity_index') +
       0.05 * civicMonumentIndex +
       0.04 * residentialIndex +
-      0.05 * loyaltyIndex -
-      0.18 * conqueredPenalty -
-      0.08 * localistIndex,
+      0.048 * loyaltyIndex -
+      0.19 * conqueredPenalty -
+      0.09 * localistIndex,
 
     orange:
       PARTY_FLOORS.orange +
