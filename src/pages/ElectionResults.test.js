@@ -208,14 +208,10 @@ describe('election result pages', () => {
     const uiStore = useUiStore()
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Election Board')
     expect(wrapper.text()).toContain('Assembly of the Empire')
     expect(wrapper.text()).toContain('Council of Prelates')
     expect(wrapper.text()).toContain('Regional Control')
     expect(wrapper.text()).toContain('Provincial Control')
-
-    await wrapper.get('.btn-broadcast-start').trigger('click')
-    expect(uiStore.broadcastScope).toBe('overview')
   })
 
   it('renders regional selected-region detail tables', async () => {

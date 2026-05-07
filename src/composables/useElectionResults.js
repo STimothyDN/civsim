@@ -22,6 +22,11 @@ export function useElectionResults() {
     provinceRows: provinceRows.value,
     electionConfig: BASELINE_ELECTION_CONFIG,
   }))
+  const previousElectionResults = computed(() => {
+    const config = electionStore.previousElectionConfig
+    if (!config) return simulateElection({ data: store.currentData, provinceRows: provinceRows.value, electionConfig: BASELINE_ELECTION_CONFIG })
+    return simulateElection({ data: store.currentData, provinceRows: provinceRows.value, electionConfig: config })
+  })
 
   // Generate all representative names when results change
   watch(
@@ -35,8 +40,10 @@ export function useElectionResults() {
 
   return {
     baselineResults,
+    previousElectionResults,
     electionStore,
     hasData,
+    partyMeta: computed(() => civStore.partyMeta),
     provinceRows,
     results,
     store,

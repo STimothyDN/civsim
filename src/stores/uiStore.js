@@ -9,6 +9,9 @@ export const useUiStore = defineStore('ui', {
     pollBreakdownModalOpen: false,
     broadcastScope: 'national',
     broadcastTargetName: null,
+    currentPageScope: 'overview',
+    currentPageTargetName: null,
+    highlightedParty: null,
   }),
   actions: {
     showToast(message, type = 'info') {
@@ -34,6 +37,16 @@ export const useUiStore = defineStore('ui', {
     },
     closePollBreakdownModal() {
       this.pollBreakdownModalOpen = false
+    },
+    setPageContext(scope, targetName = null) {
+      this.currentPageScope = scope
+      this.currentPageTargetName = targetName
+    },
+    setHighlightedParty(party) {
+      this.highlightedParty = this.highlightedParty === party ? null : party
+    },
+    clearHighlightedParty() {
+      this.highlightedParty = null
     },
   },
 })

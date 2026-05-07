@@ -583,6 +583,7 @@ export function generateSeatDetails({
         voteShare,
         supportMetric,
         seatIndex,
+        withinPartyIndex: i,
       })
 
       seatIndex += 1

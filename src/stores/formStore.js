@@ -159,6 +159,7 @@ export const useFormStore = defineStore('form', {
       void state._recalcVersion
       return getMemoizedUniqueValue('greatWorks', () => collectUniqueCountyKeys(state.currentData, 'improvement.great_works'))
     },
+    /** @deprecated Use civilizationStore.partyMeta instead. Kept for backward compatibility. */
     partyMeta(state) {
       void state._recalcVersion
       return partyMetaFromConfig(state.currentData?.election_parties)

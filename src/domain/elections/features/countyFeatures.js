@@ -1,12 +1,16 @@
 import { clamp01, countTrue, hasAnyFeature, norm, num } from '../normalization/numbers'
 import { NORMALIZATION_MAX, coefficientOfVariation } from '../normalization/dataStats'
 
+// Distance scaling constants - creates drastic effect where remote areas have fundamentally different character
+const MAX_COUNTY_DISTANCE = 5
+const COUNTY_DISTANCE_EXPONENT = 2.5
+
 const FOOD_RESOURCES = ['Rice', 'Wheat', 'Maize', 'Bananas']
 const STRATEGIC_RESOURCES = ['Iron', 'Coal', 'Oil', 'Uranium', 'Niter', 'Aluminum']
 const MARITIME_IMPROVEMENTS = ['Harbor', 'Fishing Boats', 'Seastead', 'Offshore Wind Farm']
 const EXTRACTIVE_IMPROVEMENTS = ['Mine', 'Quarry', 'Camp', 'Oil Well', 'Offshore Oil Rig']
 const RESIDENTIAL_IMPROVEMENTS = ['City Center', 'Neighborhood']
-const LEISURE_TOURISM_IMPROVEMENTS = ['National Park', 'Preserve', 'Entertainment Complex', 'Water Park', 'Estadio do Maracana']
+const LEISURE_TOURISM_IMPROVEMENTS = ['National Park', 'Preserve', 'Entertainment Complex', 'Water Park', 'Estadio do Maracana', 'Biosphere']
 const CIVIC_MONUMENT_IMPROVEMENTS = [
   'City Center',
   'Forbidden City',
@@ -14,7 +18,15 @@ const CIVIC_MONUMENT_IMPROVEMENTS = [
   'Orszaghaz',
   'Torre de Belem',
   'Temple of Artemis',
+  'Eiffel Tower',
+  'Taj Mahal',
+  'Kotoku-in',
+  'Mausoleum at Halicarnassus',
+  'Venetian Arsenal',
+  'Venetial Arsenal',
+  'Great Zimbabwe',
 ]
+const INFRASTRUCTURE_IMPROVEMENTS = ['Dam', 'Aqueduct', 'Golden Gate Bridge']
 const NATURAL_FEATURES = ['Woods (old-growth)', 'Rainforest', 'Marsh', 'Cliff', 'Volcano', 'Volcanic Soil', 'Oasis']
 const HARBOR_BUILDINGS = ['Lighthouse', 'Shipyard', 'Seaport']
 
@@ -120,18 +132,22 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   const citizensWorkingIndex = norm(citizensWorking, 3)
   const infrastructureSeed = clamp01((county?.has_railroad ? 0.6 : 0) + (county?.river ? 0.4 : 0))
   const proximityIndex = 1 / (1 + distanceFromCenter)
-  const distanceIndex = clamp01(distanceFromCenter / 5)
+  const distanceIndex = clamp01(Math.pow(distanceFromCenter / MAX_COUNTY_DISTANCE, COUNTY_DISTANCE_EXPONENT))
+  const radiatingDecayMultiplier = clamp01(Math.pow(1 - distanceFromCenter / MAX_COUNTY_DISTANCE, COUNTY_DISTANCE_EXPONENT))
   const farmOrPlantation = ['Farm', 'Plantation', 'Pasture'].includes(name) ? 1 : 0
   const foodResourceIndex = FOOD_RESOURCES.includes(resource) ? 1 : 0
   const undevelopedIndex = name ? 0 : 1
   const mineOrCorporationIndex = ['Mine', 'Corporation'].includes(name) ? 1 : 0
+  const infrastructureImprovementIndex = INFRASTRUCTURE_IMPROVEMENTS.includes(name) ? 1 : 0
+  const industryIndex = name === 'Industry' ? 1 : 0
+  const diplomaticIndex = name === 'Diplomatic Quarter' ? 1 : 0
   const railroadIndex = boolIndex(county?.has_railroad)
   const riverIndex = boolIndex(county?.river)
   const strategicResourceIndex = STRATEGIC_RESOURCES.includes(resource) ? 1 : 0
   const appealIndex = county?.appeal === null || county?.appeal === undefined || county?.appeal === ''
     ? 0.35
     : norm(county.appeal, NORMALIZATION_MAX.appeal)
-  const preserveOrParkIndex = ['Preserve', 'National Park'].includes(name) ? 1 : 0
+  const preserveOrParkIndex = ['Preserve', 'National Park', 'Biosphere'].includes(name) ? 1 : 0
   const coastTerrainIndex = terrainIncludes(county, 'Coast') ? 1 : 0
   const oceanTerrainIndex = terrainIncludes(county, 'Ocean') ? 1 : 0
   const waterTerrainIndex = coastTerrainIndex || oceanTerrainIndex ? 1 : 0
@@ -236,20 +252,21 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     0.05 * mountainIndex
   )
   const industrialIndex = clamp01(
-    0.32 * (name === 'Industrial Zone' ? 1 : 0) +
+    0.30 * (name === 'Industrial Zone' ? 1 : 0) +
+    0.12 * industryIndex +
     0.18 * yields.production_index +
     0.18 * extractiveIndex +
     0.12 * citizensWorkingIndex +
-    0.1 * railroadIndex +
-    0.05 * strategicResourceIndex +
-    0.05 * maritimeIndex
+    0.05 * railroadIndex +
+    0.05 * strategicResourceIndex
   )
   const agrarianIndex = clamp01(
-    0.35 * farmOrPlantation +
-    0.25 * foodResourceIndex +
-    0.2 * yields.food_index +
-    0.1 * ruralIndex +
-    0.1 * (county?.river && farmOrPlantation ? 1 : 0)
+    0.33 * farmOrPlantation +
+    0.23 * foodResourceIndex +
+    0.18 * yields.food_index +
+    0.10 * ruralIndex +
+    0.09 * (county?.river && farmOrPlantation ? 1 : 0) +
+    0.07 * infrastructureImprovementIndex
   )
   const militaryIndex = clamp01(
     0.45 * (name === 'Encampment' ? 1 : 0) +
@@ -259,11 +276,12 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     0.05 * distanceIndex
   )
   const intellectualIndex = clamp01(
-    0.4 * (name === 'Campus' ? 1 : 0) +
-    0.25 * yields.science_index +
-    0.2 * (countTrue(['Library', 'University', 'Research Lab'], buildings) / 3) +
-    0.1 * yields.culture_index +
-    0.05 * appealIndex
+    0.40 * (name === 'Campus' ? 1 : 0) +
+    0.24 * yields.science_index +
+    0.19 * (countTrue(['Library', 'University', 'Research Lab'], buildings) / 3) +
+    0.09 * yields.culture_index +
+    0.05 * diplomaticIndex +
+    0.03 * appealIndex
   )
   const spiritualIndex = clamp01(
     0.32 * (name === 'Holy Site' ? 1 : 0) +
@@ -276,12 +294,14 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   )
   const commercialIndex = clamp01(
     0.32 * (name === 'Commercial Hub' ? 1 : 0) +
-    0.19 * (countTrue(['Market', 'Bank', 'Stock Exchange'], buildings) / 3) +
-    0.18 * yields.gold_index +
+    0.18 * (countTrue(['Market', 'Bank', 'Stock Exchange'], buildings) / 3) +
+    0.17 * yields.gold_index +
     0.09 * (name === 'Corporation' ? 1 : 0) +
-    0.08 * infrastructureSeed +
-    0.08 * maritimeIndex +
-    0.06 * urbanIndex
+    0.07 * industryIndex +
+    0.05 * diplomaticIndex +
+    0.06 * infrastructureSeed +
+    0.04 * maritimeIndex +
+    0.02 * urbanIndex
   )
   const culturalEliteIndex = clamp01(
     0.35 * (name === 'Theater Square' ? 1 : 0) +
@@ -299,15 +319,16 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     0.08 * maritimeIndex
   )
   const infrastructureIndex = clamp01(
-    0.4 * railroadIndex +
-    0.22 * riverIndex +
-    0.18 * (name ? 1 : 0) +
-    0.1 * proximityIndex +
-    0.1 * maritimeIndex
+    0.37 * railroadIndex +
+    0.20 * riverIndex +
+    0.16 * (name ? 1 : 0) +
+    0.10 * proximityIndex +
+    0.10 * maritimeIndex +
+    0.07 * infrastructureImprovementIndex
   )
   const localistIndex = clamp01(
     0.22 * distanceIndex +
-    0.18 * num(provinceContext.minority_religion_share) +
+    0.18 * num(provinceContext.minority_religion_share) * radiatingDecayMultiplier +
     0.17 * preserveOrParkIndex +
     0.13 * neighborhoodIndex +
     0.1 * (provinceContext.is_conquered ? 1 : 0) +
@@ -318,7 +339,7 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     0.27 * ruralIndex +
     0.18 * agrarianIndex +
     0.18 * militaryIndex +
-    0.14 * num(provinceContext.state_religion_share) +
+    0.14 * num(provinceContext.state_religion_share) * radiatingDecayMultiplier +
     0.13 * (1 - urbanIndex) +
     0.1 * wildernessIndex
   )
@@ -326,7 +347,7 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     0.32 * num(provinceContext.roman_identity_index) +
     0.23 * (provinceContext.is_conquered ? 1 : 0) +
     0.18 * spiritualIndex +
-    0.1 * num(provinceContext.minority_religion_share) +
+    0.1 * num(provinceContext.minority_religion_share) * radiatingDecayMultiplier +
     0.09 * localistIndex +
     0.08 * wildernessIndex
   )

@@ -2,6 +2,7 @@
 // Provides culturally appropriate names based on province demographics
 
 import { generateSeatDetails } from './chambers/jurisdictionLabels'
+import { SEAT_OFFSETS } from './constants/seatOffsets'
 
 // Traditional Khmer given names
 const KHMER_GIVEN_NAMES = {
@@ -468,6 +469,47 @@ export function generateRepresentativeNames(seatDetails, provinces, seed = 'defa
   return names
 }
 
+// Build a stable roster key independent of how other parties' seat counts shift.
+// scopeKey already encodes both the geographic scope and chamber type.
+function rosterKey(party, withinPartyIndex, scopeKey) {
+  return `${party}_${withinPartyIndex}_${scopeKey}`
+}
+
+// Generate names for a scope+chamber block, applying incumbents where available,
+// and recording new roster entries. Returns { names, rosterEntries }.
+function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbentRoster) {
+  const names = {}
+  const rosterEntries = {}
+  const usedNames = new Set()
+  const rng = mulberry32(hashString(seed))
+
+  for (const seat of seatDetails || []) {
+    const key = rosterKey(seat.party, seat.withinPartyIndex ?? 0, scopeKey)
+    let name = incumbentRoster[key]
+
+    if (!name) {
+      const province = provinces?.find((p) =>
+        p.name === seat.jurisdiction ||
+        p.counties?.some((c) => c.name === seat.jurisdiction)
+      )
+      const demographics = getProvinceDemographics(province)
+      const style = determineNameStyle(demographics)
+      const gender = seat.seatIndex % 2 === 0 ? 'male' : 'female'
+      let attempts = 0
+      do {
+        name = generateName(style, gender, rng, seat.party)
+        attempts++
+      } while (usedNames.has(name) && attempts < 100)
+    }
+
+    usedNames.add(name)
+    names[`${seat.party}_${seat.seatIndex}`] = name
+    rosterEntries[key] = name
+  }
+
+  return { names, rosterEntries }
+}
+
 // Generate all representative names for all scopes at once
 export function generateAllScopeNames(results, store, electionStore) {
   if (!results?.provinces) return
@@ -475,93 +517,56 @@ export function generateAllScopeNames(results, store, electionStore) {
   const resultsValue = results
   const countryName = store?.currentData?.country?.basic_info?.name || 'Khmer Empire'
   const seed = resultsValue.config?.seed || 'default'
+  const incumbentRoster = electionStore.incumbentRoster || {}
+  const newRoster = {}
 
-  // Generate national names
-  const nationalAssemblySeatDetails = generateSeatDetails({
-    seats: resultsValue.national?.assembly?.seats || {},
-    chamberType: 'assembly',
-    scope: 'national',
-    provinces: resultsValue.provinces,
-  })
-  const nationalCouncilSeatDetails = generateSeatDetails({
-    seats: resultsValue.national?.prelates?.seats || {},
-    chamberType: 'prelates',
-    scope: 'national',
-    provinces: resultsValue.provinces,
-  })
+  // Clear stale names before rebuilding — prevents ghost entries from accumulating
+  electionStore.clearRepresentativeNames()
 
-  const nationalAssemblySeats = nationalAssemblySeatDetails.map((s) => ({ ...s, chamberType: 'assembly', seatIndex: s.seatIndex })) || []
-  const nationalCouncilSeats = nationalCouncilSeatDetails.map((s) => ({ ...s, chamberType: 'prelates', seatIndex: s.seatIndex + 2500 })) || []
-  const nationalSeats = [...nationalAssemblySeats, ...nationalCouncilSeats]
-
-  if (nationalSeats.length > 0) {
-    electionStore.generateAndStoreRepresentativeNames(
-      nationalSeats,
-      resultsValue.provinces,
-      countryName,
-      `${seed}-national`
-    )
+  function processBlock(rawSeatDetails, chamberType, offset, scopeKey) {
+    const seatDetails = rawSeatDetails.map((s) => ({ ...s, chamberType, seatIndex: s.seatIndex + offset }))
+    if (!seatDetails.length) return
+    const nameSeed = `${countryName}_${seed}-${scopeKey}-${chamberType}`
+    const { names, rosterEntries } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, `${scopeKey}_${chamberType}`, incumbentRoster)
+    electionStore.representativeNames = { ...electionStore.representativeNames, ...names }
+    Object.assign(newRoster, rosterEntries)
   }
 
-  // Generate regional names
+  // National
+  processBlock(
+    generateSeatDetails({ seats: resultsValue.national?.assembly?.seats || {}, chamberType: 'assembly', scope: 'national', provinces: resultsValue.provinces }),
+    'assembly', SEAT_OFFSETS.national.assembly, 'national'
+  )
+  processBlock(
+    generateSeatDetails({ seats: resultsValue.national?.prelates?.seats || {}, chamberType: 'prelates', scope: 'national', provinces: resultsValue.provinces }),
+    'prelates', SEAT_OFFSETS.national.prelates, 'national'
+  )
+
+  // Regional
   Object.values(resultsValue.regions || {}).forEach((region) => {
-    const regionAssemblySeatDetails = generateSeatDetails({
-      seats: region?.assembly?.seats || {},
-      chamberType: 'assembly',
-      scope: 'regional',
-      provinces: resultsValue.provinces,
-      selectedRegionName: region.name,
-    })
-    const regionCouncilSeatDetails = generateSeatDetails({
-      seats: region?.prelates?.seats || {},
-      chamberType: 'prelates',
-      scope: 'regional',
-      provinces: resultsValue.provinces,
-      selectedRegionName: region.name,
-    })
-
-    const regionAssemblySeats = regionAssemblySeatDetails.map((s) => ({ ...s, chamberType: 'assembly', seatIndex: s.seatIndex + 5000 })) || []
-    const regionCouncilSeats = regionCouncilSeatDetails.map((s) => ({ ...s, chamberType: 'prelates', seatIndex: s.seatIndex + 7500 })) || []
-    const regionSeats = [...regionAssemblySeats, ...regionCouncilSeats]
-
-    if (regionSeats.length > 0) {
-      electionStore.generateAndStoreRepresentativeNames(
-        regionSeats,
-        resultsValue.provinces,
-        countryName,
-        `${seed}-${region.name}`
-      )
-    }
+    const scopeKey = `region_${region.name}`
+    processBlock(
+      generateSeatDetails({ seats: region?.assembly?.seats || {}, chamberType: 'assembly', scope: 'regional', provinces: resultsValue.provinces, selectedRegionName: region.name }),
+      'assembly', SEAT_OFFSETS.regional.assembly, scopeKey
+    )
+    processBlock(
+      generateSeatDetails({ seats: region?.prelates?.seats || {}, chamberType: 'prelates', scope: 'regional', provinces: resultsValue.provinces, selectedRegionName: region.name }),
+      'prelates', SEAT_OFFSETS.regional.prelates, scopeKey
+    )
   })
 
-  // Generate provincial names
+  // Provincial
   resultsValue.provinces.forEach((province) => {
-    const provinceAssemblySeatDetails = generateSeatDetails({
-      seats: province?.assembly?.seats || {},
-      chamberType: 'assembly',
-      scope: 'provincial',
-      provinces: resultsValue.provinces,
-      selectedProvince: province,
-    })
-    const provinceCouncilSeatDetails = generateSeatDetails({
-      seats: province?.prelates?.seats || {},
-      chamberType: 'prelates',
-      scope: 'provincial',
-      provinces: resultsValue.provinces,
-      selectedProvince: province,
-    })
-
-    const provinceAssemblySeats = provinceAssemblySeatDetails.map((s) => ({ ...s, chamberType: 'assembly', seatIndex: s.seatIndex + 10000 })) || []
-    const provinceCouncilSeats = provinceCouncilSeatDetails.map((s) => ({ ...s, chamberType: 'prelates', seatIndex: s.seatIndex + 12500 })) || []
-    const provinceSeats = [...provinceAssemblySeats, ...provinceCouncilSeats]
-
-    if (provinceSeats.length > 0) {
-      electionStore.generateAndStoreRepresentativeNames(
-        provinceSeats,
-        resultsValue.provinces,
-        countryName,
-        `${seed}-${province.name}`
-      )
-    }
+    const scopeKey = `province_${province.name}`
+    processBlock(
+      generateSeatDetails({ seats: province?.assembly?.seats || {}, chamberType: 'assembly', scope: 'provincial', provinces: resultsValue.provinces, selectedProvince: province }),
+      'assembly', SEAT_OFFSETS.provincial.assembly, scopeKey
+    )
+    processBlock(
+      generateSeatDetails({ seats: province?.prelates?.seats || {}, chamberType: 'prelates', scope: 'provincial', provinces: resultsValue.provinces, selectedProvince: province }),
+      'prelates', SEAT_OFFSETS.provincial.prelates, scopeKey
+    )
   })
+
+  electionStore.saveCurrentRoster(newRoster)
 }

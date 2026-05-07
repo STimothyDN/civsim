@@ -1,305 +1,279 @@
 <template>
-  <section class="election-page">
-    <div v-if="!hasData" class="empty-workspace">
-      <Vote :size="52" class="text-[var(--accent)]" />
-      <div>
-        <h2>No Election Data</h2>
-        <p>Load or create a template to simulate national results.</p>
+  <ElectionPageShell
+    :icon="Vote"
+    eyebrow="National Elections"
+    :title="`National Decision Desk`"
+    :subtitle="`${countryName} · ${formatCompactNumber(results?.national?.population || 0)} people · ${regionRows.length} regions`"
+    scope="national"
+  >
+    <template #hero-calls>
+      <div class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.assembly.control)">
+        <span>Assembly Control</span>
+        <strong>{{ results.national.assembly.control.label }}</strong>
+        <small class="control-detail">{{ assemblyControlInfo?.leaderPartySeatCount }}/{{ assemblyControlInfo?.totalSeats || results.national.assembly.control.detail }} seats won</small>
+        <small v-if="assemblyControlInfo?.isMinority" class="leader-support-line">
+          with support from <span v-html="formatListWithOxfordComma(assemblyControlInfo.supportInfo.map(formatSupportPartyWithColor))"></span>
+        </small>
       </div>
-      <button type="button" class="btn-primary" @click="store.loadDefault">
-        <FilePlus2 :size="16" />
-        New Template
-      </button>
+      <div class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.prelates.control)">
+        <span>Council Control</span>
+        <strong>{{ results.national.prelates.control.label }}</strong>
+        <small class="control-detail">{{ councilControlInfo?.leaderPartySeatCount }}/{{ councilControlInfo?.totalSeats || results.national.prelates.control.detail }} seats won</small>
+        <small v-if="councilControlInfo?.isMinority" class="leader-support-line">
+          with support from <span v-html="formatListWithOxfordComma(councilControlInfo.supportInfo.map(formatSupportPartyWithColor))"></span>
+        </small>
+      </div>
+      <div v-if="assemblyLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.assembly.control)">
+        <span>Assembly Leader</span>
+        <strong>{{ lowerHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex) || '' }}</strong>
+        <small class="leader-line">from {{ assemblyLeader.jurisdiction }} ({{ partyMeta[assemblyLeader.party]?.abbreviation || assemblyLeader.party }})</small>
+        <small v-if="assemblySupportLeaders?.length" class="leader-support-line">
+          with support from <span v-html="formatListWithOxfordComma(assemblySupportLeaders.map(formatSupportLeaderWithColor))"></span>
+        </small>
+      </div>
+      <div v-if="councilLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.prelates.control)">
+        <span>Council Leader</span>
+        <strong>{{ upperHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + SEAT_OFFSETS.national.prelates) || '' }}</strong>
+        <small class="leader-line">from {{ councilLeader.jurisdiction }} ({{ partyMeta[councilLeader.party]?.abbreviation || councilLeader.party }})</small>
+        <small v-if="councilSupportLeaders?.length" class="leader-support-line">
+          with support from <span v-html="formatListWithOxfordComma(councilSupportLeaders.map(formatSupportLeaderWithColor))"></span>
+        </small>
+      </div>
+    </template>
+
+    <ElectionTickerCard
+      :request-id="tickerRequestId"
+      :scope="tickerScope"
+      :target-name="tickerTargetName"
+      :ticker-key="tickerKey"
+    />
+
+    <section class="election-panel">
+      <div class="election-panel-heading">
+        <div>
+          <p class="eyebrow">National Swing</p>
+          <h3>Party Shifts from Baseline</h3>
+        </div>
+      </div>
+      <PartySwingCards
+        :current-shares="results.national.assembly.vote_shares"
+        :baseline-shares="electionStore.electionNumber > 0 ? previousElectionResults.national.assembly.vote_shares : baselineResults.national.assembly.vote_shares"
+      />
+    </section>
+
+    <div class="election-data-grid">
+      <ChamberComposition
+        :title="nationalLowerHouseName"
+        eyebrow="Lower House"
+        :seats="results.national.assembly.seats"
+        :control="results.national.assembly.control"
+        chamber-type="assembly"
+        scope="national"
+        :provinces="results.provinces"
+        :jurisdiction-labels="nationalAssemblyJurisdictionLabels"
+      />
+      <ChamberComposition
+        :title="nationalUpperHouseName"
+        eyebrow="Upper House"
+        :seats="results.national.prelates.seats"
+        :control="results.national.prelates.control"
+        chamber-type="prelates"
+        scope="national"
+        :provinces="results.provinces"
+        :jurisdiction-labels="nationalCouncilJurisdictionLabels"
+      />
     </div>
 
-    <template v-else>
-      <header class="overview-hero election-decision-hero">
-        <div class="election-decision-hero-main">
-          <div class="election-page-icon-wrap"><Vote :size="26" /></div>
-          <div>
-            <p class="eyebrow">National Elections</p>
-            <h2>National Decision Desk</h2>
-            <p>{{ countryName }} · {{ formatCompactNumber(results.national.population) }} people · {{ regionRows.length }} regions</p>
-            <div class="overview-hero-actions">
-              <button type="button" class="btn-broadcast-start" @click="uiStore.openElectionBroadcastModal('national')">
-                <Radio :size="16" />
-                Start National Broadcast
-                <BrainCircuit :size="13" class="broadcast-ai-mark" />
-              </button>
-              <button type="button" class="btn-broadcast-start" @click="showElectionTicker('national')">
-                <Radio :size="16" />
-                Show Election Ticker
-                <BrainCircuit :size="13" class="broadcast-ai-mark" />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="overview-hero-calls">
-          <div class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.assembly.control)">
-            <span>Assembly Control</span>
-            <strong>{{ results.national.assembly.control.label }}</strong>
-            <small class="control-detail">{{ assemblyControlInfo?.leaderPartySeatCount }}/{{ assemblyControlInfo?.totalSeats || results.national.assembly.control.detail }} seats won</small>
-            <small v-if="assemblyControlInfo?.isMinority" class="leader-support-line">
-              with support from <span v-html="formatListWithOxfordComma(assemblyControlInfo.supportInfo.map(formatSupportPartyWithColor))"></span>
-            </small>
-            <small v-if="assemblyControlInfo?.isMinority" class="control-detail">{{ assemblyControlInfo.totalGovernmentSeats }}/{{ assemblyControlInfo.totalSeats }} seats total</small>
-          </div>
-          <div class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.prelates.control)">
-            <span>Council Control</span>
-            <strong>{{ results.national.prelates.control.label }}</strong>
-            <small class="control-detail">{{ councilControlInfo?.leaderPartySeatCount }}/{{ councilControlInfo?.totalSeats || results.national.prelates.control.detail }} seats won</small>
-            <small v-if="councilControlInfo?.isMinority" class="leader-support-line">
-              with support from <span v-html="formatListWithOxfordComma(councilControlInfo.supportInfo.map(formatSupportPartyWithColor))"></span>
-            </small>
-            <small v-if="councilControlInfo?.isMinority" class="control-detail">{{ councilControlInfo.totalGovernmentSeats }}/{{ councilControlInfo.totalSeats }} seats total</small>
-          </div>
-        </div>
-        <div v-if="assemblyLeader || councilLeader" class="overview-hero-calls">
-          <div v-if="assemblyLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.assembly.control)">
-            <span>Assembly Leader</span>
-            <strong>{{ lowerHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex) || '' }}</strong>
-            <small class="leader-line">from {{ assemblyLeader.jurisdiction }} ({{ store.partyMeta[assemblyLeader.party]?.abbreviation || assemblyLeader.party }})</small>
-            <small v-if="assemblySupportLeaders?.length" class="leader-support-line">
-              with support from <span v-html="formatListWithOxfordComma(assemblySupportLeaders.map(formatSupportLeaderWithColor))"></span>
-            </small>
-          </div>
-          <div v-if="councilLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.prelates.control)">
-            <span>Council Leader</span>
-            <strong>{{ upperHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + 2500) || '' }}</strong>
-            <small class="leader-line">from {{ councilLeader.jurisdiction }} ({{ store.partyMeta[councilLeader.party]?.abbreviation || councilLeader.party }})</small>
-            <small v-if="councilSupportLeaders?.length" class="leader-support-line">
-              with support from <span v-html="formatListWithOxfordComma(councilSupportLeaders.map(formatSupportLeaderWithColor))"></span>
-            </small>
-          </div>
-        </div>
-      </header>
-
-      <ElectionTickerCard
-        :request-id="tickerRequestId"
-        :scope="tickerScope"
-        :target-name="tickerTargetName"
-        :ticker-key="tickerKey"
+    <section class="election-panel">
+      <PopularVoteBoard
+        eyebrow="Party Results"
+        title="National Vote And Seats"
+        :rows="popularVoteRows"
+        :total-votes="results.national.population"
+        :seat-columns="nationalSeatColumns"
       />
+    </section>
 
-      <section class="election-panel">
-        <div class="election-panel-heading">
-          <div>
-            <p class="eyebrow">National Swing</p>
-            <h3>Party Shifts from Baseline</h3>
-          </div>
+    <VoteDecompositionPanel :results="results" :party-meta="partyMeta" />
+
+    <div class="election-data-grid">
+      <SeatEfficiencyTable :results="results" :party-meta="partyMeta" />
+      <CoalitionArithmeticPanel :results="results" :party-meta="partyMeta" />
+    </div>
+
+    <div class="election-data-grid">
+      <CaucusListCard
+        title="Assembly Caucuses"
+        eyebrow="Lower House Breakdown"
+        :seats="results.national.assembly.seats"
+        :control="results.national.assembly.control"
+        chamber-type="assembly"
+        scope="national"
+        :provinces="results.provinces"
+        :jurisdiction-labels="nationalAssemblyJurisdictionLabels"
+      />
+      <CaucusListCard
+        title="Council Caucuses"
+        eyebrow="Upper House Breakdown"
+        :seats="results.national.prelates.seats"
+        :control="results.national.prelates.control"
+        chamber-type="prelates"
+        scope="national"
+        :provinces="results.provinces"
+        :jurisdiction-labels="nationalCouncilJurisdictionLabels"
+      />
+    </div>
+
+    <section class="election-panel">
+      <div class="election-panel-heading">
+        <div>
+          <p class="eyebrow">National Detail</p>
+          <h3>Vote, Seats, And Thresholds</h3>
         </div>
-        <PartySwingCards
-          :current-shares="results.national.assembly.vote_shares"
-          :baseline-shares="baselineResults.national.assembly.vote_shares"
-        />
-      </section>
-
-      <section class="election-summary-grid">
-        <article
-          v-for="card in summaryCards"
-          :key="card.label"
-          class="election-summary-card election-summary-card--winner winner-control-card"
-          :style="card.control ? controlCardStyle(card.control) : partyStyle(card.party)"
-        >
-          <span>{{ card.label }}</span>
-          <strong>{{ card.value }}</strong>
-          <small>{{ card.detail }}</small>
-        </article>
-      </section>
-
-      <div class="election-dashboard-grid">
-        <ChamberComposition
-          :title="nationalLowerHouseName"
-          eyebrow="Lower House"
-          :seats="results.national.assembly.seats"
-          :control="results.national.assembly.control"
-          chamber-type="assembly"
-          scope="national"
-          :provinces="results.provinces"
-          :jurisdiction-labels="nationalAssemblyJurisdictionLabels"
-        />
-
-        <ChamberComposition
-          :title="nationalUpperHouseName"
-          eyebrow="Upper House"
-          :seats="results.national.prelates.seats"
-          :control="results.national.prelates.control"
-          chamber-type="prelates"
-          scope="national"
-          :provinces="results.provinces"
-          :jurisdiction-labels="nationalCouncilJurisdictionLabels"
-        />
       </div>
-
-      <div class="election-dashboard-grid">
-        <CaucusListCard
-          title="Assembly Caucuses"
-          eyebrow="Lower House Breakdown"
-          :seats="results.national.assembly.seats"
-          :control="results.national.assembly.control"
-          chamber-type="assembly"
-          scope="national"
-          :provinces="results.provinces"
-          :jurisdiction-labels="nationalAssemblyJurisdictionLabels"
-        />
-        <CaucusListCard
-          title="Council Caucuses"
-          eyebrow="Upper House Breakdown"
-          :seats="results.national.prelates.seats"
-          :control="results.national.prelates.control"
-          chamber-type="prelates"
-          scope="national"
-          :provinces="results.provinces"
-          :jurisdiction-labels="nationalCouncilJurisdictionLabels"
-        />
+      <div class="election-table-wrap">
+        <table class="election-table">
+          <thead>
+            <tr>
+              <th>Party</th>
+              <th>Vote Share</th>
+              <th>Vs Baseline</th>
+              <th>Assembly Seats</th>
+              <th>Council Seats</th>
+              <th>Threshold</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in nationalDetailRows" :key="`national-detail-${row.party}`">
+              <td><PartyBadge :party="row.party" /></td>
+              <td>{{ formatShare(row.voteShare) }}</td>
+              <td :class="deltaClass(row.voteDelta)">{{ formatSignedPct(row.voteDelta) }}</td>
+              <td>{{ formatNumber(row.assemblySeats) }} <small :class="deltaClass(row.assemblyDelta)">({{ formatSignedNumber(row.assemblyDelta) }})</small></td>
+              <td>{{ formatNumber(row.prelateSeats) }} <small :class="deltaClass(row.prelateDelta)">({{ formatSignedNumber(row.prelateDelta) }})</small></td>
+              <td>
+                <span class="threshold-chip" :class="{ 'threshold-chip--clear': row.clearedThreshold }">
+                  {{ row.clearedThreshold ? 'Cleared' : 'Below' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+    </section>
 
-      <section class="election-panel">
-        <PopularVoteBoard
-          eyebrow="Party Results"
-          title="National Vote And Seats"
-          :rows="popularVoteRows"
-          :total-votes="results.national.population"
-          :seat-columns="nationalSeatColumns"
-        />
-      </section>
-
-      <section class="election-panel">
-        <div class="election-panel-heading">
-          <div>
-            <p class="eyebrow">National Detail</p>
-            <h3>Vote, Seats, And Thresholds</h3>
-          </div>
+    <section class="election-panel">
+      <div class="election-panel-heading">
+        <div>
+          <p class="eyebrow">Council Sources</p>
+          <h3>Prelate Delegation By Province</h3>
         </div>
+      </div>
+      <details class="election-details" :open="prelateDelegationRows.length <= 12">
+        <summary>{{ prelateDelegationRows.length }} provinces contributing {{ formatNumber(results.national.prelates.seat_count) }} prelates</summary>
         <div class="election-table-wrap">
-          <table class="election-table">
+          <table class="election-table election-table--wide">
             <thead>
               <tr>
-                <th>Party</th>
-                <th>Vote Share</th>
-                <th>Vs Baseline</th>
-                <th>Assembly Seats</th>
-                <th>Council Seats</th>
-                <th>Threshold</th>
+                <th>Province</th>
+                <th>Region</th>
+                <th>Total</th>
+                <th v-for="party in parties" :key="`delegation-${party}`">{{ partyColumnLabel(party) }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in nationalDetailRows" :key="`national-detail-${row.party}`">
-                <td><PartyBadge :party="row.party" /></td>
-                <td>{{ formatShare(row.voteShare) }}</td>
-                <td :class="deltaClass(row.voteDelta)">{{ formatSignedPct(row.voteDelta) }}</td>
-                <td>{{ formatNumber(row.assemblySeats) }} <small :class="deltaClass(row.assemblyDelta)">({{ formatSignedNumber(row.assemblyDelta) }})</small></td>
-                <td>{{ formatNumber(row.prelateSeats) }} <small :class="deltaClass(row.prelateDelta)">({{ formatSignedNumber(row.prelateDelta) }})</small></td>
-                <td>
-                  <span class="threshold-chip" :class="{ 'threshold-chip--clear': row.clearedThreshold }">
-                    {{ row.clearedThreshold ? 'Cleared' : 'Below' }}
-                  </span>
-                </td>
+              <tr v-for="row in prelateDelegationRows" :key="`delegation-${row.provinceIndex}`">
+                <td>{{ row.name }}</td>
+                <td>{{ row.group }}</td>
+                <td>{{ formatNumber(row.total) }}</td>
+                <td v-for="party in parties" :key="`${row.provinceIndex}-${party}`">{{ formatNumber(row.seats[party] || 0) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
-      </section>
+      </details>
+    </section>
 
-      <section class="election-panel">
-        <div class="election-panel-heading">
-          <div>
-            <p class="eyebrow">Council Sources</p>
-            <h3>Prelate Delegation By Province</h3>
-          </div>
+    <section class="election-panel national-diagnostics-panel">
+      <div class="election-panel-heading">
+        <div>
+          <p class="eyebrow">Diagnostics</p>
+          <h3>Thresholds And Apportionment</h3>
         </div>
-        <details class="election-details" :open="prelateDelegationRows.length <= 12">
-          <summary>{{ prelateDelegationRows.length }} provinces contributing {{ formatNumber(results.national.prelates.seat_count) }} prelates</summary>
-          <div class="election-table-wrap">
-            <table class="election-table election-table--wide">
-              <thead>
-                <tr>
-                  <th>Province</th>
-                  <th>Region</th>
-                  <th>Total</th>
-                  <th v-for="party in parties" :key="`delegation-${party}`">{{ partyColumnLabel(party) }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in prelateDelegationRows" :key="`delegation-${row.provinceIndex}`">
-                  <td>{{ row.name }}</td>
-                  <td>{{ row.group }}</td>
-                  <td>{{ formatNumber(row.total) }}</td>
-                  <td v-for="party in parties" :key="`${row.provinceIndex}-${party}`">{{ formatNumber(row.seats[party] || 0) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
-      </section>
-
-      <section class="election-panel national-diagnostics-panel">
-        <div class="election-panel-heading">
-          <div>
-            <p class="eyebrow">Diagnostics</p>
-            <h3>Thresholds And Apportionment</h3>
-          </div>
+      </div>
+      <div class="diagnostics-grid">
+        <article>
+          <span>Vote Blend</span>
+          <strong>{{ localBlendPct }} local / {{ climateBlendPct }} climate</strong>
+          <small>National Assembly popular vote model</small>
+        </article>
+        <article>
+          <span>Apportionment</span>
+          <strong>{{ apportionmentLabel }}</strong>
+          <small>National chamber formulas</small>
+        </article>
+        <article>
+          <span>Assembly Threshold</span>
+          <strong>{{ formatShare(nationalThreshold) }}</strong>
+          <small>Minimum national vote share</small>
+        </article>
+      </div>
+      <div v-if="warnings.length" class="election-diagnostics election-diagnostics--embedded">
+        <TriangleAlert :size="16" />
+        <div>
+          <strong>Warnings</strong>
+          <span>{{ warnings.join(' · ') }}</span>
         </div>
-        <div class="diagnostics-grid">
-          <article>
-            <span>Vote Blend</span>
-            <strong>{{ localBlendPct }} local / {{ climateBlendPct }} climate</strong>
-            <small>National Assembly popular vote model</small>
-          </article>
-          <article>
-            <span>Apportionment</span>
-            <strong>{{ apportionmentLabel }}</strong>
-            <small>National chamber formulas</small>
-          </article>
-          <article>
-            <span>Assembly Threshold</span>
-            <strong>{{ formatShare(nationalThreshold) }}</strong>
-            <small>Minimum national vote share</small>
-          </article>
+      </div>
+      <div v-else class="election-diagnostics election-diagnostics--ok">
+        <div>
+          <strong>No diagnostics warnings</strong>
+          <span>Seat totals and vote shares are internally consistent.</span>
         </div>
-        <div v-if="warnings.length" class="election-diagnostics election-diagnostics--embedded">
-          <TriangleAlert :size="16" />
-          <div>
-            <strong>Warnings</strong>
-            <span>{{ warnings.join(' · ') }}</span>
-          </div>
-        </div>
-        <div v-else class="election-diagnostics election-diagnostics--ok">
-          <div>
-            <strong>No diagnostics warnings</strong>
-            <span>Seat totals and vote shares are internally consistent.</span>
-          </div>
-        </div>
-      </section>
-    </template>
-  </section>
+      </div>
+    </section>
+  </ElectionPageShell>
 </template>
 
 <script>
-import { computed, ref } from 'vue'
-import { BrainCircuit, FilePlus2, Radio, TriangleAlert, Vote } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { TriangleAlert, Vote } from 'lucide-vue-next'
+import ElectionPageShell from '../components/elections/ElectionPageShell.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import CaucusListCard from '../components/elections/CaucusListCard.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
+import VoteDecompositionPanel from '../components/elections/VoteDecompositionPanel.vue'
+import SeatEfficiencyTable from '../components/elections/SeatEfficiencyTable.vue'
+import CoalitionArithmeticPanel from '../components/elections/CoalitionArithmeticPanel.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionFormatters } from '../composables/useElectionFormatters'
 import { useElectionTicker } from '../composables/useElectionTicker'
-import { useUiStore } from '../stores/uiStore'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
 import { APPORTIONMENT, PARTIES, THRESHOLDS, formatShare, lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } from '../domain/elections'
+import { SEAT_OFFSETS } from '../domain/elections/constants/seatOffsets'
 import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
-import { orderRegionsByReference, popularVoteCount, sumSeats, topParty } from '../domain/elections/viewHelpers'
+import { orderRegionsByReference, popularVoteCount, sumSeats } from '../domain/elections/viewHelpers'
 
 export default {
   name: 'NationalElectionResults',
-  components: { BrainCircuit, ChamberComposition, CaucusListCard, ElectionTickerCard, FilePlus2, PartyBadge, PartySwingCards, PopularVoteBoard, Radio, TriangleAlert, Vote },
+  components: {
+    ChamberComposition,
+    CaucusListCard,
+    CoalitionArithmeticPanel,
+    ElectionPageShell,
+    ElectionTickerCard,
+    PartyBadge,
+    PartySwingCards,
+    PopularVoteBoard,
+    SeatEfficiencyTable,
+    TriangleAlert,
+    VoteDecompositionPanel,
+  },
   setup() {
-    const uiStore = useUiStore()
-    const { baselineResults, electionStore, hasData, results, store } = useElectionResults()
+    const { baselineResults, previousElectionResults, electionStore, hasData, partyMeta, results, store } = useElectionResults()
     const {
       controlCardStyle,
       formatListWithOxfordComma,
@@ -314,7 +288,6 @@ export default {
     const regionOrder = computed(() => store.currentData?.province_groups || [])
     const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value))
 
-    // Jurisdiction labels
     const nationalAssemblyJurisdictionLabels = computed(() => generateJurisdictionLabels({
       seats: results.value.national.assembly.seats,
       chamberType: 'assembly',
@@ -328,7 +301,6 @@ export default {
       provinces: results.value.provinces,
     }))
 
-    // Seat details for leaders
     const nationalAssemblySeatDetails = computed(() => generateSeatDetails({
       seats: results.value.national.assembly.seats,
       chamberType: 'assembly',
@@ -342,7 +314,6 @@ export default {
       provinces: results.value.provinces,
     }))
 
-    // Assembly leaders & control (via shared composable)
     const {
       leader: assemblyLeader,
       controlInfo: assemblyControlInfo,
@@ -352,11 +323,10 @@ export default {
       seatDetails: nationalAssemblySeatDetails,
       store,
       electionStore,
-      seatIndexOffset: 0,
+      seatIndexOffset: SEAT_OFFSETS.national.assembly,
       seatCount: computed(() => results.value.national.assembly.seat_count),
     })
 
-    // Council leaders & control (via shared composable)
     const {
       leader: councilLeader,
       controlInfo: councilControlInfo,
@@ -366,47 +336,12 @@ export default {
       seatDetails: nationalCouncilSeatDetails,
       store,
       electionStore,
-      seatIndexOffset: 2500,
+      seatIndexOffset: SEAT_OFFSETS.national.prelates,
       seatCount: computed(() => results.value.national.prelates.seat_count),
     })
 
-    // Ticker (via shared composable)
     const { showElectionTicker, tickerKey, tickerRequestId, tickerScope, tickerTargetName } =
       useElectionTicker({ results, defaultScope: 'national' })
-
-    // Page-specific data
-    const summaryCards = computed(() => [
-      {
-        label: 'Assembly Control',
-        value: results.value.national.assembly.control.label,
-        detail: results.value.national.assembly.control.detail,
-        control: results.value.national.assembly.control,
-      },
-      {
-        label: 'Council Control',
-        value: results.value.national.prelates.control.label,
-        detail: results.value.national.prelates.control.detail,
-        control: results.value.national.prelates.control,
-      },
-      {
-        label: 'Assemblypersons',
-        value: formatNumber(results.value.national.assembly.seat_count),
-        detail: 'Assembly of the Empire',
-        control: results.value.national.assembly.control,
-      },
-      {
-        label: 'Popular Vote Leader',
-        value: store.partyMeta[topParty(results.value.national.assembly.vote_shares)]?.name || topParty(results.value.national.assembly.vote_shares),
-        detail: `${formatShare(results.value.national.assembly.vote_shares[topParty(results.value.national.assembly.vote_shares)])} national vote`,
-        party: topParty(results.value.national.assembly.vote_shares),
-      },
-      {
-        label: 'Prelates',
-        value: formatNumber(results.value.national.prelates.seat_count),
-        detail: 'Council of Prelates',
-        control: results.value.national.prelates.control,
-      },
-    ])
 
     const nationalSeatColumns = [
       { key: 'assemblySeats', label: 'Assembly Seats' },
@@ -456,6 +391,7 @@ export default {
 
     return {
       baselineResults,
+      previousElectionResults,
       controlCardStyle,
       partyStyle,
       countryName,
@@ -477,21 +413,22 @@ export default {
       nationalUpperHouseName,
       nationalSeatColumns,
       nationalThreshold,
+      SEAT_OFFSETS,
+      partyMeta,
       parties: PARTIES,
-      partyColumnLabel: (party) => store.partyMeta[party]?.abbreviation || store.partyMeta[party]?.colorLabel || party,
+      partyColumnLabel: (party) => partyMeta.value[party]?.abbreviation || partyMeta.value[party]?.colorLabel || party,
       popularVoteRows,
       prelateDelegationRows,
       regionRows,
       results,
       store,
-      summaryCards,
       showElectionTicker,
       tickerKey,
       tickerRequestId,
       tickerScope,
       tickerTargetName,
+      Vote,
       warnings,
-      uiStore,
       nationalAssemblyJurisdictionLabels,
       nationalCouncilJurisdictionLabels,
       assemblyLeader,

@@ -142,6 +142,7 @@ import { buildGridSeatLayout, buildParliamentSeatLayout, CHAMBER_VIZ_VIEWBOX } f
 import { chamberControlStyle } from '../../domain/elections/chambers/controlStyles'
 import { formatSeatTooltip, generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
 import { num } from '../../domain/elections/normalization/numbers'
+import { getSeatOffset } from '../../domain/elections/constants/seatOffsets'
 import { useElectionStore } from '../../stores/electionStore'
 import { useFormStore } from '../../stores/formStore'
 import PartyBadge from './PartyBadge.vue'
@@ -247,16 +248,7 @@ export default {
       const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
       const seat = computedSeatDetails.value?.[seatIndex]
       if (!seat) return ''
-      // Calculate offset based on scope and chamber type to avoid collisions
-      let offset = 0
-      if (props.scope === 'national') {
-        offset = props.chamberType === 'prelates' ? 2500 : 0
-      } else if (props.scope === 'regional') {
-        offset = props.chamberType === 'prelates' ? 7500 : 5000
-      } else if (props.scope === 'provincial') {
-        offset = props.chamberType === 'prelates' ? 12500 : 10000
-      }
-      const nameIndex = seat.seatIndex + offset
+      const nameIndex = seat.seatIndex + getSeatOffset(props.scope, props.chamberType)
       return electionStore.getRepresentativeName(seat.party, nameIndex) || ''
     })
 
@@ -358,16 +350,7 @@ export default {
     }
 
     function getRepresentativeTitle(party, seatIndex, type) {
-      // Calculate offset based on scope and chamber type to avoid collisions
-      let offset = 0
-      if (props.scope === 'national') {
-        offset = type === 'prelates' ? 2500 : 0
-      } else if (props.scope === 'regional') {
-        offset = type === 'prelates' ? 7500 : 5000
-      } else if (props.scope === 'provincial') {
-        offset = type === 'prelates' ? 12500 : 10000
-      }
-      const nameIndex = seatIndex + offset
+      const nameIndex = seatIndex + getSeatOffset(props.scope, type)
       // Check if we have a custom name
       const customName = electionStore.getRepresentativeName(party, nameIndex)
       if (customName) {

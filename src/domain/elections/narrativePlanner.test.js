@@ -342,7 +342,7 @@ describe('narrativePlanner LLM prompts', () => {
     const userPayload = JSON.parse(userContent)
 
     expect(body.temperature).toBe(0.65)
-    expect(body.max_output_tokens).toBe(2200)
+    expect(body.max_output_tokens).toBe(3500)
     expect(userContent).not.toContain('[object Object]')
     expect(userPayload.activeTrends[0]).toMatchObject({ label: 'Rail Opening', templateId: 'rail-opening' })
     expect(userPayload.national.assembly.votePct.yellow).toBe(42)

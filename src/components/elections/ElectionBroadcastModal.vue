@@ -78,6 +78,7 @@ import { useElectionResults } from '../../composables/useElectionResults'
 import { usePolls } from '../../composables/usePolls'
 import { requestElectionBroadcast } from '../../domain/elections/narrativePlanner'
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
+import { SEAT_OFFSETS } from '../../domain/elections/constants/seatOffsets'
 import LlmStatusIndicator from './LlmStatusIndicator.vue'
 import { broadcastLlmStatus } from './llmStatusCopy'
 
@@ -87,7 +88,7 @@ export default {
   setup() {
     const uiStore = useUiStore()
     const electionStore = useElectionStore()
-    const { results, baselineResults } = useElectionResults()
+    const { results, baselineResults, previousElectionResults } = useElectionResults()
     const { pollingPayloadFor } = usePolls()
 
     const fullText = ref('')
@@ -145,7 +146,7 @@ export default {
             scope: 'national',
             provinces: results.value?.provinces || [],
           })
-          seatDetails = [...assemblyDetails, ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + 2500 }))]
+          seatDetails = [...assemblyDetails.map(s => ({ ...s, seatIndex: s.seatIndex + SEAT_OFFSETS.national.assembly })), ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + SEAT_OFFSETS.national.prelates }))]
         } else if (scope === 'regional') {
           const region = results.value?.regions?.[targetName]
           if (region) {
@@ -163,7 +164,7 @@ export default {
               provinces: results.value?.provinces || [],
               selectedRegionName: targetName,
             })
-            seatDetails = [...assemblyDetails, ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + 7500 }))]
+            seatDetails = [...assemblyDetails.map(s => ({ ...s, seatIndex: s.seatIndex + SEAT_OFFSETS.regional.assembly })), ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + SEAT_OFFSETS.regional.prelates }))]
           }
         } else if (scope === 'provincial') {
           const province = (results.value?.provinces || []).find(p => p.name === targetName)
@@ -182,18 +183,20 @@ export default {
               provinces: results.value?.provinces || [],
               selectedProvince: province,
             })
-            seatDetails = [...assemblyDetails, ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + 12500 }))]
+            seatDetails = [...assemblyDetails.map(s => ({ ...s, seatIndex: s.seatIndex + SEAT_OFFSETS.provincial.assembly })), ...councilDetails.map(s => ({ ...s, seatIndex: s.seatIndex + SEAT_OFFSETS.provincial.prelates }))]
           }
         }
 
         const text = await requestElectionBroadcast({
           results: results.value,
-          baselineResults: baselineResults.value,
+          baselineResults: electionStore.electionNumber > 0 ? previousElectionResults.value : baselineResults.value,
           scope: uiStore.broadcastScope,
           targetName: uiStore.broadcastTargetName,
           polling: pollingPayloadFor(uiStore.broadcastScope, uiStore.broadcastTargetName),
           seatDetails,
           representativeNames: electionStore.representativeNames,
+          incumbentRoster: electionStore.incumbentRoster,
+          electionNumber: electionStore.electionNumber,
           onStatus: (status) => {
             llmStatus.value = broadcastLlmStatus(status)
           },

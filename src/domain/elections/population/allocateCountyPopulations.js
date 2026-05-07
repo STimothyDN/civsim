@@ -13,11 +13,13 @@ export const IMPROVEMENT_POP_MULTIPLIERS = {
   Aqueduct: 1.4,
   Farm: 1.25,
   Plantation: 1.25,
+  Pasture: 1.25,
   Mine: 1.25,
   Corporation: 1.25,
   'Wind Farm': 1.1,
   'National Park': 0.85,
   Preserve: 0.85,
+  Biosphere: 0.85,
 }
 
 const AMBIENT_POPULATION_BLOCKED_TERRAINS = ['Ocean', 'Coast', 'Mountain']
@@ -61,7 +63,7 @@ function improvementMultiplier(county) {
 
 function rawCountyPopulationWeight(county) {
   const distance = Math.max(0, num(county?.distance_from_center))
-  const distanceMultiplier = 1 / (1 + 0.28 * distance)
+  const distanceMultiplier = 1 / (1 + 0.14 * distance)
   const citizenMultiplier = 1 + 0.35 * Math.max(0, num(county?.citizens_working))
   const infrastructureMultiplier = 1 + (county?.has_railroad ? 0.15 : 0) + (county?.river ? 0.1 : 0)
   const yields = county?.yields || {}

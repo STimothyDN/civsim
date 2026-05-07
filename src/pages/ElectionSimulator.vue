@@ -1,40 +1,70 @@
 <template>
   <section class="election-simulator-page">
-    <div class="builder-tabs election-simulator-tabs">
-      <div class="election-simulator-tab-list" role="tablist" aria-label="Election simulator sections">
+    <nav class="election-command-bar">
+      <div class="election-tab-list" role="tablist" aria-label="Election simulator sections">
         <button
           v-for="tab in tabs"
           :key="tab.to"
           type="button"
-          class="builder-tab"
-          :class="{ 'builder-tab--active': route.path === tab.to }"
+          class="election-tab"
+          :class="{ 'election-tab--active': route.path === tab.to }"
           :aria-selected="route.path === tab.to"
           role="tab"
           @click="router.push(tab.to)"
         >
-          <component :is="tab.icon" :size="16" />
+          <component :is="tab.icon" :size="15" />
           <span>{{ tab.label }}</span>
         </button>
       </div>
-      <button type="button" class="btn-narrative election-simulator-narrative" @click="uiStore.openElectionNarrativeModal">
-        <BrainCircuit :size="15" />
-        <span>Election Narrative</span>
-      </button>
-    </div>
 
-    <router-view />
+      <ElectionContextChip />
+
+      <div class="election-action-cluster">
+        <button
+          type="button"
+          class="election-action-btn"
+          title="Election Narrative"
+          @click="uiStore.openElectionNarrativeModal"
+        >
+          <BrainCircuit :size="16" />
+        </button>
+        <button
+          type="button"
+          class="election-action-btn"
+          title="Start Broadcast"
+          @click="uiStore.openElectionBroadcastModal(uiStore.currentPageScope, uiStore.currentPageTargetName)"
+        >
+          <Radio :size="16" />
+        </button>
+        <button
+          type="button"
+          class="election-action-btn"
+          title="Election Ticker"
+          @click="$emit('show-ticker')"
+        >
+          <Activity :size="16" />
+        </button>
+      </div>
+    </nav>
+
+    <router-view v-slot="{ Component }">
+      <Transition name="page-slide" mode="out-in">
+        <component :is="Component" :key="route.path" />
+      </Transition>
+    </router-view>
   </section>
 </template>
 
 <script>
 import { markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { BrainCircuit, Building2, ClipboardList, LayoutDashboard, Map, Users, Vote } from 'lucide-vue-next'
+import { Activity, BrainCircuit, Building2, ClipboardList, LayoutDashboard, Map, Radio, Users, Vote } from 'lucide-vue-next'
 import { useUiStore } from '../stores/uiStore'
+import ElectionContextChip from '../components/elections/ElectionContextChip.vue'
 
 export default {
   name: 'ElectionSimulator',
-  components: { BrainCircuit },
+  components: { Activity, BrainCircuit, Radio, ElectionContextChip },
   setup() {
     const route = useRoute()
     const router = useRouter()
@@ -43,10 +73,10 @@ export default {
     const tabs = [
       { to: '/elections/pre-election', label: 'Pre-Election', icon: markRaw(ClipboardList) },
       { to: '/elections/overview', label: 'Overview', icon: markRaw(LayoutDashboard) },
-      { to: '/elections/national', label: 'National Elections', icon: markRaw(Vote) },
-      { to: '/elections/regional', label: 'Regional Elections', icon: markRaw(Map) },
-      { to: '/elections/provincial', label: 'Provincial Elections', icon: markRaw(Building2) },
-      { to: '/elections/directory', label: 'Representative Directory', icon: markRaw(Users) },
+      { to: '/elections/national', label: 'National', icon: markRaw(Vote) },
+      { to: '/elections/regional', label: 'Regional', icon: markRaw(Map) },
+      { to: '/elections/provincial', label: 'Provincial', icon: markRaw(Building2) },
+      { to: '/elections/directory', label: 'Directory', icon: markRaw(Users) },
     ]
 
     return { route, router, tabs, uiStore }

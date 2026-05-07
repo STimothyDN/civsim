@@ -3,6 +3,11 @@ import { NORMALIZATION_MAX, coefficientOfVariation, hhiIndex } from '../normaliz
 
 const LISTED_RELIGION_FOLLOWER_FLOOR = 0.25
 
+// Province distance scaling constants - creates drastic effect where remote provinces are frontier/isolated
+const MIN_PROVINCE_DISTANCE = 3
+const MAX_PROVINCE_DISTANCE = 15
+const PROVINCE_DISTANCE_EXPONENT = 1.8
+
 const COUNTY_AGGREGATED_FEATURES = [
   'urban_index',
   'rural_index',
@@ -67,8 +72,8 @@ function provinceConnectivity(province = {}) {
   const distances = closestDistances(province)
   const nearest = distances.length ? Math.min(...distances) : null
   const avg = average(distances)
-  const connectednessIndex = avg === null ? 0.35 : clamp01(1 - (avg - 3) / 15)
-  const frontierIndex = avg === null ? 0.35 : clamp01((avg - 7) / 12)
+  const connectednessIndex = avg === null ? 0.35 : clamp01(1 - Math.pow((avg - MIN_PROVINCE_DISTANCE) / (MAX_PROVINCE_DISTANCE - MIN_PROVINCE_DISTANCE), PROVINCE_DISTANCE_EXPONENT))
+  const frontierIndex = avg === null ? 0.35 : clamp01(Math.pow((avg - MIN_PROVINCE_DISTANCE) / (MAX_PROVINCE_DISTANCE - MIN_PROVINCE_DISTANCE), PROVINCE_DISTANCE_EXPONENT))
 
   return {
     nearest_province_distance: nearest,

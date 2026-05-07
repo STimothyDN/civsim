@@ -9,7 +9,7 @@
 
 <script>
 import { computed } from 'vue'
-import { useFormStore } from '../../stores/formStore'
+import { useCivilizationStore } from '../../stores/civilizationStore'
 import { PARTIES } from '../../domain/elections'
 import PartyBadge from './PartyBadge.vue'
 
@@ -21,7 +21,7 @@ export default {
     baselineShares: { type: Object, default: () => ({}) },
   },
   setup(props) {
-    const formStore = useFormStore()
+    const civStore = useCivilizationStore()
 
     const partyShifts = computed(() => {
       return PARTIES.map((party) => {
@@ -33,9 +33,9 @@ export default {
           diff,
           shiftFormatted: `${diff > 0 ? '+' : ''}${(diff * 100).toFixed(1)}%`,
           style: {
-            '--shift-color': formStore.partyMeta[party]?.color || '#888',
-            '--shift-bg': `${formStore.partyMeta[party]?.color || '#888'}15`,
-            '--shift-border': `${formStore.partyMeta[party]?.color || '#888'}40`,
+            '--shift-color': civStore.partyMeta[party]?.color || '#888',
+            '--shift-bg': `${civStore.partyMeta[party]?.color || '#888'}15`,
+            '--shift-border': `${civStore.partyMeta[party]?.color || '#888'}40`,
           },
         }
       }).filter((p) => Math.abs(p.diff) >= 0.0005).sort((a, b) => b.diff - a.diff)

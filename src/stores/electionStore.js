@@ -20,6 +20,12 @@ function cloneBaseline() {
     scenarioMetadataStatus: 'idle',
     scenarioMetadataError: null,
     representativeNames: {}, // Map of "{party}_{seatIndex}" -> "Full Name"
+    electionNumber: 0,
+    trendHistory: [],
+    previousElectionConfig: null,
+    // Incumbent tracking: stable keys "{party}_{withinPartyIndex}_{scope}_{chamberType}_{scopeName}" -> name
+    currentRoster: {},    // rebuilt after each name generation pass
+    incumbentRoster: {},  // promoted from currentRoster on confirmElection()
   }
 }
 
@@ -40,6 +46,16 @@ export const useElectionStore = defineStore('election', {
     isBaseline(state) {
       return state.trendPackageId === 'baseline' && state.seed === 'baseline' && state.jitterSeed === 'baseline' && state.trends.length === 0
     },
+    electionYear(state) {
+      return 2026 + state.electionNumber * 2
+    },
+    pendingTrends(state) {
+      const confirmedCount = state.trendHistory.flat().length
+      return state.trends.slice(confirmedCount)
+    },
+    hasPendingElection(state) {
+      return state.trends.length > state.trendHistory.flat().length
+    },
   },
   actions: {
     resetScenario() {
@@ -48,14 +64,15 @@ export const useElectionStore = defineStore('election', {
     randomizeScenario() {
       const seed = makeSeed('scenario')
       const jitterSeed = makeSeed('jitter')
-      const trends = generateRandomTrendPackage({ seed })
+      const newTrends = generateRandomTrendPackage({ seed })
       const trendPackageId = `random-${seed}`
+      const confirmedBase = this.trendHistory.flat()
+      this.trends = [...confirmedBase, ...newTrends]
       this.seed = seed
       this.jitterSeed = jitterSeed
       this.trendPackageId = trendPackageId
-      this.trends = trends
       this.scenarioName = RANDOM_SCENARIO_NAME
-      this.scenarioDescription = climateDescriptionForTrends(trends)
+      this.scenarioDescription = climateDescriptionForTrends(newTrends)
       this.scenarioMetadataStatus = 'idle'
       this.scenarioMetadataError = null
 
@@ -66,16 +83,18 @@ export const useElectionStore = defineStore('election', {
         summary: this.scenarioDescription,
         seed,
         jitterSeed,
-        trends,
+        trends: newTrends,
       }
     },
     applyTrendPackage(packageDef) {
+      const newTrends = Array.isArray(packageDef?.trends) ? packageDef.trends : []
+      const confirmedBase = this.trendHistory.flat()
+      this.trends = [...confirmedBase, ...newTrends]
       this.seed = packageDef?.seed || this.seed
       this.jitterSeed = packageDef?.jitterSeed || this.jitterSeed
       this.trendPackageId = packageDef?.id || packageDef?.trendPackageId || 'manual'
-      this.trends = Array.isArray(packageDef?.trends) ? packageDef.trends : []
       this.scenarioName = packageDef?.scenarioName || packageDef?.name || packageDef?.title || RANDOM_SCENARIO_NAME
-      this.scenarioDescription = packageDef?.scenarioDescription || packageDef?.description || packageDef?.summary || climateDescriptionForTrends(this.trends)
+      this.scenarioDescription = packageDef?.scenarioDescription || packageDef?.description || packageDef?.summary || climateDescriptionForTrends(newTrends)
       this.scenarioMetadataStatus = 'idle'
       this.scenarioMetadataError = null
       if (packageDef?.volatility) {
@@ -84,6 +103,26 @@ export const useElectionStore = defineStore('election', {
           ...packageDef.volatility,
         }
       }
+    },
+    confirmElection() {
+      if (!this.hasPendingElection) return
+      this.previousElectionConfig = {
+        seed: this.seed,
+        jitterSeed: this.jitterSeed,
+        trendPackageId: this.trendPackageId,
+        scenarioName: this.scenarioName,
+        scenarioDescription: this.scenarioDescription,
+        trends: [...this.trends],
+        volatility: { ...this.volatility },
+      }
+      const confirmedBase = this.trendHistory.flat()
+      const newTrends = this.trends.slice(confirmedBase.length)
+      this.trendHistory.push([...newTrends])
+      this.electionNumber++
+      this.incumbentRoster = { ...this.currentRoster }
+    },
+    saveCurrentRoster(roster) {
+      this.currentRoster = roster
     },
     setScenarioMetadataLoading(trendPackageId = this.trendPackageId) {
       if (trendPackageId && trendPackageId !== this.trendPackageId) return

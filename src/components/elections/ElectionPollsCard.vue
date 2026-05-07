@@ -87,9 +87,9 @@
     <div v-if="currentScope" class="overview-hero-calls">
       <div class="overview-hero-call winner-control-card" :style="controlCardStyle(projectedAssemblyControl)">
         <span>Projected Assembly Leader</span>
-        <strong v-if="projectedAssemblyLeader">{{ lowerHouseLeaderTitle(currentScope.scope) }} {{ electionStore.getRepresentativeName(projectedAssemblyLeader.party, getSeatIndexOffset('assembly', currentScope.scope) + projectedAssemblyLeader.seatIndex) || '' }}</strong>
-        <strong v-else>{{ lowerHouseLeaderTitle(currentScope.scope) }} {{ formStore.partyMeta[projectedAssemblyControl.leaderParty]?.name || projectedAssemblyControl.leaderParty }}</strong>
-        <small v-if="projectedAssemblyLeader" class="leader-line">from {{ projectedAssemblyLeader.jurisdiction }} ({{ formStore.partyMeta[projectedAssemblyLeader.party]?.abbreviation || projectedAssemblyLeader.party }})</small>
+        <strong v-if="projectedAssemblyLeader">{{ lowerHouseLeaderTitle(currentScope.scope) }} {{ electionStore.getRepresentativeName(projectedAssemblyLeader.party, getSeatOffset(currentScope.scope, 'assembly') + projectedAssemblyLeader.seatIndex) || '' }}</strong>
+        <strong v-else>{{ lowerHouseLeaderTitle(currentScope.scope) }} {{ civStore.partyMeta[projectedAssemblyControl.leaderParty]?.name || projectedAssemblyControl.leaderParty }}</strong>
+        <small v-if="projectedAssemblyLeader" class="leader-line">from {{ projectedAssemblyLeader.jurisdiction }} ({{ civStore.partyMeta[projectedAssemblyLeader.party]?.abbreviation || projectedAssemblyLeader.party }})</small>
         <small v-else class="leader-line">Projected leading party</small>
         <small v-if="projectedAssemblySupportLeaders?.length" class="leader-support-line">
           with support from <span v-html="formatListWithOxfordComma(projectedAssemblySupportLeaders.map(formatSupportLeaderWithColor))"></span>
@@ -97,9 +97,9 @@
       </div>
       <div class="overview-hero-call winner-control-card" :style="controlCardStyle(projectedCouncilControl)">
         <span>Projected Council Leader</span>
-        <strong v-if="projectedCouncilLeader">{{ upperHouseLeaderTitle(currentScope.scope) }} {{ electionStore.getRepresentativeName(projectedCouncilLeader.party, getSeatIndexOffset('prelates', currentScope.scope) + projectedCouncilLeader.seatIndex) || '' }}</strong>
-        <strong v-else>{{ upperHouseLeaderTitle(currentScope.scope) }} {{ formStore.partyMeta[projectedCouncilControl.leaderParty]?.name || projectedCouncilControl.leaderParty }}</strong>
-        <small v-if="projectedCouncilLeader" class="leader-line">from {{ projectedCouncilLeader.jurisdiction }} ({{ formStore.partyMeta[projectedCouncilLeader.party]?.abbreviation || projectedCouncilLeader.party }})</small>
+        <strong v-if="projectedCouncilLeader">{{ upperHouseLeaderTitle(currentScope.scope) }} {{ electionStore.getRepresentativeName(projectedCouncilLeader.party, getSeatOffset(currentScope.scope, 'prelates') + projectedCouncilLeader.seatIndex) || '' }}</strong>
+        <strong v-else>{{ upperHouseLeaderTitle(currentScope.scope) }} {{ civStore.partyMeta[projectedCouncilControl.leaderParty]?.name || projectedCouncilControl.leaderParty }}</strong>
+        <small v-if="projectedCouncilLeader" class="leader-line">from {{ projectedCouncilLeader.jurisdiction }} ({{ civStore.partyMeta[projectedCouncilLeader.party]?.abbreviation || projectedCouncilLeader.party }})</small>
         <small v-else class="leader-line">Projected leading party</small>
         <small v-if="projectedCouncilSupportLeaders?.length" class="leader-support-line">
           with support from <span v-html="formatListWithOxfordComma(projectedCouncilSupportLeaders.map(formatSupportLeaderWithColor))"></span>
@@ -236,7 +236,8 @@ import { PARTIES, formatShare, determineHouseControl, lowerHouseLeaderTitle, upp
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
 import { formatNumber } from '../../domain/formatting'
 import { partyWinnerStyle, sumSeats, topParty } from '../../domain/elections/viewHelpers'
-import { useFormStore } from '../../stores/formStore'
+import { getSeatOffset } from '../../domain/elections/constants/seatOffsets'
+import { useCivilizationStore } from '../../stores/civilizationStore'
 import { useUiStore } from '../../stores/uiStore'
 import { useElectionStore } from '../../stores/electionStore'
 import PartyBadge from './PartyBadge.vue'
@@ -245,7 +246,7 @@ export default {
   name: 'ElectionPollsCard',
   components: { BrainCircuit, GitCompare, Info, PartyBadge, Radio, RefreshCcw },
   setup() {
-    const formStore = useFormStore()
+    const civStore = useCivilizationStore()
     const uiStore = useUiStore()
     const electionStore = useElectionStore()
     const { currentScope, pollingStore, provincialScopes, regionalScopes } = usePolls()
@@ -288,14 +289,14 @@ export default {
     // Calculate projected control using the same logic as actual results
     const projectedAssemblyControl = computed(() => {
       const partyNames = Object.fromEntries(
-        Object.keys(formStore.partyMeta).map((key) => [key, formStore.partyMeta[key]?.name || key])
+        Object.keys(civStore.partyMeta).map((key) => [key, civStore.partyMeta[key]?.name || key])
       )
       return determineHouseControl(projectedAssemblySeats.value, results.value.config.trends, partyNames)
     })
 
     const projectedCouncilControl = computed(() => {
       const partyNames = Object.fromEntries(
-        Object.keys(formStore.partyMeta).map((key) => [key, formStore.partyMeta[key]?.name || key])
+        Object.keys(civStore.partyMeta).map((key) => [key, civStore.partyMeta[key]?.name || key])
       )
       return determineHouseControl(projectedCouncilSeats.value, results.value.config.trends, partyNames)
     })
@@ -314,8 +315,8 @@ export default {
         const seats = projectedAssemblySeats.value[party] || 0
         return {
           party,
-          name: formStore.partyMeta[party]?.abbreviation || party,
-          color: formStore.partyMeta[party]?.color || '#d4a843',
+          name: civStore.partyMeta[party]?.abbreviation || party,
+          color: civStore.partyMeta[party]?.color || '#d4a843',
           seatCount: seats,
         }
       })
@@ -344,8 +345,8 @@ export default {
         const seats = projectedCouncilSeats.value[party] || 0
         return {
           party,
-          name: formStore.partyMeta[party]?.abbreviation || party,
-          color: formStore.partyMeta[party]?.color || '#d4a843',
+          name: civStore.partyMeta[party]?.abbreviation || party,
+          color: civStore.partyMeta[party]?.color || '#d4a843',
           seatCount: seats,
         }
       })
@@ -489,10 +490,10 @@ export default {
         const partySeats = actualAssemblySeatDetails.value.filter((s) => s.party === party)
         if (partySeats.length === 0) return
         const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
-        const name = electionStore.getRepresentativeName(party, getSeatIndexOffset('assembly', scope) + leader.seatIndex)
+        const name = electionStore.getRepresentativeName(party, getSeatOffset(scope, 'assembly') + leader.seatIndex)
         leaders.push({
           party,
-          name: name || formStore.partyMeta[party]?.abbreviation || party,
+          name: name || civStore.partyMeta[party]?.abbreviation || party,
           title: 'Caucus Leader',
           jurisdiction: leader.jurisdiction,
         })
@@ -515,10 +516,10 @@ export default {
         const partySeats = actualCouncilSeatDetails.value.filter((s) => s.party === party)
         if (partySeats.length === 0) return
         const leader = partySeats.sort((a, b) => b.supportMetric - a.supportMetric)[0]
-        const name = electionStore.getRepresentativeName(party, getSeatIndexOffset('prelates', scope) + leader.seatIndex)
+        const name = electionStore.getRepresentativeName(party, getSeatOffset(scope, 'prelates') + leader.seatIndex)
         leaders.push({
           party,
-          name: name || formStore.partyMeta[party]?.abbreviation || party,
+          name: name || civStore.partyMeta[party]?.abbreviation || party,
           title: 'Caucus Leader',
           jurisdiction: leader.jurisdiction,
         })
@@ -528,7 +529,7 @@ export default {
     })
 
     function partyColor(party) {
-      return formStore.partyMeta[party]?.color || '#9b9a97'
+      return civStore.partyMeta[party]?.color || '#9b9a97'
     }
 
     function pollsterParties(pollster = {}) {
@@ -543,7 +544,7 @@ export default {
 
     function houseEffectLabel(pollster) {
       if (!pollster.houseEffect?.party || !pollster.houseEffect?.points) return 'Neutral'
-      const name = formStore.partyMeta[pollster.houseEffect.party]?.name || pollster.houseEffect.party
+      const name = civStore.partyMeta[pollster.houseEffect.party]?.name || pollster.houseEffect.party
       return `+${pollster.houseEffect.points.toFixed(1)} ${name}`
     }
 
@@ -554,7 +555,7 @@ export default {
     }
 
     function controlCardStyle(control) {
-      return winnerControlStyle(control, formStore.partyMeta)
+      return winnerControlStyle(control, civStore.partyMeta)
     }
 
     function formatListWithOxfordComma(items) {
@@ -569,31 +570,14 @@ export default {
     }
 
     function formatSupportPartyWithColorSimple(party) {
-      const color = formStore.partyMeta[party]?.color || '#d4a843'
-      const name = formStore.partyMeta[party]?.abbreviation || party
+      const color = civStore.partyMeta[party]?.color || '#d4a843'
+      const name = civStore.partyMeta[party]?.abbreviation || party
       return `<span style="color: ${color}">${name}</span>`
     }
 
     function formatSupportLeaderWithColor(leader) {
-      const partyColor = formStore.partyMeta[leader.party]?.color || '#d4a843'
-      return `${leader.title} <span style="color: ${partyColor}">${leader.name}</span> from ${leader.jurisdiction} (<span style="color: ${partyColor}">${formStore.partyMeta[leader.party]?.abbreviation || leader.party}</span>)`
-    }
-
-    function getSeatIndexOffset(chamberType, scope) {
-      // Seat index offsets based on scope and chamber type
-      // National: assembly = 0, prelates = 2500
-      // Regional: assembly = 5000, prelates = 7500
-      // Provincial: assembly = 10000, prelates = 12500
-      if (scope === 'national') {
-        return chamberType === 'prelates' ? 2500 : 0
-      }
-      if (scope === 'regional') {
-        return chamberType === 'prelates' ? 7500 : 5000
-      }
-      if (scope === 'provincial') {
-        return chamberType === 'prelates' ? 12500 : 10000
-      }
-      return 0
+      const partyColor = civStore.partyMeta[leader.party]?.color || '#d4a843'
+      return `${leader.title} <span style="color: ${partyColor}">${leader.name}</span> from ${leader.jurisdiction} (<span style="color: ${partyColor}">${civStore.partyMeta[leader.party]?.abbreviation || leader.party}</span>)`
     }
 
     watch(regionalScopes, (scopes) => {
@@ -621,14 +605,14 @@ export default {
       formatSupportLeaderWithColor,
       formatSupportPartyWithColor,
       formatSupportPartyWithColorSimple,
-      formStore,
-      getSeatIndexOffset,
+      civStore,
+      getSeatOffset,
       houseEffectLabel,
       leaderSpreadLabel,
       lowerHouseLeaderTitle,
       parties: PARTIES,
       partyColor,
-      partyWinnerStyle: (party) => partyWinnerStyle(party, formStore.partyMeta),
+      partyWinnerStyle: (party) => partyWinnerStyle(party, civStore.partyMeta),
       pollingStore,
       projectedAssemblyControl,
       projectedAssemblyControlInfo,

@@ -1,227 +1,230 @@
 <template>
-  <section class="election-page">
-    <div v-if="!hasData" class="empty-workspace">
-      <Users :size="52" class="text-[var(--accent)]" />
-      <div>
-        <h2>No Election Data</h2>
-        <p>Load or create a template to view the representative directory.</p>
+  <ElectionPageShell
+    :icon="Users"
+    eyebrow="Representative Directory"
+    :title="'Master Representative List'"
+    :subtitle="`${totalRepresentatives} representatives across all scopes · ${countryName}`"
+    scope="directory"
+  >
+    <div class="dir-stats-strip">
+      <div class="dir-stat">
+        <strong>{{ totalRepresentatives }}</strong>
+        <span>Total</span>
       </div>
-      <button type="button" class="btn-primary" @click="store.loadDefault">
-        <FilePlus2 :size="16" />
-        New Template
-      </button>
+      <div v-for="ps in partyStats" :key="ps.party" class="dir-stat">
+        <div class="dir-stat-bar" :style="{ '--bar-color': ps.color, '--bar-pct': ps.pct + '%' }">
+          <i></i>
+        </div>
+        <strong :style="{ color: ps.color }">{{ ps.count }}</strong>
+        <span>{{ ps.abbrev }}</span>
+      </div>
+      <div class="dir-stat">
+        <strong>{{ govCount }}</strong>
+        <span>Govt</span>
+      </div>
+      <div class="dir-stat">
+        <strong>{{ oppCount }}</strong>
+        <span>Opp</span>
+      </div>
     </div>
 
-    <template v-else>
-      <header class="overview-hero">
-        <div class="election-decision-hero-main">
-          <div class="election-page-icon-wrap"><Users :size="26" /></div>
+    <div class="election-data-grid">
+      <PartyCompositionDonut
+        :representatives="filteredRepresentatives"
+        :party-meta="store.partyMeta"
+      />
+
+      <section class="directory-filters election-panel">
+        <div class="election-panel-heading">
           <div>
-            <p class="eyebrow">Representative Directory</p>
-            <h2>Master Representative List</h2>
-            <p>{{ totalRepresentatives }} representatives across all scopes · {{ countryName }}</p>
+            <p class="eyebrow">Filters</p>
+            <h3>Directory Controls</h3>
           </div>
         </div>
-      </header>
-
-      <section class="directory-filters">
-        <div class="filter-group">
-          <label>Search</label>
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="filter-input"
-            placeholder="Search by name or jurisdiction..."
-          />
-        </div>
-
-        <div class="filter-group">
-          <label>Group By</label>
-          <div class="filter-buttons">
-            <button
-              v-for="option in groupOptions"
-              :key="option.value"
-              type="button"
-              class="filter-btn"
-              :class="{ 'filter-btn--active': groupBy === option.value }"
-              @click="groupBy = option.value"
-            >
-              {{ option.label }}
-            </button>
+        <div class="dir-filter-grid">
+          <div class="filter-group">
+            <label>Search</label>
+            <input v-model="searchQuery" type="text" class="filter-input" placeholder="Name or jurisdiction..." />
           </div>
-        </div>
-
-        <div class="filter-group">
-          <label>Sort By</label>
-          <select v-model="sortBy" class="filter-select">
-            <option value="support">Support</option>
-            <option value="name">Name</option>
-            <option value="party">Party</option>
-            <option value="jurisdiction">Jurisdiction</option>
-            <option value="seat">Seat Number</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label>Sort Order</label>
-          <div class="filter-buttons">
-            <button
-              type="button"
-              class="filter-btn"
-              :class="{ 'filter-btn--active': sortDirection === 'desc' }"
-              @click="sortDirection = 'desc'"
-            >
-              ↓ Desc
-            </button>
-            <button
-              type="button"
-              class="filter-btn"
-              :class="{ 'filter-btn--active': sortDirection === 'asc' }"
-              @click="sortDirection = 'asc'"
-            >
-              ↑ Asc
-            </button>
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label>Filter Scope</label>
-          <div class="filter-buttons">
-            <button
-              v-for="option in scopeOptions"
-              :key="option.value"
-              type="button"
-              class="filter-btn"
-              :class="{ 'filter-btn--active': selectedScope === option.value }"
-              @click="selectedScope = option.value"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label>Filter Party</label>
-          <select v-model="selectedParty" class="filter-select">
-            <option value="all">All Parties</option>
-            <option v-for="party in parties" :key="party" :value="party">
-              {{ store.partyMeta[party]?.name || party }}
-            </option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label>Filter Chamber</label>
-          <select v-model="selectedChamber" class="filter-select">
-            <option value="all">All Chambers</option>
-            <option value="assembly">Assembly (Lower House)</option>
-            <option value="prelates">Council (Upper House)</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label>Filter Status</label>
-          <select v-model="selectedStatus" class="filter-select">
-            <option value="all">All Statuses</option>
-            <option value="leader">Leaders Only</option>
-            <option value="government">Government Only</option>
-            <option value="opposition">Opposition Only</option>
-          </select>
-        </div>
-      </section>
-
-      <section class="directory-content">
-        <div v-if="groupedRepresentatives.length === 0" class="directory-empty">
-          <span>No representatives match the current filters.</span>
-        </div>
-
-        <div v-else class="directory-groups">
-          <div
-            v-for="group in groupedRepresentatives"
-            :key="group.key"
-            class="directory-group"
-          >
-            <div class="directory-group-header">
-              <h3>{{ group.label }}</h3>
-              <span class="group-count">{{ group.representatives.length }} representatives</span>
+          <div class="filter-group">
+            <label>View</label>
+            <div class="filter-buttons">
+              <button type="button" class="filter-btn" :class="{ 'filter-btn--active': viewMode === 'table' }" @click="viewMode = 'table'">Table</button>
+              <button type="button" class="filter-btn" :class="{ 'filter-btn--active': viewMode === 'cards' }" @click="viewMode = 'cards'">Cards</button>
             </div>
-
-            <table class="directory-table">
-              <thead>
-                <tr>
-                  <th class="col-name">Representative</th>
-                  <th class="col-party">Party</th>
-                  <th class="col-scope">Scope</th>
-                  <th class="col-chamber">Chamber</th>
-                  <th class="col-jurisdiction">Jurisdiction</th>
-                  <th class="col-region">Region/Province</th>
-                  <th class="col-seat">Seat #</th>
-                  <th class="col-vote">Vote Share</th>
-                  <th class="col-support">Support</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="rep in group.representatives"
-                  :key="`${rep.scope}-${rep.chamberType}-${rep.party}-${rep.seatIndex}`"
-                  class="directory-row"
-                >
-                  <td class="col-name">
-                    <span class="representative-name">{{ rep.title }}</span>
-                    <span v-if="rep.isLeader" class="leader-badge" title="Leader">👑</span>
-                    <span v-if="rep.isGoverning" class="government-badge" title="Government">🏛️</span>
-                    <span v-if="rep.isOppositionLeader" class="opposition-badge" title="Opposition Leader">⚔️</span>
-                  </td>
-                  <td class="col-party">
-                    <PartyBadge :party="rep.party" abbreviated />
-                  </td>
-                  <td class="col-scope">
-                    <span class="scope-badge" :class="`scope-badge--${rep.scope}`">
-                      {{ scopeLabel(rep.scope) }}
-                    </span>
-                  </td>
-                  <td class="col-chamber">
-                    {{ rep.chamberType === 'assembly' ? 'Assembly' : 'Council' }}
-                  </td>
-                  <td class="col-jurisdiction">{{ rep.jurisdiction }}</td>
-                  <td class="col-region">{{ rep.regionName || rep.provinceName || '-' }}</td>
-                  <td class="col-seat">{{ rep.seatIndex + 1 }}</td>
-                  <td class="col-vote">{{ formatVoteShare(rep.voteShare) }}</td>
-                  <td class="col-support">
-                    <div class="support-bar-mini">
-                      <div class="support-bar-mini-fill" :style="{ width: `${rep.supportMetric}%` }"></div>
-                      <span class="support-bar-mini-value">{{ formatSupport(rep.supportMetric) }}%</span>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          </div>
+          <div class="filter-group">
+            <label>Group By</label>
+            <div class="filter-buttons">
+              <button v-for="option in groupOptions" :key="option.value" type="button" class="filter-btn" :class="{ 'filter-btn--active': groupBy === option.value }" @click="groupBy = option.value">{{ option.label }}</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Sort</label>
+            <select v-model="sortBy" class="filter-select">
+              <option value="support">Support</option>
+              <option value="name">Name</option>
+              <option value="party">Party</option>
+              <option value="jurisdiction">Jurisdiction</option>
+              <option value="seat">Seat Number</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Order</label>
+            <div class="filter-buttons">
+              <button type="button" class="filter-btn" :class="{ 'filter-btn--active': sortDirection === 'desc' }" @click="sortDirection = 'desc'">Desc</button>
+              <button type="button" class="filter-btn" :class="{ 'filter-btn--active': sortDirection === 'asc' }" @click="sortDirection = 'asc'">Asc</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Scope</label>
+            <div class="filter-buttons">
+              <button v-for="option in scopeOptions" :key="option.value" type="button" class="filter-btn" :class="{ 'filter-btn--active': selectedScope === option.value }" @click="selectedScope = option.value">{{ option.label }}</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Party</label>
+            <select v-model="selectedParty" class="filter-select">
+              <option value="all">All Parties</option>
+              <option v-for="party in parties" :key="party" :value="party">{{ store.partyMeta[party]?.name || party }}</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Chamber</label>
+            <select v-model="selectedChamber" class="filter-select">
+              <option value="all">All Chambers</option>
+              <option value="assembly">Assembly</option>
+              <option value="prelates">Council</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select v-model="selectedStatus" class="filter-select">
+              <option value="all">All</option>
+              <option value="leader">Leaders</option>
+              <option value="government">Government</option>
+              <option value="opposition">Opposition</option>
+            </select>
           </div>
         </div>
       </section>
-    </template>
-  </section>
+    </div>
+
+    <section class="directory-content">
+      <div v-if="groupedRepresentatives.length === 0" class="directory-empty">
+        <span>No representatives match the current filters.</span>
+      </div>
+
+      <div v-else class="directory-groups">
+        <div v-for="group in groupedRepresentatives" :key="group.key" class="directory-group">
+          <div class="directory-group-header">
+            <h3>{{ group.label }}</h3>
+            <span class="group-count">{{ group.representatives.length }} representatives</span>
+          </div>
+
+          <!-- Card view -->
+          <div v-if="viewMode === 'cards'" class="dir-card-grid">
+            <div
+              v-for="rep in group.representatives"
+              :key="`${rep.scope}-${rep.chamberType}-${rep.party}-${rep.seatIndex}`"
+              class="dir-rep-card"
+              :style="repCardStyle(rep)"
+            >
+              <div class="dir-rep-card-top">
+                <span class="representative-name">{{ rep.title }}</span>
+                <span class="dir-rep-icons">
+                  <Crown v-if="rep.isLeader && rep.isGoverning" :size="13" class="icon-leader" />
+                  <Landmark v-if="rep.isGoverning && !rep.isLeader" :size="13" class="icon-govt" />
+                  <Swords v-if="rep.isOppositionLeader" :size="13" class="icon-opp" />
+                </span>
+              </div>
+              <div class="dir-rep-card-meta">
+                <PartyBadge :party="rep.party" short />
+                <span class="scope-badge" :class="`scope-badge--${rep.scope}`">{{ scopeLabel(rep.scope) }}</span>
+              </div>
+              <div class="dir-rep-card-detail">
+                <span>{{ rep.jurisdiction }}</span>
+                <span>{{ rep.chamberType === 'assembly' ? 'Assembly' : 'Council' }}</span>
+              </div>
+              <div class="support-bar-mini">
+                <div class="support-bar-mini-fill" :style="{ width: `${rep.supportMetric}%` }"></div>
+                <span class="support-bar-mini-value">{{ formatSupport(rep.supportMetric) }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table view -->
+          <table v-else class="directory-table">
+            <thead>
+              <tr>
+                <th class="col-name">Representative</th>
+                <th class="col-party">Party</th>
+                <th class="col-scope">Scope</th>
+                <th class="col-chamber">Chamber</th>
+                <th class="col-jurisdiction">Jurisdiction</th>
+                <th class="col-region">Region/Province</th>
+                <th class="col-seat">Seat #</th>
+                <th class="col-vote">Vote Share</th>
+                <th class="col-support">Support</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="rep in group.representatives"
+                :key="`${rep.scope}-${rep.chamberType}-${rep.party}-${rep.seatIndex}`"
+                class="directory-row"
+              >
+                <td class="col-name">
+                  <span class="representative-name">{{ rep.title }}</span>
+                  <Crown v-if="rep.isLeader && rep.isGoverning" :size="13" class="icon-leader" />
+                  <Landmark v-if="rep.isGoverning && !rep.isLeader" :size="13" class="icon-govt" />
+                  <Swords v-if="rep.isOppositionLeader" :size="13" class="icon-opp" />
+                </td>
+                <td class="col-party"><PartyBadge :party="rep.party" abbreviated /></td>
+                <td class="col-scope"><span class="scope-badge" :class="`scope-badge--${rep.scope}`">{{ scopeLabel(rep.scope) }}</span></td>
+                <td class="col-chamber">{{ rep.chamberType === 'assembly' ? 'Assembly' : 'Council' }}</td>
+                <td class="col-jurisdiction">{{ rep.jurisdiction }}</td>
+                <td class="col-region">{{ rep.regionName || rep.provinceName || '-' }}</td>
+                <td class="col-seat">{{ rep.seatIndex + 1 }}</td>
+                <td class="col-vote">{{ formatVoteShare(rep.voteShare) }}</td>
+                <td class="col-support">
+                  <div class="support-bar-mini">
+                    <div class="support-bar-mini-fill" :style="{ width: `${rep.supportMetric}%` }"></div>
+                    <span class="support-bar-mini-value">{{ formatSupport(rep.supportMetric) }}%</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </ElectionPageShell>
 </template>
 
 <script>
-import { computed, ref, watch } from 'vue'
-import { FilePlus2, Users } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { Crown, Landmark, Swords, Users } from 'lucide-vue-next'
+import ElectionPageShell from '../components/elections/ElectionPageShell.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
+import PartyCompositionDonut from '../components/elections/PartyCompositionDonut.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionStore } from '../stores/electionStore'
 import { PARTIES } from '../domain/elections/constants/parties'
+import { getSeatOffset } from '../domain/elections/constants/seatOffsets'
 import { generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
 import { lowerHouseLeaderTitle, upperHouseLeaderTitle } from '../domain/elections'
 import { num } from '../domain/elections/normalization/numbers'
 
 export default {
   name: 'RepresentativeDirectory',
-  components: { FilePlus2, PartyBadge, Users },
+  components: { Crown, ElectionPageShell, Landmark, PartyBadge, PartyCompositionDonut, Swords, Users },
   setup() {
-    const { hasData, results, store } = useElectionResults()
+    const { results, store } = useElectionResults()
     const electionStore = useElectionStore()
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
 
+    const viewMode = ref('table')
     const groupBy = ref('scope')
     const sortBy = ref('support')
     const sortDirection = ref('desc')
@@ -235,89 +238,36 @@ export default {
       { value: 'scope', label: 'Scope' },
       { value: 'party', label: 'Party' },
       { value: 'chamber', label: 'Chamber' },
-      { value: 'jurisdiction', label: 'Jurisdiction' },
       { value: 'status', label: 'Status' },
     ]
-
     const scopeOptions = [
-      { value: 'all', label: 'All Scopes' },
+      { value: 'all', label: 'All' },
       { value: 'national', label: 'National' },
       { value: 'regional', label: 'Regional' },
       { value: 'provincial', label: 'Provincial' },
     ]
 
-    // Generate representative data for all scopes
     const allRepresentatives = computed(() => {
       const reps = []
-      const resultsValue = results.value
+      const r = results.value
+      if (!r?.provinces) return reps
 
-      if (!resultsValue?.provinces) return reps
-
-      // National representatives
       if (selectedScope.value === 'all' || selectedScope.value === 'national') {
-        const nationalAssemblySeats = generateSeatDetails({
-          seats: resultsValue.national.assembly.seats,
-          chamberType: 'assembly',
-          scope: 'national',
-          provinces: resultsValue.provinces,
-        })
-        const nationalCouncilSeats = generateSeatDetails({
-          seats: resultsValue.national.prelates.seats,
-          chamberType: 'prelates',
-          scope: 'national',
-          provinces: resultsValue.provinces,
-        })
-
-        reps.push(...processSeats(nationalAssemblySeats, 'national', 'assembly', resultsValue.national.assembly.control))
-        reps.push(...processSeats(nationalCouncilSeats, 'national', 'prelates', resultsValue.national.prelates.control))
+        reps.push(...processSeats(generateSeatDetails({ seats: r.national.assembly.seats, chamberType: 'assembly', scope: 'national', provinces: r.provinces }), 'national', 'assembly', r.national.assembly.control))
+        reps.push(...processSeats(generateSeatDetails({ seats: r.national.prelates.seats, chamberType: 'prelates', scope: 'national', provinces: r.provinces }), 'national', 'prelates', r.national.prelates.control))
       }
-
-      // Regional representatives
       if (selectedScope.value === 'all' || selectedScope.value === 'regional') {
-        Object.values(resultsValue.regions || {}).forEach((region) => {
-          const regionAssemblySeats = generateSeatDetails({
-            seats: region.assembly.seats,
-            chamberType: 'assembly',
-            scope: 'regional',
-            provinces: resultsValue.provinces,
-            selectedRegionName: region.name,
-          })
-          const regionCouncilSeats = generateSeatDetails({
-            seats: region.prelates.seats,
-            chamberType: 'prelates',
-            scope: 'regional',
-            provinces: resultsValue.provinces,
-            selectedRegionName: region.name,
-          })
-
-          reps.push(...processSeats(regionAssemblySeats, 'regional', 'assembly', region.assembly.control, region.name))
-          reps.push(...processSeats(regionCouncilSeats, 'regional', 'prelates', region.prelates.control, region.name))
+        Object.values(r.regions || {}).forEach((region) => {
+          reps.push(...processSeats(generateSeatDetails({ seats: region.assembly.seats, chamberType: 'assembly', scope: 'regional', provinces: r.provinces, selectedRegionName: region.name }), 'regional', 'assembly', region.assembly.control, region.name))
+          reps.push(...processSeats(generateSeatDetails({ seats: region.prelates.seats, chamberType: 'prelates', scope: 'regional', provinces: r.provinces, selectedRegionName: region.name }), 'regional', 'prelates', region.prelates.control, region.name))
         })
       }
-
-      // Provincial representatives
       if (selectedScope.value === 'all' || selectedScope.value === 'provincial') {
-        resultsValue.provinces.forEach((province) => {
-          const provinceAssemblySeats = generateSeatDetails({
-            seats: province.assembly.seats,
-            chamberType: 'assembly',
-            scope: 'provincial',
-            provinces: resultsValue.provinces,
-            selectedProvince: province,
-          })
-          const provinceCouncilSeats = generateSeatDetails({
-            seats: province.prelates.seats,
-            chamberType: 'prelates',
-            scope: 'provincial',
-            provinces: resultsValue.provinces,
-            selectedProvince: province,
-          })
-
-          reps.push(...processSeats(provinceAssemblySeats, 'provincial', 'assembly', province.assembly.control, province.name, province))
-          reps.push(...processSeats(provinceCouncilSeats, 'provincial', 'prelates', province.prelates.control, province.name, province))
+        r.provinces.forEach((province) => {
+          reps.push(...processSeats(generateSeatDetails({ seats: province.assembly.seats, chamberType: 'assembly', scope: 'provincial', provinces: r.provinces, selectedProvince: province }), 'provincial', 'assembly', province.assembly.control, province.name, province))
+          reps.push(...processSeats(generateSeatDetails({ seats: province.prelates.seats, chamberType: 'prelates', scope: 'provincial', provinces: r.provinces, selectedProvince: province }), 'provincial', 'prelates', province.prelates.control, province.name, province))
         })
       }
-
       return reps
     })
 
@@ -326,24 +276,12 @@ export default {
         const isLeader = index === 0
         const isGoverning = seat.party === control?.leaderParty
         const isOppositionLeader = isLeader && !isGoverning
-
-        // Determine title
-        let title
-        // Calculate offset based on scope and chamber type to avoid collisions
-        let offset = 0
-        if (scope === 'national') {
-          offset = chamberType === 'prelates' ? 2500 : 0
-        } else if (scope === 'regional') {
-          offset = chamberType === 'prelates' ? 7500 : 5000
-        } else if (scope === 'provincial') {
-          offset = chamberType === 'prelates' ? 12500 : 10000
-        }
-        const nameIndex = seat.seatIndex + offset
+        const nameIndex = seat.seatIndex + getSeatOffset(scope, chamberType)
         const customName = electionStore.getRepresentativeName(seat.party, nameIndex)
-
+        let title
         if (isLeader && isGoverning) {
-          const leaderTitle = chamberType === 'prelates' ? upperHouseLeaderTitle(scope) : lowerHouseLeaderTitle(scope)
-          title = customName ? `${leaderTitle} ${customName}` : leaderTitle
+          const lt = chamberType === 'prelates' ? upperHouseLeaderTitle(scope) : lowerHouseLeaderTitle(scope)
+          title = customName ? `${lt} ${customName}` : lt
         } else if (isOppositionLeader) {
           title = customName ? `Opposition Leader ${customName}` : 'Opposition Leader'
         } else if (isLeader) {
@@ -352,316 +290,215 @@ export default {
           const role = chamberType === 'prelates' ? 'Prelate' : 'Assemblyperson'
           title = customName ? `${role} ${customName}` : role
         }
-
-        return {
-          party: seat.party,
-          scope,
-          chamberType,
-          seatIndex: seat.seatIndex,
-          jurisdiction: seat.jurisdiction,
-          voteShare: seat.voteShare,
-          supportMetric: seat.supportMetric,
-          title,
-          isLeader,
-          isGoverning,
-          isOppositionLeader,
-          regionName,
-          provinceName: province?.name,
-        }
+        return { party: seat.party, scope, chamberType, seatIndex: seat.seatIndex, jurisdiction: seat.jurisdiction, voteShare: seat.voteShare, supportMetric: seat.supportMetric, title, isLeader, isGoverning, isOppositionLeader, regionName, provinceName: province?.name }
       })
     }
 
-    // Filter representatives
     const filteredRepresentatives = computed(() => {
-      const query = searchQuery.value.toLowerCase().trim()
+      const q = searchQuery.value.toLowerCase().trim()
       return allRepresentatives.value.filter((rep) => {
-        // Search filter
-        if (query) {
-          const nameMatch = rep.title.toLowerCase().includes(query)
-          const jurisdictionMatch = rep.jurisdiction.toLowerCase().includes(query)
-          const regionMatch = rep.regionName?.toLowerCase().includes(query)
-          const provinceMatch = rep.provinceName?.toLowerCase().includes(query)
-          if (!nameMatch && !jurisdictionMatch && !regionMatch && !provinceMatch) return false
-        }
-
-        // Party filter
+        if (q && !rep.title.toLowerCase().includes(q) && !rep.jurisdiction.toLowerCase().includes(q) && !(rep.regionName || '').toLowerCase().includes(q) && !(rep.provinceName || '').toLowerCase().includes(q)) return false
         if (selectedParty.value !== 'all' && rep.party !== selectedParty.value) return false
-
-        // Chamber filter
         if (selectedChamber.value !== 'all' && rep.chamberType !== selectedChamber.value) return false
-
-        // Status filter
-        if (selectedStatus.value !== 'all') {
-          if (selectedStatus.value === 'leader' && !rep.isLeader) return false
-          if (selectedStatus.value === 'government' && !rep.isGoverning) return false
-          if (selectedStatus.value === 'opposition' && rep.isGoverning) return false
-        }
-
+        if (selectedStatus.value === 'leader' && !rep.isLeader) return false
+        if (selectedStatus.value === 'government' && !rep.isGoverning) return false
+        if (selectedStatus.value === 'opposition' && rep.isGoverning) return false
         return true
       })
     })
 
-    // Group representatives
     const groupedRepresentatives = computed(() => {
       const groups = {}
-
       filteredRepresentatives.value.forEach((rep) => {
-        let key
-        let label
-
+        let key, label
         switch (groupBy.value) {
-          case 'scope':
-            key = rep.scope
-            label = scopeLabel(rep.scope)
-            break
-          case 'party':
-            key = rep.party
-            label = store.partyMeta[rep.party]?.name || rep.party
-            break
-          case 'chamber':
-            key = rep.chamberType
-            label = rep.chamberType === 'assembly' ? 'Assembly' : 'Council'
-            break
-          case 'jurisdiction':
-            key = rep.jurisdiction
-            label = rep.jurisdiction
-            break
+          case 'scope': key = rep.scope; label = scopeLabel(rep.scope); break
+          case 'party': key = rep.party; label = store.partyMeta[rep.party]?.name || rep.party; break
+          case 'chamber': key = rep.chamberType; label = rep.chamberType === 'assembly' ? 'Assembly' : 'Council'; break
           case 'status':
-            if (rep.isLeader && rep.isGoverning) {
-              key = 'government-leader'
-              label = 'Government Leader'
-            } else if (rep.isLeader && !rep.isGoverning) {
-              key = 'opposition-leader'
-              label = 'Opposition Leader'
-            } else if (rep.isGoverning) {
-              key = 'government'
-              label = 'Government Member'
-            } else {
-              key = 'opposition'
-              label = 'Opposition Member'
-            }
+            if (rep.isLeader && rep.isGoverning) { key = 'government-leader'; label = 'Government Leader' }
+            else if (rep.isLeader && !rep.isGoverning) { key = 'opposition-leader'; label = 'Opposition Leader' }
+            else if (rep.isGoverning) { key = 'government'; label = 'Government Member' }
+            else { key = 'opposition'; label = 'Opposition Member' }
             break
-          default:
-            key = rep.scope
-            label = scopeLabel(rep.scope)
+          default: key = rep.scope; label = scopeLabel(rep.scope)
         }
-
-        if (!groups[key]) {
-          groups[key] = { key, label, representatives: [] }
-        }
+        if (!groups[key]) groups[key] = { key, label, representatives: [] }
         groups[key].representatives.push(rep)
       })
 
-      // Sort groups and representatives within groups
       return Object.values(groups).sort((a, b) => {
-        if (groupBy.value === 'scope') {
-          const order = { national: 1, regional: 2, provincial: 3 }
-          return order[a.key] - order[b.key]
-        }
-        if (groupBy.value === 'party') {
-          return b.representatives.length - a.representatives.length
-        }
-        if (groupBy.value === 'chamber') {
-          const order = { assembly: 1, prelates: 2 }
-          return order[a.key] - order[b.key]
-        }
-        if (groupBy.value === 'status') {
-          const order = { 'government-leader': 1, 'government': 2, 'opposition-leader': 3, 'opposition': 4 }
-          return order[a.key] - order[b.key]
-        }
+        if (groupBy.value === 'scope') return ({ national: 1, regional: 2, provincial: 3 })[a.key] - ({ national: 1, regional: 2, provincial: 3 })[b.key]
+        if (groupBy.value === 'party') return b.representatives.length - a.representatives.length
+        if (groupBy.value === 'chamber') return ({ assembly: 1, prelates: 2 })[a.key] - ({ assembly: 1, prelates: 2 })[b.key]
+        if (groupBy.value === 'status') return ({ 'government-leader': 1, government: 2, 'opposition-leader': 3, opposition: 4 })[a.key] - ({ 'government-leader': 1, government: 2, 'opposition-leader': 3, opposition: 4 })[b.key]
         return a.label.localeCompare(b.label)
       }).map((group) => ({
         ...group,
         representatives: group.representatives.sort((a, b) => {
-          // Sort based on selected sort option
-          const direction = sortDirection.value === 'asc' ? 1 : -1
-
+          const dir = sortDirection.value === 'asc' ? 1 : -1
           switch (sortBy.value) {
-            case 'support':
-              if (b.supportMetric !== a.supportMetric) {
-                return (a.supportMetric - b.supportMetric) * direction
-              }
-              break
-            case 'name':
-              const nameCompare = a.title.localeCompare(b.title)
-              if (nameCompare !== 0) return nameCompare * direction
-              break
-            case 'party':
-              const partyCompare = a.party.localeCompare(b.party)
-              if (partyCompare !== 0) return partyCompare * direction
-              break
-            case 'jurisdiction':
-              const jurisdictionCompare = a.jurisdiction.localeCompare(b.jurisdiction)
-              if (jurisdictionCompare !== 0) return jurisdictionCompare * direction
-              break
-            case 'seat':
-              if (a.seatIndex !== b.seatIndex) {
-                return (a.seatIndex - b.seatIndex) * direction
-              }
-              break
+            case 'support': if (b.supportMetric !== a.supportMetric) return (a.supportMetric - b.supportMetric) * dir; break
+            case 'name': { const c = a.title.localeCompare(b.title); if (c !== 0) return c * dir; break }
+            case 'party': { const c = a.party.localeCompare(b.party); if (c !== 0) return c * dir; break }
+            case 'jurisdiction': { const c = a.jurisdiction.localeCompare(b.jurisdiction); if (c !== 0) return c * dir; break }
+            case 'seat': if (a.seatIndex !== b.seatIndex) return (a.seatIndex - b.seatIndex) * dir; break
           }
-
-          // Secondary sort: by party, then by jurisdiction
-          if (a.party !== b.party) {
-            return a.party.localeCompare(b.party)
-          }
-          return a.jurisdiction.localeCompare(b.jurisdiction)
+          return a.party !== b.party ? a.party.localeCompare(b.party) : a.jurisdiction.localeCompare(b.jurisdiction)
         }),
       }))
     })
 
     const totalRepresentatives = computed(() => allRepresentatives.value.length)
 
+    const partyStats = computed(() => {
+      const counts = {}
+      for (const rep of filteredRepresentatives.value) counts[rep.party] = (counts[rep.party] || 0) + 1
+      const total = filteredRepresentatives.value.length || 1
+      return PARTIES.filter((p) => counts[p]).map((p) => ({
+        party: p,
+        count: counts[p],
+        abbrev: store.partyMeta[p]?.abbreviation || p.slice(0, 3),
+        color: store.partyMeta[p]?.color || '#666',
+        pct: (counts[p] / total) * 100,
+      })).sort((a, b) => b.count - a.count)
+    })
+
+    const govCount = computed(() => filteredRepresentatives.value.filter((r) => r.isGoverning).length)
+    const oppCount = computed(() => filteredRepresentatives.value.filter((r) => !r.isGoverning).length)
+
     function scopeLabel(scope) {
-      const labels = {
-        national: 'National',
-        regional: 'Regional',
-        provincial: 'Provincial',
-      }
-      return labels[scope] || scope
+      return { national: 'National', regional: 'Regional', provincial: 'Provincial' }[scope] || scope
     }
 
     function formatSupport(metric) {
       const safe = num(metric)
-      if (!isFinite(safe) || safe < 0) return '0.0'
-      return `${safe.toFixed(1)}`
+      return isFinite(safe) && safe >= 0 ? safe.toFixed(1) : '0.0'
     }
 
     function formatVoteShare(share) {
       const safe = num(share)
-      if (!isFinite(safe) || safe < 0) return '0.0%'
-      return `${(safe * 100).toFixed(1)}%`
+      return isFinite(safe) && safe >= 0 ? `${(safe * 100).toFixed(1)}%` : '0.0%'
+    }
+
+    function repCardStyle(rep) {
+      const c = store.partyMeta[rep.party]?.color || '#666'
+      return { borderLeftColor: c }
     }
 
     return {
-      hasData,
-      store,
-      countryName,
-      groupBy,
-      sortBy,
-      sortDirection,
-      searchQuery,
-      selectedScope,
-      selectedParty,
-      selectedChamber,
-      selectedStatus,
-      groupOptions,
-      scopeOptions,
-      parties: PARTIES,
-      groupedRepresentatives,
-      totalRepresentatives,
-      scopeLabel,
-      formatSupport,
-      formatVoteShare,
+      countryName, filteredRepresentatives, formatSupport, formatVoteShare, govCount,
+      groupBy, groupedRepresentatives, groupOptions, oppCount, parties: PARTIES,
+      partyStats, repCardStyle, scopeLabel, scopeOptions, searchQuery, selectedChamber,
+      selectedParty, selectedScope, selectedStatus, sortBy, sortDirection, store,
+      totalRepresentatives, Users, viewMode,
     }
   },
 }
 </script>
 
 <style scoped>
-.overview-hero {
-  margin-bottom: 24px;
-}
-
-.election-decision-hero-main {
+.dir-stats-strip {
   display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.election-page-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  background: var(--accent-dim);
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
 }
 
-.eyebrow {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.dir-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 48px;
 }
 
-.election-decision-hero-main h2 {
-  margin: 4px 0 8px;
-  font-family: 'Cinzel', serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.election-decision-hero-main p {
-  margin: 0;
-  color: var(--text-secondary);
+.dir-stat strong {
   font-size: 0.9rem;
+  color: var(--text-primary);
 }
 
-.directory-filters {
+.dir-stat span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.dir-stat-bar {
+  width: 32px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--bg-surface-overlay);
+  overflow: hidden;
+}
+
+.dir-stat-bar i {
+  display: block;
+  height: 100%;
+  width: var(--bar-pct);
+  background: var(--bar-color);
+  border-radius: inherit;
+}
+
+.dir-filter-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 20px;
-  background: var(--bg-surface-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  margin-bottom: 24px;
+  gap: 14px;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .filter-group label {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .filter-buttons {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .filter-btn {
-  padding: 8px 16px;
+  padding: 5px 10px;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.76rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .filter-btn:hover {
-  background: var(--bg-surface-raised);
-  border-color: var(--border-subtle);
+  background: var(--bg-surface-overlay);
 }
 
 .filter-btn--active {
-  background: var(--accent-dim);
-  border-color: var(--accent);
-  color: var(--text-primary);
+  background: rgba(212, 168, 67, 0.12);
+  border-color: rgba(212, 168, 67, 0.35);
+  color: var(--accent);
 }
 
 .filter-input {
-  padding: 8px 12px;
+  padding: 5px 10px;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  min-width: 200px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  min-width: 180px;
 }
 
 .filter-input:focus {
@@ -669,27 +506,20 @@ export default {
   border-color: var(--accent);
 }
 
-.filter-input::placeholder {
-  color: var(--text-muted);
-}
-
 .filter-select {
-  padding: 8px 12px;
+  padding: 5px 10px;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  min-width: 150px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  min-width: 120px;
 }
 
 .directory-content {
   background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
   overflow-x: auto;
 }
 
@@ -697,27 +527,27 @@ export default {
   padding: 40px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
 }
 
 .directory-groups {
   display: flex;
   flex-direction: column;
-  gap: 24px;
 }
 
 .directory-group {
-  background: var(--bg-surface-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.directory-group:last-child {
+  border-bottom: none;
 }
 
 .directory-group-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 12px 16px;
   background: var(--bg-input);
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -725,36 +555,87 @@ export default {
 .directory-group-header h3 {
   margin: 0;
   font-family: 'Cinzel', serif;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .group-count {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  font-weight: 500;
 }
 
+/* Card view */
+.dir-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+  padding: 12px;
+}
+
+.dir-rep-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--bg-surface-raised, var(--bg-surface));
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid;
+  border-radius: var(--radius-sm);
+}
+
+.dir-rep-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.dir-rep-card-top .representative-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dir-rep-icons {
+  display: flex;
+  gap: 3px;
+}
+
+.dir-rep-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dir-rep-card-detail {
+  display: flex;
+  gap: 8px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Table view */
 .directory-table {
   width: 100%;
-  min-width: 1200px;
+  min-width: 1000px;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .directory-table th {
-  padding: 12px 16px;
+  padding: 8px 12px;
   text-align: left;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--bg-surface);
-  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .directory-table td {
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -763,11 +644,11 @@ export default {
 }
 
 .directory-row:hover {
-  background: var(--bg-input);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .col-name {
-  min-width: 200px;
+  min-width: 180px;
   font-weight: 600;
 }
 
@@ -775,85 +656,54 @@ export default {
   color: var(--text-primary);
 }
 
-.leader-badge,
-.government-badge,
-.opposition-badge {
-  font-size: 0.8rem;
-  margin-left: 6px;
-}
-
-.col-party {
-  width: 120px;
-}
-
-.col-scope {
-  width: 100px;
-}
+.icon-leader { color: var(--accent); margin-left: 4px; }
+.icon-govt { color: #64b5f6; margin-left: 4px; }
+.icon-opp { color: #ef9a9a; margin-left: 4px; }
 
 .scope-badge {
   display: inline-block;
-  padding: 4px 8px;
+  padding: 2px 6px;
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
   background: var(--bg-input);
   color: var(--text-secondary);
 }
 
 .scope-badge--national {
-  background: linear-gradient(135deg, #d4a84322, #d4a84311);
-  border: 1px solid #d4a84366;
+  background: rgba(212, 168, 67, 0.12);
+  border: 1px solid rgba(212, 168, 67, 0.3);
   color: #d4a843;
 }
 
 .scope-badge--regional {
-  background: linear-gradient(135deg, #3b82f622, #3b82f611);
-  border: 1px solid #3b82f666;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
   color: #3b82f6;
 }
 
 .scope-badge--provincial {
-  background: linear-gradient(135deg, #22c55e22, #22c55e11);
-  border: 1px solid #22c55e66;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
   color: #22c55e;
 }
 
-.col-chamber {
-  width: 120px;
-  color: var(--text-secondary);
-}
-
-.col-jurisdiction {
-  min-width: 150px;
-  color: var(--text-secondary);
-}
-
-.col-region {
-  min-width: 140px;
+.col-chamber, .col-jurisdiction, .col-region, .col-vote {
   color: var(--text-secondary);
 }
 
 .col-seat {
-  width: 80px;
   text-align: center;
   color: var(--text-secondary);
 }
 
-.col-vote {
-  width: 90px;
-  color: var(--text-secondary);
-}
-
-.col-support {
-  width: 120px;
-}
-
 .support-bar-mini {
   position: relative;
-  height: 20px;
+  height: 18px;
   background: var(--bg-input);
   border-radius: var(--radius-sm);
   overflow: hidden;
+  min-width: 80px;
 }
 
 .support-bar-mini-fill {
@@ -861,19 +711,24 @@ export default {
   left: 0;
   top: 0;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  background: linear-gradient(90deg, rgba(212, 168, 67, 0.15), rgba(212, 168, 67, 0.4));
   border-radius: var(--radius-sm);
-  transition: width 0.3s ease;
   min-width: 2px;
 }
 
 .support-bar-mini-value {
   position: absolute;
-  right: 6px;
+  right: 5px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 700;
   color: var(--text-secondary);
+}
+
+@media (max-width: 720px) {
+  .dir-card-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -628,23 +628,24 @@ function broadcastSystemPrompt(scope = 'national', targetName = null) {
   }
 
   return [
-    `You are the lead anchor for ${stationName}, delivering live election night coverage.`,
-    'TONE: Professional broadcast journalism—think CNN, BBC, or major network election night coverage. authoritative but accessible, data-driven but human, urgent but measured.',
-    'TASK: Deliver exactly 5 paragraphs that read like a polished television broadcast script. Weave the data into a compelling narrative story rather than reciting statistics. The numbers should support the story, not be the story.',
+    `You are the lead anchor for ${stationName}, delivering a top-of-the-hour election results breakdown.`,
+    'PHASE: Election results are FINALIZED. Vote counting is complete. Use definitive past-tense language: won, secured, defeated, took control, held. Do NOT use uncertainty language.',
+    'TONE: Professional broadcast journalism — CNN, BBC, major network election coverage. Authoritative but accessible, data-driven but human.',
+    'KEY FIGURES — THIS IS MANDATORY: The keyFigures field lists the governing leader, opposition leader, and support leaders by exact title, party, and personal name. You MUST use their personal name whenever one is provided. Never refer to a party alone when you have the leader\'s name. Western broadcasters always mix name and party: "Prime Minister Noeurng Khean\'s majority," "Opposition Leader Vannak Chan of the Liberal Democrats," "the Chancellor\'s council bloc." Treat every named figure in keyFigures the way CNN treats a sitting president or BBC treats a Prime Minister — their name belongs in the coverage, not just their party.',
+    'TASK: Deliver between 5 and 7 paragraphs as a polished television broadcast script. Weave the data into a compelling narrative. Numbers support the story; they are not the story. Use 6 or 7 paragraphs when the data is rich — multiple chamber changes, incumbent title shifts, strong polling surprises.',
     scopeRules[scope] || scopeRules.national,
-    'BROADCAST STYLE: Use the language and cadence of mainstream election coverage. Phrases like "We can now project," "The numbers are coming in," "A stunning upset in," "This is a developing story," "Let\'s take a look at the board," "The path to victory," "Too close to call," "The battleground state of," "Historic shift underway."',
-    'NARRATIVE FIRST: Tell the story of what this election means for the nation/region/province. Use data as evidence to support your narrative, not as a checklist. Connect the dots between trends, demographics, and results to explain why this outcome happened.',
-    'STRUCTURE: Paragraph 1 is the lead story—the big headline, the major call, the seismic shift, the breaking news that viewers need to know immediately. Hook the audience with what matters.',
-    'STRUCTURE: Paragraph 2 delivers the hard numbers and context—seat counts, chamber control, vote shares, majority thresholds—but frame them as part of the unfolding story, not as a data dump.',
-    'STRUCTURE: Paragraphs 3 and 4 drill down with specific examples: decisive provinces, bellwether counties, demographic breakdowns, trend impacts, and representative names. Use these to illustrate the broader narrative, not to list statistics.',
-    'STRUCTURE: Paragraph 5 is the takeaway and outlook—what this result means for the area going forward, the political landscape, and what to watch next. End with forward-looking analysis.',
-    'JOURNALISTIC ANALYSIS: Explain the "why" behind the numbers using supplied trends, demographics, and representative information. Connect the data to real-world factors without speculation. Make the audience feel they understand the story behind the results.',
-    'HISTORICAL CONTEXT: Use swingPct and strongestSwing to compare current results against the previous election (baselineResults). Frame the narrative: "This represents a shift from the previous election," "Building on the last cycle\'s outcome," "A reversal from the prior mandate," etc.',
-    'POLLING CONTEXT: When polling.aggregate is provided, compare actual results to pre-election expectations. Highlight surprises: "Defying expectations," "Exceeding projections," "Underperforming relative to polls," "The polls missed this shift." This adds drama and shows the election\'s unexpected elements.',
-    'PARTY IDENTITY: Use partyIdentityRules to correctly identify parties. Color labels, party IDs, abbreviations, and formal names are aliases for the same parties. Never treat "Orange Party" and "United Workers Congress" as separate parties if they map to the same identity.',
-    'REPRESENTATIVE REFERENCES: When representatives are provided with personal names, ALWAYS use them. This is critical for authentic election coverage. Examples: "Prime Minister Noeurng Khean from Ostia secures the mandate," "Principal Chancellor Vannak Chan of the National Council gains ground." When only party names are available, reference the party leader by party name. ALWAYS use their exact role title from the data (e.g., "Prime Minister," "Principal Chancellor," "Premier," "Head Chancellor," "Governor," "Chancellor") and include their jurisdiction. Never use generic titles like "Assembly Leader" when specific titles are provided.',
+    'BROADCAST STYLE: "The votes are in," "Tonight\'s results show," "A historic shift in," "In a stunning result," "Defying the polls," "Sweeping to victory," "The mandate is clear."',
+    'STRUCTURE: Paragraph 1 — the lead. Name the winner. "Prime Minister [Name] has secured..." or "[Name]\'s [Party] swept to..." Hook the audience immediately.',
+    'STRUCTURE: Paragraph 2 — hard numbers. Seats, chamber control, vote shares, majority thresholds. Frame as story, not data dump.',
+    'STRUCTURE: Paragraphs 3 and 4 — drill down. Decisive provinces, demographic swings, trend impacts. Use representative names with exact titles throughout.',
+    'STRUCTURE: Paragraph 5 — incumbent story. When incumbentChanges data is present, name who changed titles, who lost power, who secured a mandate. Reference the outgoing figure by name too: "[Former PM Name] steps aside as..." If isFirstElection or incumbentChanges is empty, use this for forward analysis.',
+    'STRUCTURE: Paragraphs 6–7 (optional) — outlook and coalition analysis. Use only when data supports the depth.',
+    'HISTORICAL CONTEXT: When isFirstElection is false, use swingPct and strongestSwing to frame shifts vs. the previous election. When isFirstElection is true, skip historical comparisons.',
+    'INCUMBENT CHANGES: When incumbentChanges data is provided, this is the central human drama. Party-flip: name both the outgoing and incoming leader with exact titles. Minority-to-majority: mandate story. Majority-to-minority: rebuke story. Always use exact role titles: Prime Minister, Principal Chancellor, Premier, Head Chancellor, Governor, Chancellor.',
+    'POLLING CONTEXT: When polling.aggregate is provided, compare final results to pre-election expectations. Highlight surprises.',
+    'PARTY IDENTITY: Use partyIdentityRules to collapse color labels, IDs, abbreviations, and formal names into one party identity.',
     'Use only supplied facts and numbers; do not invent counties, parties, margins, quotes, or scenarios.',
-    'Return ONLY the script as five plain-text paragraphs separated by blank lines. No markdown, headings, commentary, hidden reasoning, or  blocks.',
+    'Return ONLY the script as 5 to 7 plain-text paragraphs separated by blank lines. No markdown, headings, commentary, or <think> blocks.',
   ].filter(Boolean).join(' ')
 }
 
@@ -662,13 +663,15 @@ function tickerSystemPrompt(scope = 'national', targetName = null) {
   }
 
   return [
-    `You are writing one live election ticker update for ${scopeName}, like a chyron running on CNN, BBC, or a major network.`,
+    `You are writing one election results ticker update for ${scopeName}, like a chyron running on CNN, BBC, or a major network.`,
+    'PHASE: Results are FINAL. Use definitive past-tense language: won, took, secured, held. Do not use uncertainty language like "projected" or "too close to call."',
     'Return exactly one plain-text paragraph, 55 to 85 words.',
     scopeRules[scope] || scopeRules.national,
-    'Lead with the breaking news—the most important control call, vote movement, or projection. Use broadcast language: "BREAKING," "PROJECTED," "CALLED," "LEADERSHIP CHANGES."',
-    'Follow with the key takeaway or reason using supplied trends and numbers. Keep it punchy and viewer-focused.',
-    'Treat polling.aggregate as the pre-election benchmark; reference it to show how results compare to expectations when relevant.',
-    'Use hard data, but stay compact enough for an on-screen ticker or chyron. Think "bottom line" journalism.',
+    'Lead with the most important result — the control call, the seat shift, the biggest story from this scope.',
+    'KEY LEADERS: If topLeaders data is present, you may name the governing leader once (e.g., "Prime Minister Vannak Chan") when directly relevant to the lead. One name max — keep it tight.',
+    'Follow with the key context using supplied trends and numbers. Keep it punchy and viewer-focused.',
+    'Treat polling.aggregate as the pre-election benchmark; note surprises only when they are striking.',
+    'Use hard data, but stay compact enough for an on-screen ticker. Think "bottom line" journalism.',
     'Use only supplied facts and numbers; do not invent counties, parties, margins, or quotes.',
     'No markdown, heading, bullets, preamble, hidden reasoning, or <think> blocks.',
   ].join(' ')
@@ -916,6 +919,120 @@ function strongestSwing(current, baseline, partyMeta = PARTY_META) {
     name: partyMeta[party]?.name || PARTY_META[party]?.name || party,
     points,
   }
+}
+
+function incumbentLeadershipChanges(
+  results = {},
+  previousElectionResults = {},
+  scope = 'national',
+  targetName = null,
+  partyMeta = PARTY_META,
+  representativeNames = {},
+) {
+  if (!previousElectionResults || Object.keys(previousElectionResults).length === 0) return []
+
+  const levelScope = scope === 'overview' ? 'national' : scope
+  const displayScope = levelScope.charAt(0).toUpperCase() + levelScope.slice(1)
+
+  let chamberPairs = []
+  if (levelScope === 'national') {
+    chamberPairs = [
+      [results.national?.assembly, previousElectionResults.national?.assembly, 'assembly', 'national', 'Assembly'],
+      [results.national?.prelates, previousElectionResults.national?.prelates, 'prelates', 'national', 'Council'],
+    ]
+  } else if (levelScope === 'regional') {
+    const cur = results.regions?.[targetName] || {}
+    const prev = previousElectionResults.regions?.[targetName] || {}
+    chamberPairs = [
+      [cur.assembly, prev.assembly, 'assembly', 'regional', 'Assembly'],
+      [cur.prelates, prev.prelates, 'prelates', 'regional', 'Council'],
+    ]
+  } else if (levelScope === 'provincial') {
+    const cur = (results.provinces || []).find((p) => p.name === targetName) || {}
+    const prev = (previousElectionResults.provinces || []).find((p) => p.name === targetName) || {}
+    chamberPairs = [
+      [cur.assembly, prev.assembly, 'assembly', 'provincial', 'Assembly'],
+      [cur.prelates, prev.prelates, 'prelates', 'provincial', 'Council'],
+    ]
+  }
+
+  const changes = []
+
+  for (const [cur, prev, chamberType, chamberLevel, chamberLabel] of chamberPairs) {
+    if (!cur || !prev) continue
+    const currentLeaderParty = cur.control?.leaderParty || null
+    const previousLeaderParty = prev.control?.leaderParty || null
+    if (!currentLeaderParty || !previousLeaderParty) continue
+
+    const currentIsMinority = Array.isArray(cur.control?.supportParties) && cur.control.supportParties.length > 0
+    const previousIsMinority = Array.isArray(prev.control?.supportParties) && prev.control.supportParties.length > 0
+    const prevSupportSet = new Set(prev.control?.supportParties || [])
+    const curSupportSet = new Set(cur.control?.supportParties || [])
+    const supportChanged = prevSupportSet.size !== curSupportSet.size ||
+      [...curSupportSet].some((p) => !prevSupportSet.has(p))
+
+    let changeType = null
+    if (currentLeaderParty !== previousLeaderParty) {
+      changeType = 'party-flip'
+    } else if (previousIsMinority && !currentIsMinority) {
+      changeType = 'minority-to-majority'
+    } else if (!previousIsMinority && currentIsMinority) {
+      changeType = 'majority-to-minority'
+    } else if (supportChanged) {
+      changeType = 'status-change'
+    }
+
+    if (!changeType) continue
+
+    const currentTitle = chamberType === 'assembly'
+      ? lowerHouseLeaderTitle(chamberLevel)
+      : upperHouseLeaderTitle(chamberLevel)
+    const previousTitle = chamberType === 'assembly'
+      ? lowerHouseLeaderTitle(chamberLevel)
+      : upperHouseLeaderTitle(chamberLevel)
+
+    const currentLeaderPartyName = partyMeta[currentLeaderParty]?.name || PARTY_META[currentLeaderParty]?.name || currentLeaderParty
+    const previousLeaderPartyName = partyMeta[previousLeaderParty]?.name || PARTY_META[previousLeaderParty]?.name || previousLeaderParty
+
+    const currentLeaderName = Object.entries(representativeNames || {})
+      .find(([k]) => k.startsWith(`${currentLeaderParty}_`))?.[1] || null
+    const previousLeaderName = Object.entries(representativeNames || {})
+      .find(([k]) => k.startsWith(`${previousLeaderParty}_`))?.[1] || null
+
+    let changeNarrative = ''
+    if (changeType === 'party-flip') {
+      const who = currentLeaderName || 'The new leader'
+      changeNarrative = `${currentLeaderPartyName} has taken the ${chamberLabel} from ${previousLeaderPartyName}. ${who} becomes ${currentTitle}.`
+    } else if (changeType === 'minority-to-majority') {
+      const who = currentLeaderName || 'their leader'
+      changeNarrative = `${currentLeaderPartyName} gained an outright majority in the ${chamberLabel}, securing ${who}'s mandate as ${currentTitle}.`
+    } else if (changeType === 'majority-to-minority') {
+      const who = currentLeaderName || 'their leader'
+      changeNarrative = `${currentLeaderPartyName} retained the ${chamberLabel} but lost its majority, now governing as a minority ${currentTitle} under ${who}.`
+    } else if (changeType === 'status-change') {
+      changeNarrative = `${currentLeaderPartyName}'s ${chamberLabel} coalition has shifted since the previous election.`
+    }
+
+    changes.push(compactObject({
+      chamber: chamberLabel,
+      chamberType,
+      scope: displayScope,
+      previousLeaderParty,
+      previousLeaderPartyName,
+      previousTitle,
+      previousIsMinority,
+      previousLeaderName,
+      currentLeaderParty,
+      currentLeaderPartyName,
+      currentTitle,
+      currentIsMinority,
+      currentLeaderName,
+      changeType,
+      changeNarrative,
+    }))
+  }
+
+  return changes
 }
 
 function chamberContext(chamber = {}, baselineChamber = null, partyMeta = PARTY_META) {
@@ -1402,15 +1519,25 @@ function allScopePollingContext(pollingScopes = [], baselineResults = {}, partyM
     .filter(Boolean)
 }
 
-function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null, seatDetails = [], representativeNames = {}) {
+function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null, seatDetails = [], representativeNames = {}, incumbentRoster = {}, electionNumber = 0) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
   const partyMeta = partyMetaForContext(results)
+  const isFirstElection = (electionNumber || 0) === 0
+  const keyFigures = representativesContext(results, scope, targetName, partyMeta, seatDetails, representativeNames)
 
   return JSON.stringify({
-    task: 'Write exactly five plain-text election broadcast paragraphs based only on this newsroom data.',
+    task: 'Write 5 to 7 plain-text election broadcast paragraphs based only on this newsroom data. Results are FINALIZED.',
+    keyFigures,
+    keyFiguresInstruction: keyFigures?.length
+      ? 'These are the named leaders for this broadcast. Use their personal names throughout — do not reduce them to party labels alone. Mix name and party the way broadcast journalists do: "Prime Minister [Name]\'s [Party]," "[Name] of the [Party]," "the [Title] [Name]."'
+      : undefined,
     scope,
     target,
+    phase: 'post_election',
+    electionYear: 2026 + (electionNumber || 0) * 2,
+    electionNumber: electionNumber || 0,
+    isFirstElection,
     scopeBoundary: {
       overview: 'Full election board. This is the only request allowed to consolidate national, regional, provincial, and county-level context.',
       national: 'National page. Focus on national chambers, national popular vote, and national control. Regional items are examples only if present in focus.examples.',
@@ -1418,15 +1545,18 @@ function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'nation
       provincial: `Provincial page. Focus only on ${targetName || 'the selected province'} and its counties.`,
     }[scope] || 'National page.',
     interpretationRules: [
-      'baselineResults represents the PREVIOUS ELECTION—the last completed election cycle used as a reference point.',
+      'phase is post_election: results are FINAL and certified. Do not use uncertainty language.',
+      isFirstElection
+        ? 'isFirstElection is true: this is the first election. There is no prior election to compare against; omit all historical comparisons.'
+        : 'baselineResults represents the PREVIOUS CONFIRMED ELECTION used for swingPct and seat-change comparisons.',
       'swingPct and strongestSwing fields show how current results compare to the previous election.',
-      'polling.aggregate represents PRE-ELECTION EXPECTATIONS—what polls predicted before voting began.',
-      'Use baseline comparisons to frame the narrative: "This represents a shift from the previous election," "Building on the last cycle\'s outcome," etc.',
-      'Use polling comparisons to highlight surprises: "Defying expectations," "Exceeding projections," "Underperforming relative to polls."',
-    ],
+      'incumbentChanges lists leadership transitions between the previous and current election; use these to tell the political story.',
+      'polling.aggregate represents PRE-ELECTION EXPECTATIONS; compare with final results to highlight surprises.',
+    ].filter(Boolean),
     partyLegend: partyLegend(partyMeta),
     partyIdentityRules: partyIdentityRules(partyMeta),
     activeTrends: trendSummaries(results.config?.trends || []),
+    incumbentChanges: isFirstElection ? [] : incumbentLeadershipChanges(results, baselineResults, scope, targetName, partyMeta, representativeNames),
     national: includeNational ? compactObject({
       population: integerOrNull(results.national?.population),
       assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
@@ -1437,21 +1567,69 @@ function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'nation
   })
 }
 
-function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null) {
+function buildTickerTopLeaders(results, scope, targetName, partyMeta, representativeNames) {
+  const levelScope = scope === 'overview' ? 'national' : scope
+  let chamberPairs = []
+
+  if (levelScope === 'national') {
+    chamberPairs = [
+      [results.national?.assembly, 'assembly', 'national', 'Assembly'],
+      [results.national?.prelates, 'prelates', 'national', 'Council'],
+    ]
+  } else if (levelScope === 'regional') {
+    const reg = results.regions?.[targetName] || {}
+    chamberPairs = [
+      [reg.assembly, 'assembly', 'regional', 'Assembly'],
+      [reg.prelates, 'prelates', 'regional', 'Council'],
+    ]
+  } else if (levelScope === 'provincial') {
+    const prov = (results.provinces || []).find((p) => p.name === targetName) || {}
+    chamberPairs = [
+      [prov.assembly, 'assembly', 'provincial', 'Assembly'],
+      [prov.prelates, 'prelates', 'provincial', 'Council'],
+    ]
+  }
+
+  const entries = []
+  for (const [chamber, chamberType, chamberLevel, label] of chamberPairs) {
+    if (!chamber?.control?.leaderParty) continue
+    const party = chamber.control.leaderParty
+    const title = chamberType === 'assembly'
+      ? lowerHouseLeaderTitle(chamberLevel)
+      : upperHouseLeaderTitle(chamberLevel)
+    const name = Object.entries(representativeNames || {})
+      .find(([k]) => k.startsWith(`${party}_`))?.[1] || null
+    entries.push(compactObject({
+      chamber: label,
+      party,
+      partyName: partyMeta[party]?.name || PARTY_META[party]?.name || party,
+      title,
+      name,
+    }))
+  }
+
+  return entries.length ? entries : undefined
+}
+
+function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null, representativeNames = {}, electionNumber = 0) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
   const partyMeta = partyMetaForContext(results)
 
   return JSON.stringify({
-    task: 'Write one concise election ticker paragraph based only on this page-specific data.',
+    task: 'Write one concise election ticker paragraph based only on this page-specific data. Results are FINAL.',
     scope,
     target,
+    phase: 'post_election',
+    electionYear: 2026 + (electionNumber || 0) * 2,
+    isFirstElection: (electionNumber || 0) === 0,
     scopeBoundary: {
       overview: 'Full election board. This is the only ticker allowed to consolidate the whole election.',
       national: 'National ticker. Focus on national chambers, national vote movement, and national control.',
       regional: `Regional ticker. Focus only on ${targetName || 'the selected region'} and its provinces.`,
       provincial: `Provincial ticker. Focus only on ${targetName || 'the selected province'} and its counties.`,
     }[scope] || 'National ticker.',
+    topLeaders: buildTickerTopLeaders(results, scope, targetName, partyMeta, representativeNames),
     partyLegend: partyLegend(partyMeta),
     activeTrends: trendSummaries(results.config?.trends || []).slice(0, 8),
     climate: compactObject({
@@ -2436,6 +2614,8 @@ export async function requestElectionBroadcast({
   polling = null,
   seatDetails = [],
   representativeNames = {},
+  incumbentRoster = {},
+  electionNumber = 0,
   endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
   model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
   onStatus,
@@ -2446,23 +2626,23 @@ export async function requestElectionBroadcast({
     message: 'Assembling newsroom packet.',
     detail: 'Collecting control calls, swings, active trends, and local focus data.',
   })
-  
+
   const systemPrompt = broadcastSystemPrompt(scope, targetName)
-  const userPrompt = broadcastUserPrompt(results, baselineResults, scope, targetName, polling, seatDetails, representativeNames)
-  
-  console.log('=== ELECTION BROADCAST LLM CONTEXT ===')
-  console.log('Scope:', scope, 'Target:', targetName)
-  console.log('System Prompt:', systemPrompt)
-  console.log('User Prompt:', userPrompt)
-  console.log('Seat Details:', seatDetails)
-  console.log('Representative Names:', representativeNames)
-  console.log('=====================================')
-  
+  const userPrompt = broadcastUserPrompt(results, baselineResults, scope, targetName, polling, seatDetails, representativeNames, incumbentRoster, electionNumber)
+
+  if (import.meta.env.DEV) {
+    console.log('=== ELECTION BROADCAST LLM CONTEXT ===')
+    console.log('Scope:', scope, 'Target:', targetName, 'Election:', electionNumber)
+    console.log('System Prompt:', systemPrompt)
+    console.log('User Prompt:', userPrompt)
+    console.log('=====================================')
+  }
+
   const content = await requestChatCompletion({
     endpoint,
     model,
     temperature: 0.65,
-    max_tokens: 2200,
+    max_tokens: 3500,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
@@ -2521,6 +2701,8 @@ export async function requestElectionTicker({
   scope = 'national',
   targetName = null,
   polling = null,
+  representativeNames = {},
+  electionNumber = 0,
   endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
   model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
   onStatus,
@@ -2538,7 +2720,7 @@ export async function requestElectionTicker({
     max_tokens: 420,
     messages: [
       { role: 'system', content: tickerSystemPrompt(scope, targetName) },
-      { role: 'user', content: tickerUserPrompt(results, baselineResults, scope, targetName, polling) },
+      { role: 'user', content: tickerUserPrompt(results, baselineResults, scope, targetName, polling, representativeNames, electionNumber) },
     ],
     onStatus,
   })

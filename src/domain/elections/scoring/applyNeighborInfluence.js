@@ -4,7 +4,7 @@ import { num } from '../normalization/numbers'
 
 const MAX_NEIGHBORS = 5
 const MAX_PULL_WEIGHT = 0.18
-const DISTANCE_SCALE = 12
+const DISTANCE_SCALE = 6
 const LARGE_PROVINCE_RESISTANCE_SCALE = 80
 const SMALL_PROVINCE_AMPLIFY_SCALE = 20
 
@@ -19,7 +19,7 @@ function neighborInfluenceWeight(neighbor, targetPopulation) {
   const neighborPop = Math.max(1, num(neighbor.provincial_population))
   const targetPop = Math.max(1, targetPopulation)
 
-  const distanceWeight = 1 / (1 + distance / DISTANCE_SCALE)
+  const distanceWeight = Math.pow(1 / (1 + distance / DISTANCE_SCALE), 1.5)
   const sizeRatio = neighborPop / targetPop
 
   const largeOnSmall = clamp01(sizeRatio / LARGE_PROVINCE_RESISTANCE_SCALE)

@@ -28,6 +28,7 @@ import { Loader2, Radio } from 'lucide-vue-next'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { usePolls } from '../../composables/usePolls'
 import { requestElectionTicker } from '../../domain/elections/narrativePlanner'
+import { useElectionStore } from '../../stores/electionStore'
 import { useUiStore } from '../../stores/uiStore'
 import LlmStatusIndicator from './LlmStatusIndicator.vue'
 import { tickerLlmStatus } from './llmStatusCopy'
@@ -42,8 +43,9 @@ export default {
     tickerKey: { type: String, default: '' },
   },
   setup(props) {
-    const { baselineResults, results } = useElectionResults()
+    const { baselineResults, previousElectionResults, results } = useElectionResults()
     const { pollingPayloadFor } = usePolls()
+    const electionStore = useElectionStore()
     const uiStore = useUiStore()
     const isVisible = ref(false)
     const isLoading = ref(false)
@@ -105,10 +107,12 @@ export default {
       try {
         const text = await requestElectionTicker({
           results: results.value,
-          baselineResults: baselineResults.value,
+          baselineResults: electionStore.electionNumber > 0 ? previousElectionResults.value : baselineResults.value,
           scope: props.scope,
           targetName: props.targetName,
           polling: pollingPayloadFor(props.scope, props.targetName),
+          representativeNames: electionStore.representativeNames,
+          electionNumber: electionStore.electionNumber,
           onStatus: (status) => {
             llmStatus.value = tickerLlmStatus(status)
           },

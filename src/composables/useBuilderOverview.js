@@ -99,37 +99,23 @@ export function useBuilderOverview(store) {
   const unassignedProvinceCount = computed(() => rows.value.filter((province) => !province.group || province.group === 'Unassigned').length)
   const unnamedProvinceCount = computed(() => provinces.value.filter((province) => !province.name).length)
   const dataGapCount = computed(() => unassignedProvinceCount.value + unnamedProvinceCount.value)
-  const countyCount = computed(() => rows.value.reduce((sum, row) => sum + row.countyCount, 0))
-  const countyDetailCount = computed(() => rows.value.reduce((sum, row) => sum + row.countyDetailCount, 0))
+  const countyCount = computed(() => civStore.countyCount)
+  const countyDetailCount = computed(() => civStore.countyDetailCount)
 
-  const totalRawPopulation = computed(() => rows.value.reduce((sum, row) => sum + row.population, 0))
+  const totalRawPopulation = computed(() => civStore.totalRawPopulation)
   const officialPopulation = computed(() => toNumber(country.value.total_population))
-  const totalProvincialPopulation = computed(() => rows.value.reduce((sum, row) => sum + row.provincialPopulation, 0))
-  const totalAssemblypeople = computed(() => rows.value.reduce((sum, row) => sum + row.assemblypeople, 0))
-  const totalPrelates = computed(() => rows.value.reduce((sum, row) => sum + row.prelates, 0))
+  const totalProvincialPopulation = computed(() => civStore.totalProvincialPopulation)
+  const totalAssemblypeople = computed(() => civStore.totalAssemblypeople)
+  const totalPrelates = computed(() => civStore.totalPrelates)
   const totalEconomyOutput = computed(() => {
     return ['gold_per_turn', 'faith_per_turn', 'culture_per_turn', 'science_per_turn']
       .reduce((sum, key) => sum + toNumber(economy.value[key]), 0)
   })
 
-  const yieldTotals = computed(() => {
-    return PROVINCE_YIELD_KEYS.reduce((totals, key) => {
-      totals[key] = rows.value.reduce((sum, row) => sum + row.yields[key], 0)
-      return totals
-    }, {})
-  })
+  const yieldTotals = computed(() => civStore.yieldTotals)
   const topYield = computed(() => topYieldFromMap(yieldTotals.value))
 
-  const religionTotals = computed(() => {
-    const totals = {}
-    rows.value.forEach((row) => {
-      row.religions.forEach((religion) => {
-        if (religion.followers <= 0) return
-        totals[religion.name] = (totals[religion.name] || 0) + religion.followers
-      })
-    })
-    return totals
-  })
+  const religionTotals = computed(() => civStore.religionTotals)
   const dominantReligion = computed(() => topReligionFromTotals(religionTotals.value))
 
   const regionSummaries = computed(() => {

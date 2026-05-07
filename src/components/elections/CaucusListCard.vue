@@ -101,6 +101,7 @@
 <script>
 import { computed, ref } from 'vue'
 import PartyBadge from './PartyBadge.vue'
+import { getSeatOffset } from '../../domain/elections/constants/seatOffsets'
 import { useElectionStore } from '../../stores/electionStore'
 import { chamberControlStyle } from '../../domain/elections/chambers/controlStyles'
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
@@ -136,7 +137,6 @@ export default {
     })
 
     const seatDetails = computed(() => {
-      if (!props.jurisdictionLabels?.length) return []
       return generateSeatDetails({
         seats: props.seats,
         chamberType: props.chamberType,
@@ -228,16 +228,7 @@ export default {
     }
 
     function getRepresentativeTitle(party, seatIndex, type, isHouseLeader = false, isCaucusLeader = false, isOppositionLeader = false) {
-      // Calculate offset based on scope and chamber type to avoid collisions
-      let offset = 0
-      if (props.scope === 'national') {
-        offset = type === 'prelates' ? 2500 : 0
-      } else if (props.scope === 'regional') {
-        offset = type === 'prelates' ? 7500 : 5000
-      } else if (props.scope === 'provincial') {
-        offset = type === 'prelates' ? 12500 : 10000
-      }
-      const nameIndex = seatIndex + offset
+      const nameIndex = seatIndex + getSeatOffset(props.scope, type)
       const customName = electionStore.getRepresentativeName(party, nameIndex)
 
       // If this is the house leader (governing party), use the leader title
