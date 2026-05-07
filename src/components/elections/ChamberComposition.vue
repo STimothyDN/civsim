@@ -129,6 +129,7 @@
       :chamber-type="chamberType"
       :representative-name="hoveredRepresentativeName"
       :representative-title="hoveredRepresentativeTitle"
+      :is-incumbent="hoveredRepresentativeIncumbent"
     />
   </section>
 </template>
@@ -254,6 +255,15 @@ export default {
 
     const hoveredRepresentativeTitle = computed(() => {
       return props.chamberType === 'prelates' ? 'Prelate' : 'Assemblyperson'
+    })
+
+    const hoveredRepresentativeIncumbent = computed(() => {
+      if (!hoveredSeat.value) return null
+      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
+      const seat = computedSeatDetails.value?.[seatIndex]
+      if (!seat) return null
+      const nameIndex = seat.seatIndex + getSeatOffset(props.scope, props.chamberType)
+      return electionStore.isRepresentativeIncumbent(seat.party, nameIndex)
     })
 
     // Generate seat details if not provided (for backward compatibility)
@@ -426,8 +436,20 @@ export default {
       nextTick(() => attachVizZoom())
     })
 
+    const seatsSignature = computed(() => {
+      const seats = props.seats
+      if (!Array.isArray(seats)) return ''
+      let sig = ''
+      for (let i = 0; i < seats.length; i++) {
+        const s = seats[i]
+        if (s && typeof s === 'object') sig += (s.party || s.id || '') + ':' + (s.count ?? s.seats ?? '') + '|'
+        else sig += String(s) + '|'
+      }
+      return sig
+    })
+
     watch(
-      () => [JSON.stringify(props.seats), props.compact],
+      () => [seatsSignature.value, props.compact],
       () => {
         nextTick(() => {
           zoomTransform.value = zoomIdentity
@@ -460,6 +482,7 @@ export default {
       hoveredSupportMetric,
       hoveredRepresentativeName,
       hoveredRepresentativeTitle,
+      hoveredRepresentativeIncumbent,
       onSeatHover,
       onSeatLeave,
       formatVoteShare,

@@ -12,7 +12,14 @@
       >
         <span>County Prelate</span>
         <strong>
-          <template v-if="prelateName">Prelate {{ prelateName }}</template>
+          <template v-if="prelateName">
+            Prelate {{ prelateName }}
+            <IncumbencyBadge
+              v-if="prelateSeat"
+              :party="prelateSeat.party"
+              :seat-index="prelateSeat.seatIndex + SEAT_OFFSETS.provincial.prelates"
+            />
+          </template>
           <template v-else>{{ partyMeta[winningParty]?.name || winningParty }}</template>
         </strong>
         <small class="leader-line">
@@ -32,6 +39,7 @@
 <script>
 import { computed } from 'vue'
 import BaselineVoteShareGrid from './BaselineVoteShareGrid.vue'
+import IncumbencyBadge from './IncumbencyBadge.vue'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { useElectionFormatters } from '../../composables/useElectionFormatters'
 import { topParty, partyWinnerStyle } from '../../domain/elections/viewHelpers'
@@ -41,17 +49,21 @@ import { SEAT_OFFSETS } from '../../domain/elections/constants/seatOffsets'
 
 export default {
   name: 'BaselineCountyCards',
-  components: { BaselineVoteShareGrid },
+  components: { BaselineVoteShareGrid, IncumbencyBadge },
   props: {
     provinceIndex: { type: Number, required: true },
     countyIndex: { type: Number, required: true },
   },
   setup(props) {
-    const { baselineResults, store, electionStore, partyMeta } = useElectionResults()
+    const { results, store, electionStore, partyMeta } = useElectionResults()
     const { controlCardStyle } = useElectionFormatters(store)
 
+    // Use `results` (current election config) — not baselineResults — because
+    // representative names are generated and stored against `results` seat indices.
+    // Using baselineResults causes seatIndex mismatches, especially for winner-
+    // take-all provinces (>20 counties) where seat distributions differ per election.
     const province = computed(() =>
-      baselineResults.value?.provinces?.find((p) => p.provinceIndex === props.provinceIndex) || null
+      results.value?.provinces?.find((p) => p.provinceIndex === props.provinceIndex) || null
     )
     const county = computed(() => province.value?.counties?.[props.countyIndex] || null)
 
@@ -107,10 +119,12 @@ export default {
       winningParty,
       usesCountyCouncil,
       prelateCardStyle,
+      prelateSeat,
       prelateName,
       partyMeta,
       controlCardStyle,
       formatShareValue,
+      SEAT_OFFSETS,
     }
   },
 }

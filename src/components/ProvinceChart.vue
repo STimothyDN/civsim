@@ -60,7 +60,10 @@ export default {
       resizeObserver.observe(chartEl.value)
     })
 
-    watch(() => props.option, applyOption, { deep: true })
+    // Shallow watch — callers pass freshly-built option objects (computeds),
+    // so identity comparison is sufficient. Deep watching every keystroke
+    // walked the entire option tree, which dominated input lag.
+    watch(() => props.option, applyOption)
 
     onBeforeUnmount(() => {
       resizeObserver?.disconnect()

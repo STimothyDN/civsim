@@ -14,6 +14,8 @@
       :election-year="electionStore.electionYear"
       :assembly-leader-name="scoreboardAssemblyLeaderName"
       :council-leader-name="scoreboardCouncilLeaderName"
+      :assembly-leader-incumbent="scoreboardAssemblyLeaderIncumbent"
+      :council-leader-incumbent="scoreboardCouncilLeaderIncumbent"
     />
 
     <PowerBalanceStrip :results="results" :party-meta="partyMeta" />
@@ -315,6 +317,16 @@ export default {
       if (!leader) return ''
       return electionStore.getRepresentativeName(leader.party, leader.seatIndex + SEAT_OFFSETS.national.prelates) || ''
     })
+    const scoreboardAssemblyLeaderIncumbent = computed(() => {
+      const leader = nationalAssemblyLeader.value
+      if (!leader) return null
+      return electionStore.isRepresentativeIncumbent(leader.party, leader.seatIndex + SEAT_OFFSETS.national.assembly)
+    })
+    const scoreboardCouncilLeaderIncumbent = computed(() => {
+      const leader = nationalCouncilLeader.value
+      if (!leader) return null
+      return electionStore.isRepresentativeIncumbent(leader.party, leader.seatIndex + SEAT_OFFSETS.national.prelates)
+    })
     const regionOrder = computed(() => store.currentData?.province_groups || [])
     const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value))
 
@@ -423,6 +435,8 @@ export default {
       electionStore,
       scoreboardAssemblyLeaderName,
       scoreboardCouncilLeaderName,
+      scoreboardAssemblyLeaderIncumbent,
+      scoreboardCouncilLeaderIncumbent,
     }
   },
 }

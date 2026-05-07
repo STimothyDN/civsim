@@ -475,9 +475,15 @@ function reorderAssignmentsByPartyGrouping(assignments, seats) {
     }
   }
 
-  // Reconstruct in party order (matching ChamberComposition logic)
+  // Reconstruct in the same party order used by generateSeatDetails:
+  // seat-count descending, with PARTIES index as a stable tiebreaker.
+  // This ensures labels[seatIndex] corresponds to the correct party at
+  // that seatIndex, making jurisdiction lookups accurate.
+  const orderedParties = PARTIES.filter((p) => num(seats[p]) > 0)
+    .sort((a, b) => num(seats[b]) - num(seats[a]) || PARTIES.indexOf(a) - PARTIES.indexOf(b))
+
   const orderedLabels = []
-  for (const party of PARTIES) {
+  for (const party of orderedParties) {
     const count = num(seats[party])
     const partyAssignments = byParty[party] || []
 

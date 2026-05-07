@@ -233,25 +233,40 @@ function provinceRowsByName(data = {}, rows = []) {
   return byName
 }
 
-function adjacentProvinceUnits(data = {}, province = {}, rowsByName = new Map()) {
+function adjacentProvinceUnitsFromCache(province = {}, featureUnitsByName = new Map()) {
   return (Array.isArray(province.closest_provinces) ? province.closest_provinces : [])
     .map((entry) => {
-      const row = rowsByName.get(provinceNameKey(entry?.province_name))
-      if (!row) return null
-      const { province: adjacent } = buildProvinceFeatureUnit(data, row)
+      const unit = featureUnitsByName.get(provinceNameKey(entry?.province_name))
+      if (!unit) return null
       return {
-        ...adjacent,
+        ...unit.province,
         distance: num(entry?.distance),
       }
     })
     .filter(Boolean)
 }
 
-function buildProvinceResult(data, row, config, rowsByName = new Map()) {
-  const { province: provinceBase, counties: preliminaryCountyUnits } = buildProvinceFeatureUnit(data, row)
+function buildFeatureUnitsByName(data, rows) {
+  const map = new Map()
+  rows.forEach((row) => {
+    const raw = rawProvinceFor(data, row)
+    const name = row?.name || raw?.name
+    const key = provinceNameKey(name)
+    if (!key) return
+    map.set(key, buildProvinceFeatureUnit(data, row))
+  })
+  return map
+}
+
+function buildProvinceResult(data, row, config, featureUnitsByName = null) {
+  const raw = rawProvinceFor(data, row)
+  const ownKey = provinceNameKey(row?.name || raw?.name)
+  const cachedUnit = featureUnitsByName ? featureUnitsByName.get(ownKey) : null
+  const { province: provinceBase, counties: preliminaryCountyUnits } = cachedUnit || buildProvinceFeatureUnit(data, row)
+  const unitsByName = featureUnitsByName || new Map([[ownKey, { province: provinceBase, counties: preliminaryCountyUnits }]])
   const province = {
     ...provinceBase,
-    adjacent_provinces: adjacentProvinceUnits(data, provinceBase, rowsByName),
+    adjacent_provinces: adjacentProvinceUnitsFromCache(provinceBase, unitsByName),
   }
   const nationalCapitalContinent = (data?.provinces || []).find(p => p.is_national_capital)?.continent ?? null
   const isCrossContinental = !!nationalCapitalContinent && !!province.continent && province.continent !== nationalCapitalContinent
@@ -473,6 +488,31 @@ function validateResults(provinces, national) {
   return { warnings, validation }
 }
 
+// Granular pipeline exports — used by the reactive electionPipeline composable
+// to cache per-province work and avoid re-simulating the entire country on
+// every keystroke.
+export {
+  mergeConfig,
+  buildProvinceFeatureUnit,
+  buildFeatureUnitsByName,
+  buildProvinceResult,
+  aggregateRegions,
+  addRegionControls,
+  calculateNational,
+  validateResults,
+  provinceNameKey,
+}
+
+export function buildElectionConfig(data, electionConfig = {}) {
+  const partyMeta = partyMetaFromConfig(data?.election_parties)
+  const partyNames = partyNamesFromConfig(data?.election_parties)
+  return {
+    ...mergeConfig(electionConfig),
+    partyNames,
+    partyMeta,
+  }
+}
+
 export function simulateElection({ data, provinceRows = [], electionConfig = {} } = {}) {
   const partyMeta = partyMetaFromConfig(data?.election_parties)
   const partyNames = partyNamesFromConfig(data?.election_parties)
@@ -482,8 +522,8 @@ export function simulateElection({ data, provinceRows = [], electionConfig = {} 
     partyMeta,
   }
   const rows = Array.isArray(provinceRows) ? provinceRows : []
-  const rowsByName = provinceRowsByName(data || {}, rows)
-  const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, rowsByName))
+  const featureUnitsByName = buildFeatureUnitsByName(data || {}, rows)
+  const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, featureUnitsByName))
   const regions = addRegionControls(aggregateRegions(provinces), config.trends, config.partyNames)
   const national = calculateNational(provinces, config)
   const diagnostics = validateResults(provinces, national)

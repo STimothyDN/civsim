@@ -26,7 +26,10 @@
       </div>
       <div v-if="assemblyLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(selectedRegion.assembly.control)">
         <span>Assembly Leader</span>
-        <strong>{{ lowerHouseLeaderTitle('regional') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex + SEAT_OFFSETS.regional.assembly) || '' }}</strong>
+        <strong>
+          {{ lowerHouseLeaderTitle('regional') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex + SEAT_OFFSETS.regional.assembly) || '' }}
+          <IncumbencyBadge :party="assemblyLeader.party" :seat-index="assemblyLeader.seatIndex + SEAT_OFFSETS.regional.assembly" />
+        </strong>
         <small class="leader-line">from {{ assemblyLeader.jurisdiction }} ({{ partyMeta[assemblyLeader.party]?.abbreviation || assemblyLeader.party }})</small>
         <small v-if="assemblySupportLeaders?.length" class="leader-support-line">
           with support from <span v-html="formatListWithOxfordComma(assemblySupportLeaders.map(formatSupportLeaderWithColor))"></span>
@@ -34,7 +37,10 @@
       </div>
       <div v-if="councilLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(selectedRegion.prelates.control)">
         <span>Council Leader</span>
-        <strong>{{ upperHouseLeaderTitle('regional') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + SEAT_OFFSETS.regional.prelates) || '' }}</strong>
+        <strong>
+          {{ upperHouseLeaderTitle('regional') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + SEAT_OFFSETS.regional.prelates) || '' }}
+          <IncumbencyBadge :party="councilLeader.party" :seat-index="councilLeader.seatIndex + SEAT_OFFSETS.regional.prelates" />
+        </strong>
         <small class="leader-line">from {{ councilLeader.jurisdiction }} ({{ partyMeta[councilLeader.party]?.abbreviation || councilLeader.party }})</small>
         <small v-if="councilSupportLeaders?.length" class="leader-support-line">
           with support from <span v-html="formatListWithOxfordComma(councilSupportLeaders.map(formatSupportLeaderWithColor))"></span>
@@ -235,6 +241,7 @@ import CaucusListCard from '../components/elections/CaucusListCard.vue'
 import ElectionPageShell from '../components/elections/ElectionPageShell.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
+import IncumbencyBadge from '../components/elections/IncumbencyBadge.vue'
 import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import RegionSelectorPanel from '../components/elections/RegionSelectorPanel.vue'
@@ -254,7 +261,7 @@ export default {
   name: 'RegionalElectionResults',
   components: {
     ChamberComposition, CaucusListCard, ElectionPageShell, ElectionTickerCard,
-    PartyBadge, PartySwingCards, PopularVoteBoard, ProvinceChart,
+    PartyBadge, IncumbencyBadge, PartySwingCards, PopularVoteBoard, ProvinceChart,
     RegionSelectorPanel, ProvinceScatterPlot,
   },
   setup() {

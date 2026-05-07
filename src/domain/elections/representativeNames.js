@@ -480,11 +480,13 @@ function rosterKey(party, withinPartyIndex, scopeKey) {
 function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbentRoster) {
   const names = {}
   const rosterEntries = {}
+  const incumbencies = {}
   const usedNames = new Set()
   const rng = mulberry32(hashString(seed))
 
   for (const seat of seatDetails || []) {
     const key = rosterKey(seat.party, seat.withinPartyIndex ?? 0, scopeKey)
+    const wasIncumbent = Boolean(incumbentRoster[key])
     let name = incumbentRoster[key]
 
     if (!name) {
@@ -505,9 +507,10 @@ function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbe
     usedNames.add(name)
     names[`${seat.party}_${seat.seatIndex}`] = name
     rosterEntries[key] = name
+    incumbencies[`${seat.party}_${seat.seatIndex}`] = wasIncumbent
   }
 
-  return { names, rosterEntries }
+  return { names, rosterEntries, incumbencies }
 }
 
 // Generate all representative names for all scopes at once
@@ -524,8 +527,9 @@ export function generateAllScopeNames(results, store, electionStore) {
     const seatDetails = rawSeatDetails.map((s) => ({ ...s, chamberType, seatIndex: s.seatIndex + offset }))
     if (!seatDetails.length) return
     const nameSeed = `${countryName}_${seed}-${scopeKey}-${chamberType}`
-    const { names, rosterEntries } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, `${scopeKey}_${chamberType}`, incumbentRoster)
+    const { names, rosterEntries, incumbencies } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, `${scopeKey}_${chamberType}`, incumbentRoster)
     electionStore.representativeNames = { ...electionStore.representativeNames, ...names }
+    electionStore.representativeIncumbents = { ...electionStore.representativeIncumbents, ...incumbencies }
     Object.assign(newRoster, rosterEntries)
   }
 

@@ -73,6 +73,7 @@
                   </td>
                   <td class="col-representative">
                     <span class="representative-name">{{ getRepresentativeTitle(seat.party, seat.seatIndex, chamberType, index === 0 && caucus.isGoverningCaucus, index === 0 && !caucus.isGoverningCaucus, index === 0 && caucus.isOppositionLeader) }}</span>
+                    <IncumbencyBadge :party="seat.party" :seat-index="seat.seatIndex + getSeatOffset(scope, chamberType)" />
                     <span v-if="index === 0 && caucus.isGoverningCaucus" class="house-leader-badge" title="House Leader">🏛️</span>
                     <span v-if="index === 0 && caucus.isOppositionLeader" class="opposition-badge" title="Opposition Leader">⚔️</span>
                   </td>
@@ -101,6 +102,7 @@
 <script>
 import { computed, ref } from 'vue'
 import PartyBadge from './PartyBadge.vue'
+import IncumbencyBadge from './IncumbencyBadge.vue'
 import { getSeatOffset } from '../../domain/elections/constants/seatOffsets'
 import { useElectionStore } from '../../stores/electionStore'
 import { chamberControlStyle } from '../../domain/elections/chambers/controlStyles'
@@ -110,7 +112,7 @@ import { num } from '../../domain/elections/normalization/numbers'
 
 export default {
   name: 'CaucusListCard',
-  components: { PartyBadge },
+  components: { PartyBadge, IncumbencyBadge },
   props: {
     title: { type: String, required: true },
     eyebrow: { type: String, default: 'Caucus Breakdown' },
@@ -273,6 +275,7 @@ export default {
       formatSupport,
       formatVoteShare,
       getRepresentativeTitle,
+      getSeatOffset,
     }
   },
 }

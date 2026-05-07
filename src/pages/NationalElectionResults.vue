@@ -25,7 +25,10 @@
       </div>
       <div v-if="assemblyLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.assembly.control)">
         <span>Assembly Leader</span>
-        <strong>{{ lowerHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex) || '' }}</strong>
+        <strong>
+          {{ lowerHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex) || '' }}
+          <IncumbencyBadge :party="assemblyLeader.party" :seat-index="assemblyLeader.seatIndex" />
+        </strong>
         <small class="leader-line">from {{ assemblyLeader.jurisdiction }} ({{ partyMeta[assemblyLeader.party]?.abbreviation || assemblyLeader.party }})</small>
         <small v-if="assemblySupportLeaders?.length" class="leader-support-line">
           with support from <span v-html="formatListWithOxfordComma(assemblySupportLeaders.map(formatSupportLeaderWithColor))"></span>
@@ -33,7 +36,10 @@
       </div>
       <div v-if="councilLeader" class="overview-hero-call winner-control-card" :style="controlCardStyle(results.national.prelates.control)">
         <span>Council Leader</span>
-        <strong>{{ upperHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + SEAT_OFFSETS.national.prelates) || '' }}</strong>
+        <strong>
+          {{ upperHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + SEAT_OFFSETS.national.prelates) || '' }}
+          <IncumbencyBadge :party="councilLeader.party" :seat-index="councilLeader.seatIndex + SEAT_OFFSETS.national.prelates" />
+        </strong>
         <small class="leader-line">from {{ councilLeader.jurisdiction }} ({{ partyMeta[councilLeader.party]?.abbreviation || councilLeader.party }})</small>
         <small v-if="councilSupportLeaders?.length" class="leader-support-line">
           with support from <span v-html="formatListWithOxfordComma(councilSupportLeaders.map(formatSupportLeaderWithColor))"></span>
@@ -242,6 +248,7 @@ import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import CaucusListCard from '../components/elections/CaucusListCard.vue'
 import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
+import IncumbencyBadge from '../components/elections/IncumbencyBadge.vue'
 import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import VoteDecompositionPanel from '../components/elections/VoteDecompositionPanel.vue'
@@ -266,6 +273,7 @@ export default {
     ElectionPageShell,
     ElectionTickerCard,
     PartyBadge,
+    IncumbencyBadge,
     PartySwingCards,
     PopularVoteBoard,
     SeatEfficiencyTable,

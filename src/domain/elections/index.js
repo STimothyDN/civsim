@@ -14,7 +14,20 @@ export {
   partyMetaFromConfig,
   partyNamesFromConfig,
 } from './constants/parties'
-export { simulateElection, formatShare } from './simulateElection'
+export {
+  simulateElection,
+  formatShare,
+  buildElectionConfig,
+  buildProvinceFeatureUnit,
+  buildFeatureUnitsByName,
+  buildProvinceResult,
+  aggregateRegions,
+  addRegionControls,
+  calculateNational,
+  validateResults,
+  provinceNameKey,
+  mergeConfig,
+} from './simulateElection'
 export { generateRandomTrendPackage, generateTrendPackageFromSelections, RANDOM_TREND_TEMPLATES } from './trends/randomizeTrends'
 export { matchesSelector, trendClimateScore, trendEffect, trendEffects, trendHasMatchingEffect, trendTags } from './trends/matchTrend'
 export { determineHouseControl, NATURAL_PARTNERS } from './coalitions/houseControl'

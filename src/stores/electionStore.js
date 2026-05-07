@@ -20,6 +20,7 @@ function cloneBaseline() {
     scenarioMetadataStatus: 'idle',
     scenarioMetadataError: null,
     representativeNames: {}, // Map of "{party}_{seatIndex}" -> "Full Name"
+    representativeIncumbents: {}, // Map of "{party}_{seatIndex}" -> boolean (true=incumbent, false=new)
     electionNumber: 0,
     trendHistory: [],
     previousElectionConfig: null,
@@ -75,7 +76,13 @@ export const useElectionStore = defineStore('election', {
       this.scenarioDescription = climateDescriptionForTrends(newTrends)
       this.scenarioMetadataStatus = 'idle'
       this.scenarioMetadataError = null
+      // Seed incumbentRoster from baseline reps on the first transition out of baseline,
+      // so the baseline officeholders count as incumbents in the first real election.
+      if (Object.keys(this.incumbentRoster).length === 0 && Object.keys(this.currentRoster).length > 0) {
+        this.incumbentRoster = { ...this.currentRoster }
+      }
       this.representativeNames = {}
+      this.representativeIncumbents = {}
       this.currentRoster = {}
 
       return {
@@ -152,10 +159,16 @@ export const useElectionStore = defineStore('election', {
     },
     clearRepresentativeNames() {
       this.representativeNames = {}
+      this.representativeIncumbents = {}
     },
     getRepresentativeName(party, seatIndex) {
       const key = `${party}_${seatIndex}`
       return this.representativeNames[key] || null
+    },
+    isRepresentativeIncumbent(party, seatIndex) {
+      const key = `${party}_${seatIndex}`
+      const value = this.representativeIncumbents[key]
+      return value === undefined ? null : value
     },
     snapshotElectionState() {
       return {
@@ -172,6 +185,7 @@ export const useElectionStore = defineStore('election', {
             }
           : null,
         representativeNames: { ...this.representativeNames },
+        representativeIncumbents: { ...this.representativeIncumbents },
         currentRoster: { ...this.currentRoster },
         incumbentRoster: { ...this.incumbentRoster },
       }
@@ -200,6 +214,7 @@ export const useElectionStore = defineStore('election', {
           }
         : null
       this.representativeNames = { ...(state.representativeNames || {}) }
+      this.representativeIncumbents = { ...(state.representativeIncumbents || {}) }
       this.currentRoster = { ...(state.currentRoster || {}) }
       this.incumbentRoster = { ...(state.incumbentRoster || {}) }
       this.scenarioMetadataStatus = 'idle'

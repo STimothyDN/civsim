@@ -11,7 +11,14 @@
         :style="controlCardStyle(province.assembly?.control)"
       >
         <span>Governor</span>
-        <strong>{{ governorTitle }} {{ governorName }}</strong>
+        <strong>
+          {{ governorTitle }} {{ governorName }}
+          <IncumbencyBadge
+            v-if="governor"
+            :party="governor.party"
+            :seat-index="governor.seatIndex + SEAT_OFFSETS.provincial.assembly"
+          />
+        </strong>
         <small class="leader-line">
           from {{ governor.jurisdiction || province.name }}
           ({{ partyMeta[governor.party]?.abbreviation || governor.party }})
@@ -27,7 +34,14 @@
         :style="controlCardStyle(province.prelates?.control)"
       >
         <span>Chancellor</span>
-        <strong>{{ chancellorTitle }} {{ chancellorName }}</strong>
+        <strong>
+          {{ chancellorTitle }} {{ chancellorName }}
+          <IncumbencyBadge
+            v-if="chancellor"
+            :party="chancellor.party"
+            :seat-index="chancellor.seatIndex + SEAT_OFFSETS.provincial.prelates"
+          />
+        </strong>
         <small class="leader-line">
           from {{ chancellor.jurisdiction || province.name }}
           ({{ partyMeta[chancellor.party]?.abbreviation || chancellor.party }})
@@ -44,6 +58,7 @@
 <script>
 import { computed } from 'vue'
 import BaselineVoteShareGrid from './BaselineVoteShareGrid.vue'
+import IncumbencyBadge from './IncumbencyBadge.vue'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { useElectionLeaders } from '../../composables/useElectionLeaders'
 import { useElectionFormatters } from '../../composables/useElectionFormatters'
@@ -53,7 +68,7 @@ import { lowerHouseLeaderTitle, upperHouseLeaderTitle } from '../../domain/elect
 
 export default {
   name: 'BaselineProvinceCards',
-  components: { BaselineVoteShareGrid },
+  components: { BaselineVoteShareGrid, IncumbencyBadge },
   props: {
     provinceIndex: { type: Number, required: true },
   },
@@ -147,6 +162,7 @@ export default {
       chancellorSupportLeaders,
       hasLeaders,
       partyMeta,
+      SEAT_OFFSETS,
       controlCardStyle,
       formatListWithOxfordComma,
       formatSupportLeaderWithColor,

@@ -132,6 +132,7 @@
             >
               <div class="dir-rep-card-top">
                 <span class="representative-name">{{ rep.title }}</span>
+                <IncumbencyBadge :party="rep.party" :seat-index="rep.nameIndex" />
                 <span class="dir-rep-icons">
                   <Crown v-if="rep.isLeader && rep.isGoverning" :size="13" class="icon-leader" />
                   <Landmark v-if="rep.isGoverning && !rep.isLeader" :size="13" class="icon-govt" />
@@ -176,6 +177,7 @@
               >
                 <td class="col-name">
                   <span class="representative-name">{{ rep.title }}</span>
+                  <IncumbencyBadge :party="rep.party" :seat-index="rep.nameIndex" />
                   <Crown v-if="rep.isLeader && rep.isGoverning" :size="13" class="icon-leader" />
                   <Landmark v-if="rep.isGoverning && !rep.isLeader" :size="13" class="icon-govt" />
                   <Swords v-if="rep.isOppositionLeader" :size="13" class="icon-opp" />
@@ -207,6 +209,7 @@ import { computed, ref } from 'vue'
 import { Crown, Landmark, Swords, Users } from 'lucide-vue-next'
 import ElectionPageShell from '../components/elections/ElectionPageShell.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
+import IncumbencyBadge from '../components/elections/IncumbencyBadge.vue'
 import PartyCompositionDonut from '../components/elections/PartyCompositionDonut.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionStore } from '../stores/electionStore'
@@ -218,7 +221,7 @@ import { num } from '../domain/elections/normalization/numbers'
 
 export default {
   name: 'RepresentativeDirectory',
-  components: { Crown, ElectionPageShell, Landmark, PartyBadge, PartyCompositionDonut, Swords, Users },
+  components: { Crown, ElectionPageShell, IncumbencyBadge, Landmark, PartyBadge, PartyCompositionDonut, Swords, Users },
   setup() {
     const { results, store } = useElectionResults()
     const electionStore = useElectionStore()
@@ -290,7 +293,7 @@ export default {
           const role = chamberType === 'prelates' ? 'Prelate' : 'Assemblyperson'
           title = customName ? `${role} ${customName}` : role
         }
-        return { party: seat.party, scope, chamberType, seatIndex: seat.seatIndex, jurisdiction: seat.jurisdiction, voteShare: seat.voteShare, supportMetric: seat.supportMetric, title, isLeader, isGoverning, isOppositionLeader, regionName, provinceName: province?.name }
+        return { party: seat.party, scope, chamberType, seatIndex: seat.seatIndex, nameIndex, jurisdiction: seat.jurisdiction, voteShare: seat.voteShare, supportMetric: seat.supportMetric, title, isLeader, isGoverning, isOppositionLeader, regionName, provinceName: province?.name }
       })
     }
 

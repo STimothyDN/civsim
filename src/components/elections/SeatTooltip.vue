@@ -16,7 +16,10 @@
           <div class="seat-tooltip-body">
             <div v-if="representativeName" class="seat-tooltip-representative">
               <span class="seat-tooltip-label">{{ representativeTitle }}</span>
-              <span class="seat-tooltip-value representative-name">{{ representativeName }}</span>
+              <span class="seat-tooltip-value representative-name">
+                {{ representativeName }}
+                <IncumbencyBadge :is-incumbent="isIncumbent" />
+              </span>
             </div>
             <div class="seat-tooltip-jurisdiction">
               <span class="seat-tooltip-label">{{ jurisdictionLabel }}</span>
@@ -41,10 +44,11 @@
 <script>
 import { computed, ref, nextTick, watch } from 'vue'
 import PartyBadge from './PartyBadge.vue'
+import IncumbencyBadge from './IncumbencyBadge.vue'
 
 export default {
   name: 'SeatTooltip',
-  components: { PartyBadge },
+  components: { PartyBadge, IncumbencyBadge },
   props: {
     visible: { type: Boolean, default: false },
     targetEl: { type: Object, default: null }, // SVG element being hovered
@@ -57,6 +61,7 @@ export default {
     chamberType: { type: String, default: 'assembly' }, // 'assembly' | 'prelates'
     representativeName: { type: String, default: '' },
     representativeTitle: { type: String, default: 'Representative' },
+    isIncumbent: { type: Boolean, default: null },
   },
   setup(props) {
     const tooltipRef = ref(null)

@@ -15,10 +15,13 @@
       <input
         :id="path"
         type="number"
-        :value="valueComputed === null ? '' : valueComputed"
+        :value="bufferDisplay"
         :disabled="disabled"
         :placeholder="valueComputed === null ? 'null' : ''"
-        @input="onNumberInput"
+        @input="onBufferInput"
+        @change="onNumberCommit"
+        @focus="onFocus"
+        @blur="onBlur"
       />
     </template>
 
@@ -36,7 +39,7 @@
         </select>
       </template>
       <template v-else>
-        <input :id="path" type="text" :value="valueComputed === null ? '' : valueComputed" :placeholder="valueComputed === null ? 'null' : ''" :disabled="disabled" :list="datalistId" @input="onTextInput" />
+        <input :id="path" type="text" :value="bufferDisplay" :placeholder="valueComputed === null ? 'null' : ''" :disabled="disabled" :list="datalistId" @input="onBufferInput" @change="onTextCommit" @focus="onFocus" @blur="onBlur" />
         <datalist v-if="datalistId" :id="datalistId">
           <option v-for="opt in datalistOptions" :key="opt" :value="opt"></option>
         </datalist>
@@ -44,13 +47,13 @@
     </template>
 
     <template v-else>
-      <textarea :id="path" :value="stringValue" :disabled="disabled" @input="onTextInput"></textarea>
+      <textarea :id="path" :value="bufferDisplay" :disabled="disabled" @input="onBufferInput" @change="onTextCommit" @focus="onFocus" @blur="onBlur"></textarea>
     </template>
   </div>
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useFormStore } from '../stores/formStore'
 import { humanize } from '../utils/text'
 
@@ -151,17 +154,55 @@ export default {
       store.setValueAtPath(props.path, e.target.checked)
     }
 
-    function onNumberInput(e) {
+    // Local edit buffer: track keystrokes locally and only commit to the store
+    // on `change` (blur or Enter). This prevents the full election simulation
+    // cascade from firing on every keystroke.
+    const isFocused = ref(false)
+    const buffer = ref(null)
+    const formatForBuffer = (val) => {
+      if (val === null || val === undefined) return ''
+      if (typeof val === 'string') return val
+      if (typeof val === 'number') return val
+      return JSON.stringify(val)
+    }
+    const bufferDisplay = computed(() => (isFocused.value ? buffer.value : formatForBuffer(valueComputed.value)))
+
+    watch(valueComputed, (val) => {
+      if (!isFocused.value) buffer.value = formatForBuffer(val)
+    }, { immediate: true })
+
+    function onFocus() {
+      buffer.value = formatForBuffer(valueComputed.value)
+      isFocused.value = true
+    }
+    function onBlur() {
+      isFocused.value = false
+    }
+    function onBufferInput(e) {
+      buffer.value = e.target.value
+    }
+    function onNumberCommit(e) {
       const v = e.target.value
-      store.setValueAtPath(props.path, v === '' ? null : Number(v))
+      const next = v === '' ? null : Number(v)
+      if (next !== valueComputed.value) {
+        store.setValueAtPath(props.path, next)
+      }
+    }
+    function onTextCommit(e) {
+      const v = e.target.value.trim()
+      const next = v === '' ? null : v
+      if (next !== valueComputed.value) {
+        store.setValueAtPath(props.path, next)
+      }
     }
 
+    // Kept for any external callers / immediate-commit text inputs (selects)
     function onTextInput(e) {
       const v = e.target.value.trim()
       store.setValueAtPath(props.path, v === '' ? null : v)
     }
 
-    return { humanize, valueComputed, name, isBoolean, isNumber, isStringOrNull, stringValue, disabled, globalReligions, provinceGroups, closestProvinceOptions, isReligionField, isProvinceGroupField, capitalToggleInfo, datalistOptions, datalistId, onCheckboxChange, onNumberInput, onTextInput }
+    return { humanize, valueComputed, name, isBoolean, isNumber, isStringOrNull, stringValue, disabled, globalReligions, provinceGroups, closestProvinceOptions, isReligionField, isProvinceGroupField, capitalToggleInfo, datalistOptions, datalistId, bufferDisplay, onFocus, onBlur, onBufferInput, onNumberCommit, onTextCommit, onCheckboxChange, onTextInput }
   }
 }
 </script>
