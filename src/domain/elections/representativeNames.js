@@ -520,9 +520,6 @@ export function generateAllScopeNames(results, store, electionStore) {
   const incumbentRoster = electionStore.incumbentRoster || {}
   const newRoster = {}
 
-  // Clear stale names before rebuilding — prevents ghost entries from accumulating
-  electionStore.clearRepresentativeNames()
-
   function processBlock(rawSeatDetails, chamberType, offset, scopeKey) {
     const seatDetails = rawSeatDetails.map((s) => ({ ...s, chamberType, seatIndex: s.seatIndex + offset }))
     if (!seatDetails.length) return

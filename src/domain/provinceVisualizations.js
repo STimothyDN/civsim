@@ -1,7 +1,7 @@
 // Re-export formatters from the canonical source so existing import sites
 // (that import { formatNumber } from '../domain/provinceVisualizations') keep working.
 export { toNumber, formatNumber, formatCompactNumber } from './formatting'
-import { toNumber } from './formatting'
+import { toNumber, formatNumber, formatCompactNumber } from './formatting'
 
 export const PROVINCE_YIELD_KEYS = ['amenities', 'food', 'production', 'gold', 'culture', 'science', 'faith']
 export const COUNTY_YIELD_KEYS = [...PROVINCE_YIELD_KEYS, 'tourism']
@@ -176,6 +176,29 @@ export function civicRiskScore(row) {
     (row.status.is_founded ? 3 : 0)
 
   return Math.max(0, Math.min(100, loyaltyRisk * 0.34 + happinessRisk * 0.24 + growthRisk * 0.18 + amenityRisk + foodRisk + statusRisk - capitalStability))
+}
+
+function clampPercent(value) {
+  return Math.max(0, Math.min(100, value))
+}
+
+export function civicHealthScore(row) {
+  if (!row) return 0
+  const loyalty = clampPercent(row.loyalty)
+  const happiness = clampPercent(row.happinessPercentage)
+  const growth = clampPercent(50 + row.growthPercentage)
+  const infraBonus =
+    (row.netAmenities >= 0 ? 4 : -6) +
+    (row.netFood >= 0 ? 4 : -6) +
+    (row.housing > 0 ? 3 : 0)
+  return clampPercent((loyalty * 0.4 + happiness * 0.32 + growth * 0.28) + infraBonus)
+}
+
+export function gaugeTone(value, { goodAbove = 65, watchAbove = 40 } = {}) {
+  if (!Number.isFinite(value)) return 'muted'
+  if (value >= goodAbove) return 'good'
+  if (value >= watchAbove) return 'watch'
+  return 'risk'
 }
 
 export function countyReadinessScore(row) {
@@ -868,6 +891,14 @@ function regionalSummaries(rows) {
         citizensWorking: 0,
         riverCount: 0,
         railroadCount: 0,
+        terrainCounts: {},
+        featureCounts: {},
+        improvementCounts: {},
+        buildingCounts: {},
+        resourceCounts: {},
+        appealTotal: 0,
+        appealSamples: 0,
+        housingTotal: 0,
         status: STATUS_FIELDS.reduce((result, [key]) => {
           result[key] = 0
           return result
@@ -900,6 +931,13 @@ function regionalSummaries(rows) {
     group.citizensWorking += row.citizensWorking
     group.riverCount += row.riverCount
     group.railroadCount += row.railroadCount
+    group.housingTotal += row.housing
+    if (row.averageAppeal) { group.appealTotal += row.averageAppeal; group.appealSamples += 1 }
+    Object.entries(row.terrainCounts || {}).forEach(([k, v]) => { group.terrainCounts[k] = (group.terrainCounts[k] || 0) + v })
+    Object.entries(row.featureCounts || {}).forEach(([k, v]) => { group.featureCounts[k] = (group.featureCounts[k] || 0) + v })
+    Object.entries(row.improvementCounts || {}).forEach(([k, v]) => { group.improvementCounts[k] = (group.improvementCounts[k] || 0) + v })
+    Object.entries(row.buildingCounts || {}).forEach(([k, v]) => { group.buildingCounts[k] = (group.buildingCounts[k] || 0) + v })
+    Object.entries(row.resourceCounts || {}).forEach(([k, v]) => { group.resourceCounts[k] = (group.resourceCounts[k] || 0) + v })
     group.provinceNames.push(row.name)
     if (row.averageClosestProvinceDistance > 0) {
       group.averageClosestProvinceDistanceTotal += row.averageClosestProvinceDistance
@@ -936,20 +974,29 @@ function regionalSummaries(rows) {
       const averageClosestProvinceDistance = group.averageClosestProvinceDistanceCount
         ? group.averageClosestProvinceDistanceTotal / group.averageClosestProvinceDistanceCount
         : 0
+      const provinceCount = group.provinceCount || 1
+      const housing = group.provinceCount ? group.housingTotal / provinceCount : 0
       return {
         ...group,
-        averageAppeal: 0,
+        averageAppeal: group.appealSamples ? group.appealTotal / group.appealSamples : 0,
         averageClosestProvinceDistance,
         dominantOrigin,
         dominantReligion,
         originalCountry: dominantOrigin,
         population: group.population,
         provincialPopulation: group.provincialPopulation,
-        loyalty: group.provinceCount ? group.loyaltyTotal / group.provinceCount : 0,
-        growthPercentage: group.provinceCount ? group.growthTotal / group.provinceCount : 0,
-        happinessPercentage: group.provinceCount ? group.happinessTotal / group.provinceCount : 0,
+        loyalty: group.provinceCount ? group.loyaltyTotal / provinceCount : 0,
+        averageLoyalty: group.provinceCount ? group.loyaltyTotal / provinceCount : 0,
+        growthPercentage: group.provinceCount ? group.growthTotal / provinceCount : 0,
+        averageGrowth: group.provinceCount ? group.growthTotal / provinceCount : 0,
+        happinessPercentage: group.provinceCount ? group.happinessTotal / provinceCount : 0,
+        averageHappiness: group.provinceCount ? group.happinessTotal / provinceCount : 0,
         netAmenities: group.netAmenitiesTotal,
+        averageNetAmenities: group.provinceCount ? group.netAmenitiesTotal / provinceCount : 0,
         netFood: group.netFoodTotal,
+        averageNetFood: group.provinceCount ? group.netFoodTotal / provinceCount : 0,
+        housing,
+        averageHousing: housing,
       }
     })
     .sort((a, b) => b.provincialPopulation - a.provincialPopulation)

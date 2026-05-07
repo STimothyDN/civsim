@@ -31,6 +31,7 @@ function stripCalculatedProvinceFields(provinces) {
 export function normalizeTemplateInput(template) {
   const source = template || defaultTemplate
   const normalized = deepClone(source)
+  delete normalized.election_state
 
   normalized.country = normalized.country || deepClone(defaultTemplate.country)
   normalized.provinces = Array.isArray(normalized.provinces) ? normalized.provinces : []
@@ -80,4 +81,14 @@ export function buildExportTemplate(currentData, provinceCalcs, regionalTotals) 
   }
 
   return output
+}
+
+export function buildFullExportEnvelope(currentData, provinceCalcs, regionalTotals, electionSnapshot) {
+  const civData = buildExportTemplate(currentData, provinceCalcs, regionalTotals)
+  if (!civData) return null
+  return { ...civData, election_state: electionSnapshot || null }
+}
+
+export function extractElectionState(template) {
+  return template?.election_state || null
 }

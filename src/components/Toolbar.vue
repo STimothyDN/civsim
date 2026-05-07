@@ -29,6 +29,8 @@
 import { computed } from 'vue'
 import { Download, FilePlus2, Upload } from 'lucide-vue-next'
 import { useFormStore } from '../stores/formStore'
+import { useElectionStore } from '../stores/electionStore'
+import { extractElectionState } from '../domain/templateCodec'
 import exampleData from '../../jayavarman.json'
 
 export default {
@@ -40,10 +42,13 @@ export default {
 
     function loadDefault() {
       store.loadDefault()
+      const electionStore = useElectionStore()
+      electionStore.resetScenario()
     }
 
     function downloadJson() {
-      store.downloadJson()
+      const electionStore = useElectionStore()
+      store.downloadJsonWithElection(electionStore.snapshotElectionState())
     }
 
     function downloadExample() {
@@ -58,7 +63,21 @@ export default {
 
     function onFileChange(e) {
       const file = e.target.files?.[0]
-      if (file) store.loadFromFile(file)
+      if (!file) { e.target.value = ''; return }
+      const reader = new FileReader()
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result)
+          const electionState = extractElectionState(parsed)
+          store.loadTemplate(parsed)
+          const electionStore = useElectionStore()
+          if (electionState) electionStore.hydrateElectionState(electionState)
+          else electionStore.resetScenario()
+        } catch (err) {
+          store.showToast('Invalid JSON file. Please choose a valid template file.', 'error')
+        }
+      }
+      reader.readAsText(file)
       e.target.value = ''
     }
 

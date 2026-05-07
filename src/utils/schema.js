@@ -95,6 +95,7 @@ export function createEmptyProvince() {
   return {
     name: "",
     city_id: null,
+    continent: null,
     is_national_capital: false,
     is_regional_capital: false,
     is_founded: false,
@@ -159,6 +160,7 @@ export function normalizeIds(data) {
     }
     if (province.is_national_capital === undefined) province.is_national_capital = false
     if (province.is_regional_capital === undefined) province.is_regional_capital = false
+    if (province.continent === undefined) province.continent = null
     if (province.original_country === undefined) province.original_country = ""
     province.closest_provinces = normalizeClosestProvinces(province.closest_provinces)
 

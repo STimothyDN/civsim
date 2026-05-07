@@ -1,6 +1,8 @@
 import { computed } from 'vue'
 import {
+  COUNTY_YIELD_KEYS,
   PROVINCE_YIELD_KEYS,
+  civicHealthScore,
   formatCompactNumber,
   formatNumber,
   toNumber,
@@ -321,23 +323,114 @@ export function useBuilderOverview(store) {
       )
   })
 
+  // ── Country-wide aggregates for new hybrid layout ──
+
+  const civicAverages = computed(() => ({
+    loyalty: averageRowValue('loyalty'),
+    happiness: averageRowValue('happinessPercentage'),
+    growth: averageRowValue('growthPercentage'),
+    housing: averageRowValue('housing'),
+    netAmenities: averageRowValue('netAmenities'),
+    netFood: averageRowValue('netFood'),
+  }))
+
+  const civicHealthAverage = computed(() => {
+    if (!rows.value.length) return 0
+    return rows.value.reduce((sum, row) => sum + civicHealthScore(row), 0) / rows.value.length
+  })
+
+  const statusCensus = computed(() => ({
+    nationalCapital: rows.value.filter((r) => r.status.is_national_capital).length,
+    regionalCapital: regionalCapitalCount.value,
+    founded: foundedCount.value,
+    joined: joinedCount.value,
+    conquered: conqueredCount.value,
+    unmarked: rows.value.filter(
+      (r) => !r.status.is_national_capital && !r.status.is_regional_capital && !r.status.is_founded && !r.status.is_joined && !r.status.is_conquered
+    ).length,
+  }))
+
+  const originBlocs = computed(() => {
+    const map = new Map()
+    rows.value.forEach((row) => {
+      const name = row.originalCountry || 'Unspecified'
+      if (!map.has(name)) map.set(name, { name, provinces: 0, population: 0 })
+      const entry = map.get(name)
+      entry.provinces += 1
+      entry.population += row.provincialPopulation
+    })
+    return [...map.values()]
+  })
+
+  const countyAtlas = computed(() => {
+    const acc = {
+      terrain: {},
+      features: {},
+      improvements: {},
+      buildings: {},
+      resources: {},
+      citizensWorking: 0,
+      riverCount: 0,
+      railroadCount: 0,
+      appealTotal: 0,
+      appealSamples: 0,
+      countyYields: COUNTY_YIELD_KEYS.reduce((m, k) => { m[k] = 0; return m }, {}),
+    }
+    rows.value.forEach((row) => {
+      Object.entries(row.terrainCounts || {}).forEach(([k, v]) => { acc.terrain[k] = (acc.terrain[k] || 0) + v })
+      Object.entries(row.featureCounts || {}).forEach(([k, v]) => { acc.features[k] = (acc.features[k] || 0) + v })
+      Object.entries(row.improvementCounts || {}).forEach(([k, v]) => { acc.improvements[k] = (acc.improvements[k] || 0) + v })
+      Object.entries(row.buildingCounts || {}).forEach(([k, v]) => { acc.buildings[k] = (acc.buildings[k] || 0) + v })
+      Object.entries(row.resourceCounts || {}).forEach(([k, v]) => { acc.resources[k] = (acc.resources[k] || 0) + v })
+      acc.citizensWorking += row.citizensWorking
+      acc.riverCount += row.riverCount
+      acc.railroadCount += row.railroadCount
+      if (row.averageAppeal) { acc.appealTotal += row.averageAppeal; acc.appealSamples += 1 }
+      COUNTY_YIELD_KEYS.forEach((k) => { acc.countyYields[k] += toNumber(row.countyYields?.[k]) })
+    })
+    return {
+      ...acc,
+      averageAppeal: acc.appealSamples ? acc.appealTotal / acc.appealSamples : 0,
+    }
+  })
+
   return {
+    civicAverages,
+    civicHealthAverage,
     civicMetrics,
+    conqueredCount,
     countryIdentity,
     countryName,
     countrySummaryCards,
+    countyAtlas,
+    countyCount,
+    countyDetailCount,
+    dominantReligion,
     economyMetrics,
     formatCompactNumber,
     formatNumber,
+    foundedCount,
     groupCount,
+    joinedCount,
+    nationalCapital,
+    originBlocs,
     provinceCount,
     provinceSummaries,
     regionSummaries,
+    regionalCapitalCount,
+    religionCount,
     religionMetrics,
+    religionTotals,
     representationMetrics,
     sidebarProvinceOrder,
+    statusCensus,
+    topRegion,
+    topYield,
+    totalAssemblypeople,
     totalEconomyOutput,
+    totalPrelates,
     totalProvincialPopulation,
     totalRawPopulation,
+    yieldTotals,
   }
 }

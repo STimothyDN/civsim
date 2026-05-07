@@ -6,7 +6,7 @@ import { deepClone } from '../utils/object'
 import { computeAllProvinceCalcs, computeRegionalTotals, resetJitterCache } from '../utils/calculatedFields'
 import { clearAutosavedTemplate, readAutosavedTemplate, writeAutosavedTemplate } from '../domain/autosave'
 import { partyMetaFromConfig, partyPaletteOption } from '../domain/elections/constants/parties'
-import { buildExportTemplate, normalizeTemplateInput } from '../domain/templateCodec'
+import { buildExportTemplate, buildFullExportEnvelope, normalizeTemplateInput } from '../domain/templateCodec'
 import {
   addNamedItem,
   removeProvinceGroup,
@@ -326,6 +326,28 @@ export const useFormStore = defineStore('form', {
       link.remove()
       URL.revokeObjectURL(url)
       this.showToast('JSON file downloaded', 'success')
+    },
+    downloadJsonWithElection(electionSnapshot = null) {
+      const regionalTotals = computeRegionalTotals(this.currentData?.provinces, this.provinceCalcs)
+      const output = buildFullExportEnvelope(this.currentData, this.provinceCalcs, regionalTotals, electionSnapshot)
+      if (!output) return
+      const rawName = this.currentData?.country?.basic_info?.name || ''
+      const safeName = rawName
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '')
+        .toLowerCase() || 'civ-save'
+      const data = JSON.stringify(output, null, 2)
+      const blob = new Blob([data], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${safeName}-save.json`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+      this.showToast('Full state exported to JSON', 'success')
     },
     loadFromFile(file) {
       const reader = new FileReader()

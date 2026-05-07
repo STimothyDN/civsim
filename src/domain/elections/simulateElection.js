@@ -186,7 +186,8 @@ function calculateProvincePrelatesCouncil(counties, config) {
 }
 
 function buildProvinceFeatureUnit(data, row) {
-  const country = data?.country || {}
+  const nationalCapitalContinent = (data?.provinces || []).find(p => p.is_national_capital)?.continent ?? null
+  const country = { ...(data?.country || {}), national_capital_continent: nationalCapitalContinent }
   const provinceInput = createProvinceInput(data, row)
   const baseFeatures = calculateProvinceBaseFeatures(provinceInput, country)
   const allocatedCounties = allocateCountyPopulations(provinceInput, provinceInput.provincial_population)
@@ -252,14 +253,21 @@ function buildProvinceResult(data, row, config, rowsByName = new Map()) {
     ...provinceBase,
     adjacent_provinces: adjacentProvinceUnits(data, provinceBase, rowsByName),
   }
+  const nationalCapitalContinent = (data?.provinces || []).find(p => p.is_national_capital)?.continent ?? null
+  const isCrossContinental = !!nationalCapitalContinent && !!province.continent && province.continent !== nationalCapitalContinent
+  const provinceConfig = isCrossContinental ? {
+    ...config,
+    voteBlend: { ...config.voteBlend, provincialAssemblyLocalWeight: 0.75 },
+    volatility: { ...config.volatility, province: (config.volatility?.province ?? 0.12) * 1.3 },
+  } : config
   const counties = preliminaryCountyUnits.map((county) => {
     const features = calculateCountyFeatures(county, {
       ...province.political_features,
       is_conquered: province.is_conquered,
     })
-    return calculateCountyVote({ ...county, political_features: features }, province, config)
+    return calculateCountyVote({ ...county, political_features: features }, province, provinceConfig)
   })
-  const assembly = calculateProvinceAssembly(province, counties, config)
+  const assembly = calculateProvinceAssembly(province, counties, provinceConfig)
   const usesCountyCouncil = counties.length > 20
   const prelates = usesCountyCouncil
     ? calculateProvincePrelatesCouncil(counties, config)
@@ -277,6 +285,7 @@ function buildProvinceResult(data, row, config, rowsByName = new Map()) {
     name: province.name,
     group: province.group || 'Unassigned',
     city_id: province.city_id,
+    continent: province.continent || null,
     is_national_capital: !!province.is_national_capital,
     is_regional_capital: !!province.is_regional_capital,
     is_founded: !!province.is_founded,

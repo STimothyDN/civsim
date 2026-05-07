@@ -146,6 +146,7 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
   const americanIdentityIndex = groupIncludes(province, 'American') || textIncludes(origin, 'American') || textIncludes(origin, 'United States') ? 1 : 0
   const romanIdentityIndex = groupIncludes(province, 'Roman') || textIncludes(origin, 'Roman') ? 1 : 0
   const connectivity = provinceConnectivity(province)
+  const sameContinentIndex = (province?.continent && country?.national_capital_continent && province.continent === country.national_capital_continent) ? 1 : 0
 
   // Calculate economic diversity index based on yield variation
   const yieldValues = [
@@ -189,7 +190,8 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
     0.08 * stateReligionShare +
     0.08 * cultureIndex +
     0.06 * scienceIndex +
-    0.05 * connectivity.connectedness_index -
+    0.05 * connectivity.connectedness_index +
+    0.10 * sameContinentIndex -
     0.08 * foreignOriginIndex
   )
   if (province?.is_conquered) imperialCoreIndex *= 0.6
@@ -202,6 +204,7 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
     roman_identity_index: romanIdentityIndex,
     imperial_origin_index: imperialOriginIndex,
     foreign_origin_index: foreignOriginIndex,
+    same_continent_index: sameContinentIndex,
     connectedness_index: connectivity.connectedness_index,
     frontier_index: connectivity.frontier_index,
     adjacency_known_index: connectivity.adjacency_known_index,

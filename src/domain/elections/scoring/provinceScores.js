@@ -28,6 +28,8 @@ export function calculateProvincePartyScores(province) {
   const foreignOriginIndex = f(province, 'foreign_origin_index')
   const frontierIndex = f(province, 'frontier_index')
   const connectednessIndex = f(province, 'connectedness_index')
+  const sameContinentIndex = f(province, 'same_continent_index')
+  const crossContinentalIndex = 1 - sameContinentIndex
   const whiteDiasporaScore =
     PARTY_FLOORS.white -
     0.005 +
@@ -37,7 +39,8 @@ export function calculateProvincePartyScores(province) {
     0.015 * maritimeIndex +
     0.015 * wildernessIndex +
     0.025 * foreignOriginIndex +
-    0.02 * frontierIndex
+    0.02 * frontierIndex +
+    0.02 * crossContinentalIndex
   const purpleDiasporaScore =
     PARTY_FLOORS.purple +
     0.005 +
@@ -85,7 +88,8 @@ export function calculateProvincePartyScores(province) {
       0.05 * f(province, 'religious_homogeneity_index') +
       0.05 * civicMonumentIndex +
       0.03 * residentialIndex +
-      0.04 * connectednessIndex -
+      0.04 * connectednessIndex +
+      0.04 * sameContinentIndex -
       0.2 * conqueredPenalty -
       0.1 * f(province, 'localist_index') -
       0.08 * foreignOriginIndex -
@@ -112,7 +116,8 @@ export function calculateProvincePartyScores(province) {
       0.12 * f(province, 'traditionalist_index') +
       0.1 * f(province, 'isolation_index') +
       0.08 * wildernessIndex +
-      0.04 * mountainIndex -
+      0.04 * mountainIndex +
+      0.02 * crossContinentalIndex -
       0.08 * f(province, 'urbanization_index'),
 
     blue:
@@ -148,7 +153,8 @@ export function calculateProvincePartyScores(province) {
       0.06 * f(province, 'protected_marine_index') +
       0.04 * f(province, 'maritime_index') +
       0.04 * f(province, 'offshore_development_index') +
-      0.03 * hasNationalPark(province) -
+      0.03 * hasNationalPark(province) +
+      0.03 * crossContinentalIndex -
       0.04 * f(province, 'industrial_index') -
       0.03 * f(province, 'urbanization_index') -
       0.02 * f(province, 'pollution_index'),

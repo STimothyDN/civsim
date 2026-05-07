@@ -173,7 +173,15 @@
                 <span class="calc-value">{{ calcField(selectedIndex, 'dominantReligion', true) }}</span>
               </div>
             </div>
-            
+
+            <BaselineProvinceCards v-if="isProvincesArray" :province-index="selectedIndex" />
+
+            <BaselineCountyCards
+              v-if="isCountiesArray && parentProvinceIndex !== null"
+              :province-index="parentProvinceIndex"
+              :county-index="selectedIndex"
+            />
+
             <FieldsetGroup v-if="isObject(arr[selectedIndex])" :path="itemPath(selectedIndex)" :label="itemDisplayName(arr[selectedIndex], selectedIndex)" :depth="depth + 1" />
             <FormField v-else :path="itemPath(selectedIndex)" :label="title + ' value'" />
           </div>
@@ -205,6 +213,8 @@ export default {
   components: {
     FieldsetGroup: defineAsyncComponent(() => import('./FieldsetGroup.vue')),
     FormField: defineAsyncComponent(() => import('./FormField.vue')),
+    BaselineProvinceCards: defineAsyncComponent(() => import('./elections/BaselineProvinceCards.vue')),
+    BaselineCountyCards: defineAsyncComponent(() => import('./elections/BaselineCountyCards.vue')),
   },
   props: {
     path: { type: String, required: true },
@@ -222,6 +232,10 @@ export default {
     const isProvincesArray = computed(() => props.path === 'provinces')
     const isCountiesArray = computed(() => /^provinces\[\d+\]\.counties$/.test(props.path))
     const isClosestProvincesArray = computed(() => /^provinces\[\d+\]\.closest_provinces$/.test(props.path))
+    const parentProvinceIndex = computed(() => {
+      const match = /^provinces\[(\d+)\]\.counties$/.exec(props.path)
+      return match ? Number(match[1]) : null
+    })
     const isFixedArray = computed(() => isClosestProvincesArray.value)
     const closestProvinceKeys = new WeakMap()
     let closestProvinceKeyCounter = 0
@@ -502,7 +516,7 @@ export default {
       }
     }
 
-    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isFixedArray, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl }
+    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isFixedArray, parentProvinceIndex, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl }
   }
 }
 </script>

@@ -75,6 +75,8 @@ export const useElectionStore = defineStore('election', {
       this.scenarioDescription = climateDescriptionForTrends(newTrends)
       this.scenarioMetadataStatus = 'idle'
       this.scenarioMetadataError = null
+      this.representativeNames = {}
+      this.currentRoster = {}
 
       return {
         id: trendPackageId,
@@ -154,6 +156,54 @@ export const useElectionStore = defineStore('election', {
     getRepresentativeName(party, seatIndex) {
       const key = `${party}_${seatIndex}`
       return this.representativeNames[key] || null
+    },
+    snapshotElectionState() {
+      return {
+        ...this.electionConfig,
+        trends: [...this.trends],
+        volatility: { ...this.volatility },
+        electionNumber: this.electionNumber,
+        trendHistory: this.trendHistory.map((cycle) => [...cycle]),
+        previousElectionConfig: this.previousElectionConfig
+          ? {
+              ...this.previousElectionConfig,
+              trends: [...this.previousElectionConfig.trends],
+              volatility: { ...this.previousElectionConfig.volatility },
+            }
+          : null,
+        representativeNames: { ...this.representativeNames },
+        currentRoster: { ...this.currentRoster },
+        incumbentRoster: { ...this.incumbentRoster },
+      }
+    },
+    hydrateElectionState(state) {
+      if (!state || typeof state !== 'object') return
+      const baseline = cloneBaseline()
+      this.seed = state.seed ?? baseline.seed
+      this.jitterSeed = state.jitterSeed ?? baseline.jitterSeed
+      this.trendPackageId = state.trendPackageId ?? baseline.trendPackageId
+      this.scenarioName = state.scenarioName ?? baseline.scenarioName
+      this.scenarioDescription = state.scenarioDescription ?? baseline.scenarioDescription
+      this.trends = Array.isArray(state.trends) ? [...state.trends] : []
+      this.volatility = { ...baseline.volatility, ...(state.volatility || {}) }
+      this.electionNumber = Number.isFinite(state.electionNumber) ? state.electionNumber : 0
+      this.trendHistory = Array.isArray(state.trendHistory)
+        ? state.trendHistory.map((cycle) => (Array.isArray(cycle) ? [...cycle] : []))
+        : []
+      this.previousElectionConfig = state.previousElectionConfig
+        ? {
+            ...state.previousElectionConfig,
+            trends: Array.isArray(state.previousElectionConfig.trends)
+              ? [...state.previousElectionConfig.trends]
+              : [],
+            volatility: { ...(state.previousElectionConfig.volatility || {}) },
+          }
+        : null
+      this.representativeNames = { ...(state.representativeNames || {}) }
+      this.currentRoster = { ...(state.currentRoster || {}) }
+      this.incumbentRoster = { ...(state.incumbentRoster || {}) }
+      this.scenarioMetadataStatus = 'idle'
+      this.scenarioMetadataError = null
     },
   },
 })
