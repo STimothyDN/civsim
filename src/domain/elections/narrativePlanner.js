@@ -11,11 +11,11 @@ const MAX_TEMPLATE_HOOK = 150
 const MAX_TEMPLATE_BEAT = 90
 const MAX_SCENARIO_NAME = 72
 const MAX_SCENARIO_DESCRIPTION = 260
-const MAX_WORLD_PROVINCES = 24
-const MAX_GROUP_SUMMARIES = 16
-const MAX_TOP_CONTEXT_VALUES = 8
+const MAX_WORLD_PROVINCES = 10
+const MAX_GROUP_SUMMARIES = 12
+const MAX_TOP_CONTEXT_VALUES = 6
 const CLIMATE_SUMMARY_TOKEN_BUDGETS = [480, 900]
-const NARRATIVE_PLAN_TOKEN_BUDGETS = [2500, 3500]
+const NARRATIVE_PLAN_TOKEN_BUDGETS = [1700, 2400]
 const REPRESENTATIVE_NAMING_TOKEN_BUDGET = 2000
 const MAX_CUSTOM_TRENDS = 3
 const MAX_CUSTOM_EFFECTS = 4
@@ -281,33 +281,16 @@ function templateLevels(template) {
 }
 
 function templateSummaries() {
-  return RANDOM_TREND_TEMPLATES.map((template) => {
-    const beats = (template.narrative?.beats || [])
-      .slice(0, 3)
-      .map((beat) => truncate(beat, MAX_TEMPLATE_BEAT))
-
-    return compactObject({
-      id: template.id,
-      label: template.label,
-      kind: template.complexity,
-      family: template.family,
-      levels: templateLevels(template),
-      parties: templateParties(template),
-      signals: uniqueList([...(template.tags || []), ...(template.narrative?.promptTags || [])], 10),
-      summary: truncate(template.description),
-      hook: truncate(template.narrative?.hook || '', MAX_TEMPLATE_HOOK),
-      beats,
-      effects: (template.effects || []).slice(0, 5).map((effect) => compactObject({
-        level: effect.level || template.level,
-        party: effect.party || template.party,
-        mode: effect.mode || 'boost',
-        selector: effect.selector || template.selector || {},
-      })),
-      strengthRange: Array.isArray(template.magnitudeRange)
-        ? template.magnitudeRange.map((value) => roundNumber(value, 2))
-        : null,
-    })
-  })
+  return RANDOM_TREND_TEMPLATES.map((template) => compactObject({
+    id: template.id,
+    label: template.label,
+    kind: template.complexity,
+    family: template.family,
+    levels: templateLevels(template),
+    parties: templateParties(template),
+    signals: uniqueList([...(template.tags || []), ...(template.narrative?.promptTags || [])], 6),
+    summary: truncate(template.description, 120),
+  }))
 }
 
 function trendSummaries(trends = []) {
@@ -391,19 +374,10 @@ function provinceSummaries(data, max = MAX_WORLD_PROVINCES) {
       originalCountry: province.original_country || null,
       population: integerOrNull(province.provincial_population ?? province.population),
       flags: provinceFlags(province),
-      closestProvinces: (province.closest_provinces || [])
-        .filter((entry) => entry?.province_name)
-        .slice(0, 5)
-        .map((entry) => compactObject({
-          name: entry.province_name,
-          distance: roundNumber(entry.distance, 1),
-        })),
       loyalty: roundNumber(province.loyalty, 1),
       happiness: roundNumber(province.happiness_percentage, 1),
-      growth: roundNumber(province.growth_percentage, 1),
       religion: dominantReligion(province),
-      topYields: topYieldValues(province.yields),
-      notes: truncate(province.notes || '', 100),
+      topYields: topYieldValues(province.yields, 2),
     }))
 }
 
@@ -537,11 +511,18 @@ function plannerSystemPrompt() {
     'Your job is template selection, not prose writing: map the user narrative to existing trend templates.',
     'YOUR ENTIRE RESPONSE MUST BE A SINGLE RAW JSON OBJECT — nothing before the opening { and nothing after the closing }.',
     'DO NOT call any tools or functions. DO NOT use tool call syntax, XML tags, code fences, markdown, preamble, or reasoning blocks. Just the JSON object.',
+    'OUTPUT SHAPE IS NON-NEGOTIABLE. The top-level keys MUST be exactly: title, summary, selections, jitter, customTrends. NO OTHER top-level keys are allowed — never invent culturalTrends, trendGrammar, useWhen, featureSet, selectorNotes, or any other key. Each selections entry MUST use exactly the keys templateId, intensity, reason — nothing else.',
+    'DO NOT mimic the shape of TREND_TEMPLATES or CUSTOM_TREND_GRAMMAR. Never emit fields like template_id, role, levels, parties, signals, family, kind, useWhen, featureSet, allowedFeatureNames in your output. Those are INPUT fields, not OUTPUT fields.',
+    'STOP generating immediately after the closing brace of the top-level object. Do not add commentary, extra arrays, or any trailing keys.',
+    'STRICT COUNT: selections must contain between 3 and 7 entries. Never list more than 7. Never echo the catalog.',
     'Make final decisions from the supplied context; never ask the user for more information.',
-    'Select 3 to 7 unique template IDs from TREND_TEMPLATES. Prefer 3 to 4 for a narrow narrative and 5 to 7 for a multi-thread crisis.',
+    'Prefer 3 to 4 selections for a narrow narrative and 5 to 7 for a multi-thread crisis.',
     'Include at least one simple template and at least one compound or storyline template when the catalog provides a good fit.',
-    'Prefer templates whose signals, hooks, parties, and world applicability match USER_NARRATIVE and CURRENT_WORLD.',
-    'Use customTrends only as a fallback for important narrative details not covered by TREND_TEMPLATES. Keep them conservative and targeted.',
+    'Prefer templates whose signals, parties, and world applicability match USER_NARRATIVE and CURRENT_WORLD.',
+    'CUSTOM TRENDS ARE ENCOURAGED but BOUNDED. Generate 1 to 3 customTrends when the USER_NARRATIVE involves specific regions, factions, or identities the templates do not directly model. Skip customTrends when templates already cover the narrative.',
+    'Each custom trend should have 1 to 3 effects. Use selector grammar (groupIncludes, originalCountryIncludes, terrains, isConquered, minFeatures/maxFeatures) and weightBy with allowedFeatureNames to add specificity. Use adjacency only when geographic spillover is core to the movement.',
+    'Custom trend labels and descriptions should reference specific regions or identities in USER_NARRATIVE — not generic placeholders, but also not verbatim copies of the example.',
+    'Be EFFICIENT — keep descriptions one short sentence and reasons under 16 words. Do not pad output to match example length.',
     'Use intensity 0.35-0.65 for normal effects, 0.7-1.0 for crisis or landslide effects, and 0.15-0.34 for subtle background effects.',
     'Only move volatility away from DEFAULT_VOLATILITY when the narrative clearly implies chaos, stability, landslide, or local uncertainty.',
     'Do not invent template IDs, parties, regions, features, or facts.',
@@ -552,25 +533,25 @@ function plannerUserPrompt(narrative, data) {
   const partyMeta = partyMetaForContext(data)
   return JSON.stringify({
     task: 'Select trend templates and election jitter settings for the USER_NARRATIVE below. YOUR RESPONSE MUST BE ONLY a raw JSON object shaped exactly like exampleOutput — same field names, same structure, nothing else.',
+    USER_NARRATIVE: narrative,
+    CURRENT_WORLD: worldContext(data),
+    PARTY_LEGEND: partyLegend(partyMeta),
+    DEFAULT_VOLATILITY,
+    CUSTOM_TREND_GRAMMAR: customTrendGrammar(partyMeta),
+    TREND_TEMPLATES: templateSummaries(),
     rules: [
+      'Top-level keys are EXACTLY: title, summary, selections, jitter, customTrends. No other keys.',
       'Use only templateId values present in TREND_TEMPLATES.',
-      'Keep reasons under 16 words each.',
+      'selections must have 3 to 7 entries — never more.',
+      'Each selections entry has exactly three keys: templateId, intensity, reason.',
+      'customTrends has 0 to 3 entries; each trend has 1 to 3 effects.',
+      'Do NOT copy catalog field names (template_id, role, levels, parties, signals, family, kind) into the output.',
+      'Do NOT copy grammar field names (useWhen, featureSet, allowedFeatureNames, selectorNotes) into the output.',
+      'Do NOT copy the example narrative — write your own based on USER_NARRATIVE.',
+      'Keep descriptions to one short sentence; reasons under 16 words.',
       'Use seedHint as lowercase kebab-case with no dates.',
-      'If unsure, choose lower intensity and default volatility.',
+      'STOP after the closing brace of the top-level object.',
     ],
-    exampleOutput: {
-      title: 'Harvest Crisis',
-      summary: 'Soaring bread prices fuel economic anxiety and incumbent backlash, benefiting opposition parties promising relief.',
-      selections: [
-        { templateId: 'bread-price-relief', intensity: 0.72, reason: 'Core driver — food prices dominate voter concern' },
-        { templateId: 'tax-fatigue', intensity: 0.45, reason: 'Amplifies anti-incumbent fiscal resentment' },
-      ],
-      jitter: {
-        seedHint: 'harvest-crisis',
-        volatility: { national: 0.06, region: 0.1, province: 0.14, county: 0.22 },
-      },
-      customTrends: [],
-    },
     requiredOutputFormat: {
       title: 'short scenario title',
       summary: 'one sentence explaining how the chosen trends tell the story',
@@ -610,12 +591,44 @@ function plannerUserPrompt(narrative, data) {
         },
       ],
     },
-    USER_NARRATIVE: narrative,
-    CURRENT_WORLD: worldContext(data),
-    PARTY_LEGEND: partyLegend(partyMeta),
-    DEFAULT_VOLATILITY,
-    CUSTOM_TREND_GRAMMAR: customTrendGrammar(partyMeta),
-    TREND_TEMPLATES: templateSummaries(),
+    exampleOutput: {
+      title: 'Canal Guild Backlash',
+      summary: 'Neglected canal-county labor unions revolt against rising tolls, energizing worker parties in industrial corridors while the state coalition holds the rural core.',
+      selections: [
+        { templateId: 'factory-wage-drive', intensity: 0.62, reason: 'Industrial labor mobilization is the lead story' },
+        { templateId: 'tax-fatigue', intensity: 0.4, reason: 'Toll resentment broadens the anti-incumbent coalition' },
+        { templateId: 'harvest-festival', intensity: 0.32, reason: 'Stabilizing rural counterweight to urban unrest' },
+      ],
+      jitter: {
+        seedHint: 'canal-guild-backlash',
+        volatility: { national: 0.06, region: 0.11, province: 0.15, county: 0.24 },
+      },
+      customTrends: [
+        {
+          label: 'Canal Tollmen Strike Wave',
+          description: 'Canal-county guilds organize against transport tolls, lifting worker parties in industrialized corridors.',
+          family: 'labor',
+          tags: ['canal', 'guild', 'labor'],
+          reason: 'No template models canal-specific guild strike geography.',
+          effects: [
+            {
+              level: 'county',
+              party: 'orange',
+              mode: 'boost',
+              magnitude: 0.18,
+              selector: { minFeatures: { feature: 'industrial_index', value: 0.4 } },
+              weightBy: { feature: 'worker_grievance_index', minMultiplier: 0.8, maxMultiplier: 1.6 },
+            },
+            {
+              level: 'national',
+              party: 'yellow',
+              mode: 'suppress',
+              magnitude: 0.07,
+            },
+          ],
+        },
+      ],
+    },
   })
 }
 
@@ -1870,42 +1883,20 @@ function normalizeScenarioMetadata(plan = {}) {
 
 function customTrendGrammar(partyMeta = PARTY_META) {
   return {
-    useWhen: 'Prefer TREND_TEMPLATES. Add customTrends only for a narrative element that no existing template covers well.',
+    useWhen: 'Templates are the backbone; customTrends add narrative-specific texture. Generate 1 to 3 custom trends when USER_NARRATIVE has flavor templates cannot model. Each trend has 1 to 3 effects with selectors and weightBy for specificity.',
     limits: {
+      recommendedTrendCount: '1 to 3',
+      recommendedEffectsPerTrend: '1 to 3',
       maxCustomTrends: MAX_CUSTOM_TRENDS,
       maxEffectsPerTrend: MAX_CUSTOM_EFFECTS,
       effectLevels: CUSTOM_EFFECT_LEVELS,
       maxMagnitudeByLevel: CUSTOM_MAGNITUDE_LIMITS,
     },
-    allowedParties: partyLegend(partyMeta),
+    allowedPartyIds: PARTIES.map((id) => (partyMeta[id] || PARTY_META[id]).abbreviation ? id : id),
     allowedModes: CUSTOM_MODES,
     allowedSelectorShortcuts: SELECTOR_SHORTCUTS,
     allowedFeatureNames: FEATURE_ALLOWLIST,
-    selectorNotes: [
-      'There is no direct region effect level; affect a region with province/county effects plus selector.groupIncludes.',
-      'Use minFeatures/maxFeatures for feature names in allowedFeatureNames.',
-      'Use groupIncludes, groupEquals, nameIncludes, terrains, resources, improvementIncludes, isConquered, isNationalCapital, isRegionalCapital, isFounded, or isJoined for targeted effects.',
-      'Use originalCountryIncludes/originalCountryEquals plus foreign_origin_index/frontier_index/connectedness_index to target annexed, frontier, or well-connected provinces.',
-      'Use adjacency only on province-level effects when a signal should spill from matching provinces into their closest provinces by distance.',
-    ],
-    customTrendSchema: {
-      label: 'short display name',
-      description: 'one sentence describing the custom political signal',
-      family: 'short lowercase category',
-      tags: ['2 to 6 lowercase tags'],
-      reason: 'why this was generated instead of using only templates',
-      effects: [
-        {
-          level: 'national | province | county, or an array of those',
-          party: 'one allowed party id',
-          mode: 'boost or suppress',
-          magnitude: 'number, clamped by maxMagnitudeByLevel',
-          selector: 'optional selector object using allowed selector grammar',
-          weightBy: 'optional { feature, minMultiplier, maxMultiplier } using allowedFeatureNames',
-          adjacency: 'optional for province effects: { maxDistance, minMultiplier, maxMultiplier, cap, sourceSelector, targetSelector } to spill a province effect into nearby provinces',
-        },
-      ],
-    },
+    selectorNotes: 'No region level — target regions via groupIncludes on province/county effects. Use minFeatures/maxFeatures with allowedFeatureNames; selectors include groupIncludes, nameIncludes, terrains, resources, isConquered, isNationalCapital, isFounded.',
   }
 }
 

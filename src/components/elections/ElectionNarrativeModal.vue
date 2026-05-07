@@ -131,19 +131,44 @@ export default {
       appliedPackage.value = null
       llmStatus.value = null
 
-      try {
-        const { packageDef } = await requestElectionNarrativePlan({
-          narrative: prompt,
-          data: formStore.currentData,
-          onStatus: (status) => {
-            llmStatus.value = status
-          },
-        })
+      const MAX_ATTEMPTS = 3
+      let lastError = null
+      let packageDef = null
 
-        if (!packageDef.trends.length) {
-          throw new Error('The model did not select any valid trend templates.')
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+        try {
+          if (attempt > 1) {
+            pushStatus(`Retrying narrative generation (attempt ${attempt} of ${MAX_ATTEMPTS})…`, 'pending')
+          }
+
+          const result = await requestElectionNarrativePlan({
+            narrative: prompt,
+            data: formStore.currentData,
+            onStatus: (status) => {
+              llmStatus.value = status
+            },
+          })
+
+          if (!result.packageDef.trends.length) {
+            throw new Error('The model did not select any valid trend templates.')
+          }
+
+          packageDef = result.packageDef
+          break
+        } catch (error) {
+          lastError = error
+          if (attempt < MAX_ATTEMPTS) {
+            pushStatus(`Attempt ${attempt} failed: ${error.message || 'unknown error'}.`, 'pending')
+          }
+        }
+      }
+
+      try {
+        if (!packageDef) {
+          throw lastError || new Error('Election narrative failed after 3 attempts.')
         }
 
+        statusItems.value = []
         electionStore.applyTrendPackage(packageDef)
         appliedPackage.value = packageDef
         pushStatus(`Applied ${packageDef.trends.length} narrative trends.`, 'success')
