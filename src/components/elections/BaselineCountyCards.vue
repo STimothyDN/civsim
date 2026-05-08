@@ -1,6 +1,18 @@
 <template>
   <div v-if="county" class="baseline-cards-section">
-    <div class="baseline-cards-heading">Baseline Vote Share</div>
+    <div class="baseline-cards-heading">County Population</div>
+    <div class="baseline-leader-grid">
+      <div class="overview-hero-call baseline-leader-card population-card">
+        <span>Population</span>
+        <strong>{{ formatNumber(county.county_population) }}</strong>
+        <small class="leader-line">
+          {{ formatSharePercent(county.county_population_share) }} of provincial population
+        </small>
+      </div>
+    </div>
+
+    <template v-if="hasPopulation">
+    <div class="baseline-cards-heading baseline-cards-heading--gap">Baseline Vote Share</div>
     <BaselineVoteShareGrid :vote-shares="county.vote_shares" />
 
     <div class="baseline-cards-heading baseline-cards-heading--gap">Projected Prelate</div>
@@ -33,6 +45,7 @@
         </small>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
@@ -44,6 +57,7 @@ import { useElectionResults } from '../../composables/useElectionResults'
 import { useElectionFormatters } from '../../composables/useElectionFormatters'
 import { topParty, partyWinnerStyle } from '../../domain/elections/viewHelpers'
 import { formatShare } from '../../domain/elections'
+import { formatNumber } from '../../domain/formatting'
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
 import { SEAT_OFFSETS } from '../../domain/elections/constants/seatOffsets'
 
@@ -66,6 +80,8 @@ export default {
       results.value?.provinces?.find((p) => p.provinceIndex === props.provinceIndex) || null
     )
     const county = computed(() => province.value?.counties?.[props.countyIndex] || null)
+
+    const hasPopulation = computed(() => Number(county.value?.county_population) > 0)
 
     const winningParty = computed(() => {
       const shares = county.value?.vote_shares
@@ -149,8 +165,15 @@ export default {
       return formatShare(num)
     }
 
+    function formatSharePercent(value) {
+      const num = Number(value)
+      if (!Number.isFinite(num)) return '—'
+      return `${(num * 100).toFixed(1)}%`
+    }
+
     return {
       county,
+      hasPopulation,
       winningParty,
       usesCountyCouncil,
       prelateCardStyle,
@@ -160,6 +183,8 @@ export default {
       partyMeta,
       controlCardStyle,
       formatShareValue,
+      formatSharePercent,
+      formatNumber,
       SEAT_OFFSETS,
     }
   },
