@@ -82,6 +82,41 @@ function makeCountyUnit(county, index, province) {
   }
 }
 
+function countyHasMeaningfulDetails(county = {}) {
+  const improvementName = String(county?.improvement?.name || '').trim()
+  const hasEnabledObjectValue = (value) =>
+    value && typeof value === 'object' && Object.values(value).some(Boolean)
+
+  return Boolean(
+    String(county?.name || '').trim() ||
+    String(county?.terrain || '').trim() ||
+    String(county?.resource || '').trim() ||
+    improvementName ||
+    hasEnabledObjectValue(county?.features) ||
+    hasEnabledObjectValue(county?.improvement?.buildings) ||
+    hasEnabledObjectValue(county?.improvement?.great_works) ||
+    sumObjectValues(county?.yields || {}) > 0 ||
+    num(county?.citizens_working) > 0 ||
+    county?.appeal !== null && county?.appeal !== undefined && county?.appeal !== '' ||
+    county?.river === true ||
+    county?.has_railroad === true
+  )
+}
+
+function countyDataQuality(province = {}, row = {}) {
+  const counties = Array.isArray(province?.counties) ? province.counties : []
+  const countyCount = num(row.countyCount, counties.length)
+  const detailCount = num(
+    row.countyDetailCount,
+    counties.reduce((sum, county) => sum + (countyHasMeaningfulDetails(county) ? 1 : 0), 0)
+  )
+  const detailShare = countyCount > 0 ? detailCount / countyCount : 0
+
+  if (countyCount <= 1) return 'stub'
+  if (countyCount >= 12 && detailShare >= 0.5) return 'rich'
+  return 'sparse'
+}
+
 function calculateCountyVote(county, province, config) {
   const rawScores = calculateCountyPartyScores(county, province)
   const trendScores = applyTrends(rawScores, county, 'county', config.trends)
@@ -318,6 +353,7 @@ function buildProvinceResult(data, row, config, featureUnitsByName = null) {
     provincial_population: province.provincial_population,
     assemblypeople: province.assemblypeople,
     raw_prelate_count: province.prelates,
+    county_data_quality: countyDataQuality(raw, row),
     political_features: province.political_features,
     assembly,
     prelates: {

@@ -1,4 +1,5 @@
 import { computed, effectScope } from 'vue'
+import { getActivePinia } from 'pinia'
 import {
   BASELINE_ELECTION_CONFIG,
   buildElectionConfig,
@@ -40,8 +41,9 @@ function makeRowForProvince(province, index) {
 }
 
 function buildPipeline() {
+  const pinia = getActivePinia()
   const scope = effectScope(true)
-  return scope.run(() => {
+  const pipeline = scope.run(() => {
     const formStore = useFormStore()
     const civStore = useCivilizationStore()
     const electionStore = useElectionStore()
@@ -165,6 +167,8 @@ function buildPipeline() {
     const provinceRows = computed(() => civStore.provinceRows)
 
     return {
+      pinia,
+      stop: () => scope.stop(),
       formStore,
       electionStore,
       data,
@@ -177,9 +181,14 @@ function buildPipeline() {
       stats,
     }
   })
+  return pipeline
 }
 
 export function useElectionPipeline() {
-  if (!singleton) singleton = buildPipeline()
+  const activePinia = getActivePinia()
+  if (!singleton || singleton.pinia !== activePinia) {
+    singleton?.stop?.()
+    singleton = buildPipeline()
+  }
   return singleton
 }
