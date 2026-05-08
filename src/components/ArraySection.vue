@@ -136,7 +136,7 @@
       </div>
       
       <!-- Detail View / Content -->
-      <div ref="contentEl" class="array-content">
+      <div ref="contentEl" class="array-content" @focusin="handleFocusIn">
         <template v-if="selectedIndex < arr.length">
           <div class="array-item-header">
             <h3>
@@ -516,7 +516,23 @@ export default {
       }
     }
 
-    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isFixedArray, parentProvinceIndex, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl }
+    function handleFocusIn(event) {
+      if (!isCountiesArray.value) return
+      const el = event.target
+      if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) return
+      requestAnimationFrame(() => {
+        const stickyCard = contentEl.value?.querySelector('.baseline-cards-section')
+        if (!stickyCard) return
+        const cardBottom = stickyCard.getBoundingClientRect().bottom
+        const elTop = el.getBoundingClientRect().top
+        // Element is in viewport but behind the sticky card
+        if (elTop >= 0 && elTop < cardBottom + 8) {
+          window.scrollBy({ top: elTop - cardBottom - 8 })
+        }
+      })
+    }
+
+    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isFixedArray, parentProvinceIndex, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl, handleFocusIn }
   }
 }
 </script>

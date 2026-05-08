@@ -175,6 +175,10 @@ export default {
   padding-bottom: 20px;
   border-top: 1px dashed var(--border-subtle);
   border-bottom: 1px dashed var(--border-subtle);
+  position: sticky;
+  top: 136px;
+  z-index: 5;
+  background: var(--bg-surface-raised);
 }
 
 .baseline-cards-heading {
