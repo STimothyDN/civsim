@@ -23,6 +23,92 @@ export const IMPROVEMENT_POP_MULTIPLIERS = {
 }
 
 const AMBIENT_POPULATION_BLOCKED_TERRAINS = ['Ocean', 'Coast', 'Mountain']
+const WATER_TERRAINS = ['Ocean', 'Coast', 'Lake']
+const WATER_POPULATION_MULTIPLIER = 0.3
+
+const DISTANCE_DECAY_COEFFICIENT = 0.22
+const CONCENTRATION_EXPONENT = 1.5
+const CITIZEN_WEIGHT = 0.35
+const APPEAL_WEIGHT = 0.06
+const APPEAL_MIN = -3
+const APPEAL_MAX = 5
+
+const TERRAIN_BASE_MULTIPLIERS = [
+  { match: 'Snow', value: 0.2 },
+  { match: 'Desert', value: 0.4 },
+  { match: 'Tundra (Hills)', value: 0.45 },
+  { match: 'Tundra', value: 0.5 },
+  { match: 'Grassland (Hills)', value: 0.75 },
+  { match: 'Plains (Hills)', value: 0.75 },
+  { match: 'Grassland', value: 1 },
+  { match: 'Plains', value: 1 },
+  { match: 'Lake', value: 0.55 },
+]
+
+const FEATURE_MULTIPLIERS = [
+  { match: 'Floodplains', value: 1.4 },
+  { match: 'Volcanic Soil', value: 1.25 },
+  { match: 'Oasis', value: 1.3 },
+  { match: 'Marsh', value: 0.7 },
+  { match: 'Rainforest', value: 0.65 },
+  { match: 'Woods', value: 0.9 },
+  { match: 'Reef', value: 0.85 },
+]
+
+const HOUSING_BUILDING_BONUSES = {
+  Sewer: 0.25,
+  Aqueduct: 0.2,
+  Neighborhood: 0.3,
+  'Water Mill': 0.1,
+  Granary: 0.1,
+  'Flood Barrier': 0.15,
+}
+
+const YIELD_COEFFICIENTS = {
+  food: 0.03,
+  production: 0.015,
+  gold: 0.008,
+  culture: 0.008,
+  science: 0.008,
+  faith: 0.008,
+}
+
+function isWaterCounty(county) {
+  const terrain = terrainName(county)
+  return WATER_TERRAINS.some((waterTerrain) => terrain.includes(waterTerrain))
+}
+
+function terrainBaseMultiplier(county) {
+  const terrain = terrainName(county)
+  for (const entry of TERRAIN_BASE_MULTIPLIERS) {
+    if (terrain.includes(entry.match)) return entry.value
+  }
+  return 0.75
+}
+
+function featureMultiplier(county) {
+  const features = county?.features || {}
+  let multiplier = 1
+  for (const featureKey of Object.keys(features)) {
+    if (!features[featureKey]) continue
+    for (const entry of FEATURE_MULTIPLIERS) {
+      if (featureKey.includes(entry.match)) {
+        multiplier *= entry.value
+        break
+      }
+    }
+  }
+  return multiplier
+}
+
+function housingBuildingBonus(county) {
+  const buildings = county?.improvement?.buildings || {}
+  let bonus = 0
+  for (const [name, value] of Object.entries(HOUSING_BUILDING_BONUSES)) {
+    if (buildings[name]) bonus += value
+  }
+  return bonus
+}
 
 function cloneCounty(county, index) {
   return {
@@ -58,28 +144,45 @@ function improvementMultiplier(county) {
   const name = String(county?.improvement?.name || '').trim()
   if (IMPROVEMENT_POP_MULTIPLIERS[name] !== undefined) return IMPROVEMENT_POP_MULTIPLIERS[name]
   if (terrainName(county).includes('Mountain')) return 0.45
-  return 0.75
+  return terrainBaseMultiplier(county)
 }
 
 function rawCountyPopulationWeight(county) {
   const distance = Math.max(0, num(county?.distance_from_center))
-  const distanceMultiplier = 1 / (1 + 0.14 * distance)
-  const citizenMultiplier = 1 + 0.35 * Math.max(0, num(county?.citizens_working))
-  const infrastructureMultiplier = 1 + (county?.has_railroad ? 0.15 : 0) + (county?.river ? 0.1 : 0)
+  const distanceMultiplier = 1 / (1 + DISTANCE_DECAY_COEFFICIENT * distance)
+  const citizens = Math.max(0, num(county?.citizens_working))
+  const citizenMultiplier = 1 + CITIZEN_WEIGHT * Math.sqrt(citizens)
+  const infrastructureMultiplier =
+    1 +
+    (county?.has_railroad ? 0.15 : 0) +
+    (county?.river ? 0.1 : 0) +
+    housingBuildingBonus(county)
   const yields = county?.yields || {}
   const yieldMultiplier =
     1 +
-    0.015 * num(yields.food) +
-    0.02 * num(yields.production) +
-    0.01 * num(yields.gold) +
-    0.01 * num(yields.culture) +
-    0.01 * num(yields.science) +
-    0.01 * num(yields.faith)
+    YIELD_COEFFICIENTS.food * num(yields.food) +
+    YIELD_COEFFICIENTS.production * num(yields.production) +
+    YIELD_COEFFICIENTS.gold * num(yields.gold) +
+    YIELD_COEFFICIENTS.culture * num(yields.culture) +
+    YIELD_COEFFICIENTS.science * num(yields.science) +
+    YIELD_COEFFICIENTS.faith * num(yields.faith)
 
-  return Math.max(
-    0.0001,
-    distanceMultiplier * improvementMultiplier(county) * citizenMultiplier * infrastructureMultiplier * yieldMultiplier
-  )
+  const appealValue = Math.max(APPEAL_MIN, Math.min(APPEAL_MAX, num(county?.appeal)))
+  const appealMultiplier = 1 + APPEAL_WEIGHT * appealValue
+
+  const waterMultiplier = isWaterCounty(county) ? WATER_POPULATION_MULTIPLIER : 1
+
+  const rawWeight =
+    distanceMultiplier *
+    improvementMultiplier(county) *
+    citizenMultiplier *
+    infrastructureMultiplier *
+    yieldMultiplier *
+    featureMultiplier(county) *
+    appealMultiplier *
+    waterMultiplier
+
+  return Math.max(0.0001, Math.pow(Math.max(0, rawWeight), CONCENTRATION_EXPONENT))
 }
 
 export function countyPopulationWeight(county) {

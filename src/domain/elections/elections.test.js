@@ -238,13 +238,13 @@ describe('election domain', () => {
     expect(harbor.terrain_habitation_index).toBe(1)
     expect(mountainPark.mountain_index).toBeGreaterThan(0.6)
     expect(mountainPark.wilderness_index).toBeGreaterThan(0.5)
-    expect(mountainPark.terrain_habitation_index).toBe(0)
+    expect(mountainPark.terrain_habitation_index).toBe(1)
     expect(quarry.extractive_index).toBeGreaterThan(0.5)
   })
 
   it('counts listed zero-follower religions as tiny provincial presences', () => {
     const country = { state_religion: 'Zoroastrianism' }
-    const features = calculateProvinceBaseFeatures({
+    const province = {
       population: 10,
       loyalty: 50,
       religions: [
@@ -253,7 +253,8 @@ describe('election domain', () => {
         { name: 'Protestantism', followers: '2' },
       ],
       yields: {},
-    }, country)
+    }
+    const features = calculateProvinceBaseFeatures(province, country, { provinceIndex: 1001 })
     const withoutTaoism = calculateProvinceBaseFeatures({
       population: 10,
       loyalty: 50,
@@ -262,13 +263,60 @@ describe('election domain', () => {
         { name: 'Protestantism', followers: '2' },
       ],
       yields: {},
-    }, country)
+    }, country, { provinceIndex: 1002 })
 
-    expect(features.state_religion_share).toBeCloseTo(0.025)
-    expect(features.taoist_share).toBeCloseTo(0.025)
-    expect(features.minority_religion_share).toBeCloseTo(0.225)
+    // Zero-follower listings still register a tiny share (not zero, not clamped at 1).
+    expect(features.state_religion_share).toBeGreaterThan(0)
+    expect(features.state_religion_share).toBeLessThan(0.05)
+    expect(features.taoist_share).toBeGreaterThan(0)
+    expect(features.taoist_share).toBeLessThan(0.05)
+    // The 2-follower Protestant population dominates: minority share clearly larger
+    // than the floor-only state_religion_share.
+    expect(features.minority_religion_share).toBeGreaterThan(features.state_religion_share)
+    expect(features.minority_religion_share).toBeLessThan(1)
+    // Without globalization (no empireReligionTotals) and no listed Taoism,
+    // taoist_share is exactly zero.
     expect(withoutTaoism.taoist_share).toBe(0)
-    expect(withoutTaoism.minority_religion_share).toBeCloseTo(0.2)
+    expect(withoutTaoism.minority_religion_share).toBeGreaterThan(0)
+  })
+
+  it('scales raw followers and never clamps the share at 1 when followers >= raw population', () => {
+    // Mirrors jayavarman.json's Angkor Thom: 28 followers / 30 raw pop. Old
+    // behavior would compute 28/30 ≈ 0.93, but any province with followers
+    // >= raw pop would clamp to 1. New scaled-space math keeps the share
+    // strictly < 1 and meaningfully above 0.5.
+    const features = calculateProvinceBaseFeatures({
+      population: 30,
+      loyalty: 50,
+      religions: [{ name: 'Zoroastrianism', followers: '28' }],
+      yields: {},
+    }, { state_religion: 'Zoroastrianism' }, { provinceIndex: 2001 })
+    expect(features.state_religion_share).toBeGreaterThan(0.5)
+    expect(features.state_religion_share).toBeLessThan(1)
+  })
+
+  it('spreads religions empire-wide via globalization affinity', () => {
+    // Province A has 50 Taoists; Province B has none listed. With empire totals
+    // passed in, B picks up a small ambient taoist_share via globalization.
+    const country = { state_religion: 'Zoroastrianism' }
+    const empireReligionTotals = { Taoism: 50_000_000 }
+    const noEmpire = calculateProvinceBaseFeatures({
+      population: 20,
+      loyalty: 50,
+      religions: [{ name: 'Zoroastrianism', followers: '5' }],
+      yields: { faith: 100 },
+      closest_provinces: [{ province_name: 'A', distance: 4 }],
+    }, country, { provinceIndex: 3001 })
+    const withEmpire = calculateProvinceBaseFeatures({
+      population: 20,
+      loyalty: 50,
+      religions: [{ name: 'Zoroastrianism', followers: '5' }],
+      yields: { faith: 100 },
+      closest_provinces: [{ province_name: 'A', distance: 4 }],
+    }, country, { provinceIndex: 3001, empireReligionTotals })
+
+    expect(noEmpire.taoist_share).toBe(0)
+    expect(withEmpire.taoist_share).toBeGreaterThan(0)
   })
 
   it('derives origin and adjacency features from province metadata', () => {

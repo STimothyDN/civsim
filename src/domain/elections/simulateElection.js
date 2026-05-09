@@ -5,6 +5,7 @@ import { allocateCountyPopulations } from './population/allocateCountyPopulation
 import { calculateCountyFeatures } from './features/countyFeatures'
 import { calculateNationalFeatures } from './features/nationalFeatures'
 import { calculateProvinceBaseFeatures, calculateProvinceFeatures } from './features/provinceFeatures'
+import { buildEmpireReligionTotals } from './features/religionDistribution'
 import { calculateCountyPartyScores } from './scoring/countyScores'
 import { calculateNationalPartyScores } from './scoring/nationalScores'
 import { calculateProvincePartyScores } from './scoring/provinceScores'
@@ -68,6 +69,41 @@ function createProvinceInput(data, row) {
     population: raw.population ?? row.population,
     row,
   }
+}
+
+// Pass-through keys that must NOT be magnified (population, names, ids, raw diagnostic).
+const MAGNIFIER_PASSTHROUGH_KEYS = new Set([
+  'county_population',
+  'county_population_share',
+  'improvement_name',
+  'maritime_basin_name',
+  'river_name',
+  'citizens_working_index',
+])
+
+function citizenMagnifier(rawCitizens) {
+  if (rawCitizens === null || rawCitizens === undefined || rawCitizens === '') return 0.70
+  const c = Number(rawCitizens)
+  if (!Number.isFinite(c)) return 0.70
+  if (c <= 0) return 0.80
+  if (c <= 1) return 0.95
+  if (c <= 2) return 1.10
+  return 1.25
+}
+
+function applyCitizenMagnifier(features, rawCitizens) {
+  const M = citizenMagnifier(rawCitizens)
+  const result = {}
+  for (const [key, value] of Object.entries(features)) {
+    if (MAGNIFIER_PASSTHROUGH_KEYS.has(key) || typeof value !== 'number') {
+      result[key] = value
+      continue
+    }
+    const scaled = value * M
+    result[key] = scaled < 0 ? 0 : scaled > 1 ? 1 : scaled
+  }
+  result.citizen_magnifier = M
+  return result
 }
 
 function makeCountyUnit(county, index, province) {
@@ -224,23 +260,29 @@ function buildProvinceFeatureUnit(data, row) {
   const nationalCapitalContinent = (data?.provinces || []).find(p => p.is_national_capital)?.continent ?? null
   const country = { ...(data?.country || {}), national_capital_continent: nationalCapitalContinent }
   const provinceInput = createProvinceInput(data, row)
-  const baseFeatures = calculateProvinceBaseFeatures(provinceInput, country)
+  const empireReligionTotals = buildEmpireReligionTotals(data)
+  const featureOptions = { provinceIndex: provinceInput.provinceIndex, empireReligionTotals }
+  const baseFeatures = calculateProvinceBaseFeatures(provinceInput, country, featureOptions)
   const allocatedCounties = allocateCountyPopulations(provinceInput, provinceInput.provincial_population)
   const preliminaryCountyUnits = allocatedCounties.map((county, index) => {
     const countyUnit = makeCountyUnit(county, index, provinceInput)
     return {
       ...countyUnit,
-      political_features: calculateCountyFeatures(county, {
-        ...baseFeatures,
-        is_conquered: provinceInput.is_conquered,
-      }),
+      political_features: applyCitizenMagnifier(
+        calculateCountyFeatures(county, {
+          ...baseFeatures,
+          is_conquered: provinceInput.is_conquered,
+        }),
+        county.citizens_working,
+      ),
     }
   })
   const provinceFeatures = calculateProvinceFeatures(
     provinceInput,
     country,
     preliminaryCountyUnits,
-    provinceInput.provincial_population
+    provinceInput.provincial_population,
+    featureOptions
   )
   const province = {
     ...provinceInput,
@@ -311,10 +353,13 @@ function buildProvinceResult(data, row, config, featureUnitsByName = null) {
     volatility: { ...config.volatility, province: (config.volatility?.province ?? 0.12) * 1.3 },
   } : config
   const counties = preliminaryCountyUnits.map((county) => {
-    const features = calculateCountyFeatures(county, {
-      ...province.political_features,
-      is_conquered: province.is_conquered,
-    })
+    const features = applyCitizenMagnifier(
+      calculateCountyFeatures(county, {
+        ...province.political_features,
+        is_conquered: province.is_conquered,
+      }),
+      county.citizens_working,
+    )
     return calculateCountyVote({ ...county, political_features: features }, province, provinceConfig)
   })
   const assembly = calculateProvinceAssembly(province, counties, provinceConfig)

@@ -40,19 +40,31 @@ export function resetJitterCache() {
  *
  * Returns null when the source population is null / undefined / <= 0.
  */
-export function calcProvincialPopulation(population, provinceIndex) {
-  if (population == null || population <= 0) return null
-
+function applyPopulationScale(rawValue, provinceIndex) {
   const { exponentJitter, basePopRandBetween } = jitterForProvince(provinceIndex)
-
   const basePop =
-    Math.pow(population / 4, 2.1) *
+    Math.pow(rawValue / 4, 2.1) *
     0.25 *
     (350000 + basePopRandBetween)
-
   const exponent = 1 + 0.08 + exponentJitter
-
   return Math.round(Math.pow(basePop, exponent))
+}
+
+export function calcProvincialPopulation(population, provinceIndex) {
+  if (population == null || population <= 0) return null
+  return applyPopulationScale(Number(population), provinceIndex)
+}
+
+/**
+ * Scale a raw religious follower count using the same per-province curve as
+ * the provincial-population formula. Followers are authored on the same raw
+ * scale as `province.population`, so the same jitter is reused — that keeps
+ * scaledFollowers / scaledProvincialPopulation a sensible ratio.
+ */
+export function calcScaledFollowers(followers, provinceIndex) {
+  const value = Number(followers)
+  if (!Number.isFinite(value) || value <= 0) return 0
+  return applyPopulationScale(value, provinceIndex)
 }
 
 /**

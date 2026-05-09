@@ -4,6 +4,7 @@ import {
   calcDominantReligion,
   calcPrelates,
   calcProvincialPopulation,
+  calcScaledFollowers,
   computeRegionalTotals,
   resetJitterCache,
 } from './calculatedFields'
@@ -45,5 +46,18 @@ describe('calculatedFields', () => {
       assemblypeople: 7,
       prelates: 31,
     })
+  })
+
+  it('scales raw followers using the same curve as provincial population', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    resetJitterCache()
+    // Same raw value + same provinceIndex → same scaled output, since both
+    // share the per-province jitter.
+    expect(calcScaledFollowers(30, 7)).toBe(calcProvincialPopulation(30, 7))
+    // Zero / negative followers collapse to 0 (no floor at this layer).
+    expect(calcScaledFollowers(0, 7)).toBe(0)
+    expect(calcScaledFollowers(-5, 7)).toBe(0)
+    // Fewer raw followers than population produces a smaller scaled value.
+    expect(calcScaledFollowers(5, 7)).toBeLessThan(calcProvincialPopulation(30, 7))
   })
 })

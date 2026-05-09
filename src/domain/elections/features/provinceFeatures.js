@@ -1,7 +1,11 @@
-import { clamp01, norm, num } from '../normalization/numbers'
-import { NORMALIZATION_MAX, coefficientOfVariation, hhiIndex } from '../normalization/dataStats'
-
-const LISTED_RELIGION_FOLLOWER_FLOOR = 0.25
+import { clamp01, norm, normRange, num } from '../normalization/numbers'
+import { NORMALIZATION_MAX, NORMALIZATION_MIN, coefficientOfVariation, hhiIndex } from '../normalization/dataStats'
+import { calcProvincialPopulation } from '../../../utils/calculatedFields'
+import {
+  buildScaledFollowerMap,
+  applyReligionGlobalization,
+  provinceReligionAffinity,
+} from './religionDistribution'
 
 // Province distance scaling constants - creates drastic effect where remote provinces are frontier/isolated
 const MIN_PROVINCE_DISTANCE = 3
@@ -84,22 +88,6 @@ function provinceConnectivity(province = {}) {
   }
 }
 
-function religionFollowerCount(religion) {
-  const followers = num(religion?.followers)
-  return followers > 0 ? followers : LISTED_RELIGION_FOLLOWER_FLOOR
-}
-
-function religionFollowerMap(province) {
-  if (!Array.isArray(province?.religions)) return {}
-
-  return province.religions.reduce((followersByReligion, religion) => {
-    const name = String(religion?.name || '').trim()
-    if (!name) return followersByReligion
-    followersByReligion[name] = num(followersByReligion[name]) + religionFollowerCount(religion)
-    return followersByReligion
-  }, {})
-}
-
 function religionFollowers(followersByReligion, religionName) {
   if (!religionName) return 0
   return num(followersByReligion?.[religionName])
@@ -123,23 +111,31 @@ function populationWeightedFeature(counties, featureName, provincialPopulation) 
   }, 0) / denominator
 }
 
-export function calculateProvinceBaseFeatures(province, country = {}) {
+export function calculateProvinceBaseFeatures(province, country = {}, options = {}) {
   const civPopulation = Math.max(1, num(province?.population, 1))
+  const provinceIndex = num(options.provinceIndex ?? province?.provinceIndex, 0)
+  const empireReligionTotals = options.empireReligionTotals || {}
   const stateReligion = country?.state_religion || null
-  const followersByReligion = religionFollowerMap(province)
-  const stateReligionShare = clamp01(religionFollowers(followersByReligion, stateReligion) / civPopulation)
-  const minorityReligionShare = clamp01(nonStateReligionFollowers(followersByReligion, stateReligion) / civPopulation)
-  const taoistShare = clamp01(religionFollowers(followersByReligion, 'Taoism') / civPopulation)
-  const loyaltyIndex = norm(province?.loyalty, 50)
-  const happinessIndex = norm(province?.happiness_percentage, 120)
-  const growthIndex = norm(province?.growth_percentage, 120)
+
+  const scaledProvincePop = Math.max(1, num(calcProvincialPopulation(num(province?.population), provinceIndex), 1))
+  const faithIndex = norm(num(province?.yields?.faith) / civPopulation, NORMALIZATION_MAX.faith_per_capita)
+  const loyaltyIndex = norm(province?.loyalty, NORMALIZATION_MAX.loyalty)
+  const happinessIndex = normRange(
+    province?.happiness_percentage,
+    NORMALIZATION_MIN.happiness_percentage,
+    NORMALIZATION_MAX.happiness_percentage,
+  )
+  const growthIndex = normRange(
+    province?.growth_percentage,
+    NORMALIZATION_MIN.growth_percentage,
+    NORMALIZATION_MAX.growth_percentage,
+  )
   const amenityIndex = norm(province?.net_amenities, NORMALIZATION_MAX.net_amenities)
   const foodIndex = norm(num(province?.yields?.food) / civPopulation, NORMALIZATION_MAX.food_per_capita)
   const productionIndex = norm(num(province?.yields?.production) / civPopulation, NORMALIZATION_MAX.production_per_capita)
   const goldIndex = norm(num(province?.yields?.gold) / civPopulation, NORMALIZATION_MAX.gold_per_capita)
   const cultureIndex = norm(num(province?.yields?.culture) / civPopulation, NORMALIZATION_MAX.culture_per_capita)
   const scienceIndex = norm(num(province?.yields?.science) / civPopulation, NORMALIZATION_MAX.science_per_capita)
-  const faithIndex = norm(num(province?.yields?.faith) / civPopulation, NORMALIZATION_MAX.faith_per_capita)
   const origin = originalCountry(province)
   const imperialOriginIndex = isImperialOrigin(province, country) ? 1 : 0
   const foreignOriginIndex = imperialOriginIndex ? 0 : 1
@@ -159,7 +155,23 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
   ]
   const economicDiversityIndex = clamp01(coefficientOfVariation(yieldValues))
 
-  // Calculate religious homogeneity using HHI
+  // Religion shares are computed in scaled-population space: raw follower
+  // counts share the same scale as raw province.population, so they're run
+  // through the same calcProvincialPopulation curve and divided by the
+  // province's own scaled population. Empire-wide globalization adds a small
+  // ambient floor for every religion in every province.
+  const followersByReligion = buildScaledFollowerMap(province, provinceIndex)
+  const religionAffinity = provinceReligionAffinity({
+    connectednessIndex: connectivity.connectedness_index,
+    faithIndex,
+    foreignOriginIndex,
+  })
+  applyReligionGlobalization(followersByReligion, empireReligionTotals, religionAffinity)
+
+  const stateReligionShare = clamp01(religionFollowers(followersByReligion, stateReligion) / scaledProvincePop)
+  const minorityReligionShare = clamp01(nonStateReligionFollowers(followersByReligion, stateReligion) / scaledProvincePop)
+  const taoistShare = clamp01(religionFollowers(followersByReligion, 'Taoism') / scaledProvincePop)
+
   const religionFollowersList = Object.values(followersByReligion || {})
   const religiousHomogeneityIndex = clamp01(hhiIndex(religionFollowersList))
 
@@ -176,7 +188,7 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
     0.4 * productionIndex +
     0.25 * goldIndex +
     0.2 * foodIndex +
-    0.15 * (province?.assemblypeople ? province.assemblypeople / 50 : 0)
+    0.15 * norm(province?.assemblypeople, NORMALIZATION_MAX.assemblypeople)
   )
 
   // Calculate isolation index as inverse of connectivity
@@ -230,8 +242,8 @@ export function calculateProvinceBaseFeatures(province, country = {}) {
   }
 }
 
-export function calculateProvinceFeatures(province, country = {}, counties = [], provincialPopulation = 0) {
-  const base = calculateProvinceBaseFeatures(province, country)
+export function calculateProvinceFeatures(province, country = {}, counties = [], provincialPopulation = 0, options = {}) {
+  const base = calculateProvinceBaseFeatures(province, country, options)
   const aggregated = COUNTY_AGGREGATED_FEATURES.reduce((result, featureName) => {
     result[featureName] = clamp01(populationWeightedFeature(counties, featureName, provincialPopulation))
     return result

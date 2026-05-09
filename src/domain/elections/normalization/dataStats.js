@@ -45,6 +45,7 @@ export const NORMALIZATION_MAX = {
   happiness_percentage: 120,    // was 120, range is 100-120
   growth_percentage: 120,       // was not normalized directly
   net_amenities: 12,            // was 10, actual max 11
+  assemblypeople: 40,           // actual max 36 (== raw province population)
 
   // Province yields per capita
   food_per_capita: 6,           // was 4, actual max 5.14
@@ -66,6 +67,14 @@ export const NORMALIZATION_MAX = {
   appeal: 12,                   // was 8, actual max 12.0
   distance_from_center: 5,      // unchanged, matches data
   citizens_working: 3,          // unchanged, matches data
+}
+
+// Practical floors for fields whose meaningful zero is not zero. Used with
+// min-max normalization so the index spans the actual authored range instead
+// of compressing everything into the top of [0, 1].
+export const NORMALIZATION_MIN = {
+  happiness_percentage: 100,    // Civ-style neutral floor; data range is 100-120
+  growth_percentage: 50,        // observed authored floor; data range is 50-120
 }
 
 /**

@@ -18,6 +18,14 @@ export function norm(value, maxValue) {
   return clamp01(num(value) / max)
 }
 
+export function normRange(value, minValue, maxValue) {
+  const min = num(minValue)
+  const max = num(maxValue)
+  const span = max - min
+  if (!span || span <= 0) return 0
+  return clamp01((num(value) - min) / span)
+}
+
 export function countTrue(names, obj = {}) {
   return names.reduce((count, name) => count + (obj?.[name] ? 1 : 0), 0)
 }

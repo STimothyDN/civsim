@@ -65,6 +65,11 @@
       </div>
     </div>
 
+    <ProvinceReligionPopulations
+      v-if="isReligionsArray && religionsParentProvinceIndex !== null"
+      :province-index="religionsParentProvinceIndex"
+    />
+
     <TransitionGroup v-if="isClosestProvincesArray && arr.length > 0" name="closest-province" tag="div" class="closest-provinces-editor">
       <div v-for="(item, index) in arr" :key="closestProvinceKey(item)" class="closest-province-row">
         <div class="closest-province-index">{{ index + 1 }}</div>
@@ -215,6 +220,7 @@ export default {
     FormField: defineAsyncComponent(() => import('./FormField.vue')),
     BaselineProvinceCards: defineAsyncComponent(() => import('./elections/BaselineProvinceCards.vue')),
     BaselineCountyCards: defineAsyncComponent(() => import('./elections/BaselineCountyCards.vue')),
+    ProvinceReligionPopulations: defineAsyncComponent(() => import('./ProvinceReligionPopulations.vue')),
   },
   props: {
     path: { type: String, required: true },
@@ -232,8 +238,13 @@ export default {
     const isProvincesArray = computed(() => props.path === 'provinces')
     const isCountiesArray = computed(() => /^provinces\[\d+\]\.counties$/.test(props.path))
     const isClosestProvincesArray = computed(() => /^provinces\[\d+\]\.closest_provinces$/.test(props.path))
+    const isReligionsArray = computed(() => /^provinces\[\d+\]\.religions$/.test(props.path))
     const parentProvinceIndex = computed(() => {
       const match = /^provinces\[(\d+)\]\.counties$/.exec(props.path)
+      return match ? Number(match[1]) : null
+    })
+    const religionsParentProvinceIndex = computed(() => {
+      const match = /^provinces\[(\d+)\]\.religions$/.exec(props.path)
       return match ? Number(match[1]) : null
     })
     const isFixedArray = computed(() => isClosestProvincesArray.value)
@@ -532,7 +543,7 @@ export default {
       })
     }
 
-    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isFixedArray, parentProvinceIndex, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl, handleFocusIn }
+    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isReligionsArray, isFixedArray, parentProvinceIndex, religionsParentProvinceIndex, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl, handleFocusIn }
   }
 }
 </script>

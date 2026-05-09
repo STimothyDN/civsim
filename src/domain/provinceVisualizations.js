@@ -2,6 +2,7 @@
 // (that import { formatNumber } from '../domain/provinceVisualizations') keep working.
 export { toNumber, formatNumber, formatCompactNumber } from './formatting'
 import { toNumber, formatNumber, formatCompactNumber } from './formatting'
+import { NORMALIZATION_MAX, NORMALIZATION_MIN } from './elections/normalization/dataStats'
 
 export const PROVINCE_YIELD_KEYS = ['amenities', 'food', 'production', 'gold', 'culture', 'science', 'faith']
 export const COUNTY_YIELD_KEYS = [...PROVINCE_YIELD_KEYS, 'tourism']
@@ -160,10 +161,32 @@ function average(values) {
   return usable.length ? usable.reduce((sum, value) => sum + value, 0) / usable.length : 0
 }
 
+function clampPercent(value) {
+  return Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0))
+}
+
+function scaleToPercent(value, min, max) {
+  const span = max - min
+  if (!span || span <= 0) return 0
+  return clampPercent(((Number(value) || 0) - min) / span * 100)
+}
+
+function loyaltyPercent(value) {
+  return scaleToPercent(value, 0, NORMALIZATION_MAX.loyalty)
+}
+
+function happinessPercent(value) {
+  return scaleToPercent(value, NORMALIZATION_MIN.happiness_percentage, NORMALIZATION_MAX.happiness_percentage)
+}
+
+function growthPercent(value) {
+  return scaleToPercent(value, NORMALIZATION_MIN.growth_percentage, NORMALIZATION_MAX.growth_percentage)
+}
+
 export function civicRiskScore(row) {
-  const loyaltyRisk = Math.max(0, 100 - row.loyalty)
-  const happinessRisk = Math.max(0, 100 - row.happinessPercentage)
-  const growthRisk = Math.max(0, 100 - row.growthPercentage)
+  const loyaltyRisk = 100 - loyaltyPercent(row.loyalty)
+  const happinessRisk = 100 - happinessPercent(row.happinessPercentage)
+  const growthRisk = 100 - growthPercent(row.growthPercentage)
   const amenityRisk = Math.max(0, -row.netAmenities) * 8
   const foodRisk = Math.max(0, -row.netFood) * 5
   const statusRisk =
@@ -178,15 +201,11 @@ export function civicRiskScore(row) {
   return Math.max(0, Math.min(100, loyaltyRisk * 0.34 + happinessRisk * 0.24 + growthRisk * 0.18 + amenityRisk + foodRisk + statusRisk - capitalStability))
 }
 
-function clampPercent(value) {
-  return Math.max(0, Math.min(100, value))
-}
-
 export function civicHealthScore(row) {
   if (!row) return 0
-  const loyalty = clampPercent(row.loyalty)
-  const happiness = clampPercent(row.happinessPercentage)
-  const growth = clampPercent(50 + row.growthPercentage)
+  const loyalty = loyaltyPercent(row.loyalty)
+  const happiness = happinessPercent(row.happinessPercentage)
+  const growth = growthPercent(row.growthPercentage)
   const infraBonus =
     (row.netAmenities >= 0 ? 4 : -6) +
     (row.netFood >= 0 ? 4 : -6) +

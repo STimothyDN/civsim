@@ -29,6 +29,9 @@ const CIVIC_MONUMENT_IMPROVEMENTS = [
 const INFRASTRUCTURE_IMPROVEMENTS = ['Dam', 'Aqueduct', 'Golden Gate Bridge']
 const NATURAL_FEATURES = ['Woods (old-growth)', 'Rainforest', 'Marsh', 'Cliff', 'Volcano', 'Volcanic Soil', 'Oasis']
 const HARBOR_BUILDINGS = ['Lighthouse', 'Shipyard', 'Seaport']
+const HOUSING_BUILDINGS = ['Sewer', 'Aqueduct', 'Neighborhood', 'Water Mill', 'Granary']
+const ENERGY_BUILDINGS = ['Power Plant', 'Coal Power Plant', 'Hydroelectric Dam', 'Nuclear Power Plant', 'Solar Farm']
+const INDUSTRY_BUILDINGS = ['Workshop', 'Factory']
 
 // Shared geographic features for cross-tile effects
 const MARITIME_BASIN_FEATURES = [
@@ -130,6 +133,10 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   const neighborhoodIndex = name === 'Neighborhood' ? 1 : 0
   const commercialOrDistrict = name ? 1 : 0
   const citizensWorkingIndex = norm(citizensWorking, 3)
+  const housingBuildingIndex = countTrue(HOUSING_BUILDINGS, buildings) / HOUSING_BUILDINGS.length
+  const energyBuildingIndex = countTrue(ENERGY_BUILDINGS, buildings) / ENERGY_BUILDINGS.length
+  const industryBuildingIndex = countTrue(INDUSTRY_BUILDINGS, buildings) / INDUSTRY_BUILDINGS.length
+  const greatWorkDensityIndex = norm(Object.keys(greatWorks).length, 4)
   const infrastructureSeed = clamp01((county?.has_railroad ? 0.6 : 0) + (county?.river ? 0.4 : 0))
   const proximityIndex = 1 / (1 + distanceFromCenter)
   const distanceIndex = clamp01(Math.pow(distanceFromCenter / MAX_COUNTY_DISTANCE, COUNTY_DISTANCE_EXPONENT))
@@ -160,8 +167,9 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   const extractiveImprovementIndex = EXTRACTIVE_IMPROVEMENTS.includes(name) ? 1 : 0
   const naturalFeatureIndex = hasAnyFeature(NATURAL_FEATURES, features) ? 1 : 0
   const resourceIndex = resource ? 1 : 0
-  const workedDifficultTerrainIndex = (waterTerrainIndex || mountainTerrainIndex) && citizensWorking > 0 ? 1 : 0
-  const terrainHabitationIndex = (waterTerrainIndex || mountainTerrainIndex) && citizensWorking <= 0 ? 0 : 1
+  const developedOrNaturalGate = name || naturalFeatureIndex ? 1 : 0
+  const workedDifficultTerrainIndex = (waterTerrainIndex || mountainTerrainIndex) && developedOrNaturalGate ? 1 : 0
+  const terrainHabitationIndex = (waterTerrainIndex || mountainTerrainIndex) && !developedOrNaturalGate ? 0 : 1
 
   const yieldDensityIndex = clamp01(
     0.25 * yields.food_index +
@@ -180,9 +188,8 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   const maritimeIndex = clamp01(
     0.3 * waterTerrainIndex +
     0.25 * maritimeImprovementIndex +
-    0.2 * harborBuildingIndex +
-    0.1 * citizensWorkingIndex +
-    0.1 * yields.gold_index +
+    0.25 * harborBuildingIndex +
+    0.15 * yields.gold_index +
     0.05 * yields.food_index
   )
   const mountainIndex = clamp01(
@@ -194,26 +201,24 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   )
   const wildernessIndex = clamp01(
     0.25 * preserveOrParkIndex +
-    0.2 * naturalFeatureIndex +
+    0.22 * naturalFeatureIndex +
     0.15 * mountainTerrainIndex +
     0.15 * appealIndex +
     0.1 * distanceIndex +
-    0.1 * undevelopedIndex +
-    0.05 * (1 - citizensWorkingIndex)
+    0.13 * undevelopedIndex
   )
   const residentialIndex = clamp01(
     0.45 * residentialImprovementIndex +
-    0.2 * citizensWorkingIndex +
-    0.15 * proximityIndex +
-    0.1 * infrastructureSeed +
+    0.25 * proximityIndex +
+    0.15 * infrastructureSeed +
+    0.05 * housingBuildingIndex +
     0.1 * yieldDensityIndex
   )
   const extractiveIndex = clamp01(
     0.4 * extractiveImprovementIndex +
-    0.2 * yields.production_index +
-    0.15 * strategicResourceIndex +
+    0.26 * yields.production_index +
+    0.19 * strategicResourceIndex +
     0.1 * resourceIndex +
-    0.1 * citizensWorkingIndex +
     0.05 * railroadIndex
   )
   const leisureTourismIndex = clamp01(
@@ -222,25 +227,24 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     0.15 * yields.culture_index +
     0.1 * yields.faith_index +
     0.1 * naturalFeatureIndex +
-    0.1 * clamp01(Object.keys(greatWorks).length / 6)
+    0.1 * greatWorkDensityIndex
   )
   const civicMonumentIndex = clamp01(
     0.35 * civicMonumentImprovementIndex +
     0.2 * cityCenterOrNeighborhood +
     0.15 * (buildings.Monument ? 1 : 0) +
     0.15 * yields.culture_index +
-    0.15 * clamp01(Object.keys(greatWorks).length / 6)
+    0.15 * greatWorkDensityIndex
   )
 
   const urbanIndex = clamp01(
     0.25 * cityCenterOrNeighborhood +
-    0.16 * commercialOrDistrict +
-    0.14 * citizensWorkingIndex +
-    0.13 * infrastructureSeed +
+    0.19 * commercialOrDistrict +
+    0.20 * infrastructureSeed +
     0.1 * proximityIndex +
     0.08 * yieldDensityIndex +
     0.08 * residentialIndex +
-    0.06 * civicMonumentIndex
+    0.10 * civicMonumentIndex
   )
   const ruralIndex = clamp01(
     0.25 * distanceIndex +
@@ -254,10 +258,10 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   const industrialIndex = clamp01(
     0.30 * (name === 'Industrial Zone' ? 1 : 0) +
     0.12 * industryIndex +
-    0.18 * yields.production_index +
+    0.24 * yields.production_index +
     0.18 * extractiveIndex +
-    0.12 * citizensWorkingIndex +
-    0.05 * railroadIndex +
+    0.04 * energyBuildingIndex +
+    0.07 * railroadIndex +
     0.05 * strategicResourceIndex
   )
   const agrarianIndex = clamp01(
@@ -305,17 +309,16 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   )
   const culturalEliteIndex = clamp01(
     0.35 * (name === 'Theater Square' ? 1 : 0) +
-    0.25 * clamp01(Object.keys(greatWorks).length / 6) +
+    0.25 * greatWorkDensityIndex +
     0.2 * yields.culture_index +
     0.1 * (buildings.Monument ? 1 : 0) +
     0.1 * appealIndex
   )
   const workerIndex = clamp01(
-    0.27 * citizensWorkingIndex +
-    0.24 * industrialIndex +
-    0.18 * yields.production_index +
+    0.32 * industrialIndex +
+    0.31 * yields.production_index +
     0.13 * extractiveIndex +
-    0.1 * (countTrue(['Workshop', 'Factory'], buildings) / 2) +
+    0.16 * industryBuildingIndex +
     0.08 * maritimeIndex
   )
   const infrastructureIndex = clamp01(
@@ -401,8 +404,8 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
   const offshoreDevelopmentIndex = clamp01(
     0.4 * (hasOffshoreImprovement(county) ? 1 : 0) +
     0.3 * (coastTerrainIndex || oceanTerrainIndex ? 1 : 0) +
-    0.2 * maritimeImprovementIndex +
-    0.1 * citizensWorkingIndex
+    0.24 * maritimeImprovementIndex +
+    0.06 * harborBuildingIndex
   )
   const resourceClusterIndex = clamp01(
     0.5 * (energyResourceIndex || luxuryResourceIndex ? 1 : 0) +
