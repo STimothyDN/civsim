@@ -4,6 +4,7 @@ import {
   DEFAULT_CHAMBERS,
   DEFAULT_CALCULATIONS,
   DEFAULT_ELECTION_RULES,
+  DEFAULT_NAMING,
   createDefaultConfig,
 } from './constants/defaultConfig'
 import { DEFAULT_VOTER_BLOCS } from './constants/defaultVoterBlocs'
@@ -56,6 +57,41 @@ function normalizeCalculations(value) {
   return calc
 }
 
+function normalizeNameList(value) {
+  if (!Array.isArray(value)) return []
+  return value.map((v) => String(v || '').trim()).filter(Boolean)
+}
+
+function normalizeCulture(raw, index) {
+  return {
+    id: String(raw?.id || `culture-${index + 1}`),
+    label: String(raw?.label || raw?.id || `Culture ${index + 1}`),
+    givenMale: normalizeNameList(raw?.givenMale),
+    givenFemale: normalizeNameList(raw?.givenFemale),
+    surnames: normalizeNameList(raw?.surnames),
+    selector: isPlainObject(raw?.selector) ? deepClone(raw.selector) : null,
+    parties: Array.isArray(raw?.parties) ? raw.parties.map((p) => String(p)) : [],
+    influence: Number.isFinite(Number(raw?.influence)) ? Number(raw.influence) : 1,
+    ambient: Number.isFinite(Number(raw?.ambient)) ? Number(raw.ambient) : 0,
+    surnameBlend: Number.isFinite(Number(raw?.surnameBlend)) ? Number(raw.surnameBlend) : 0,
+  }
+}
+
+function normalizeNaming(value) {
+  if (!isPlainObject(value)) return deepClone(DEFAULT_NAMING)
+  const home = value.homeCulture || {}
+  return {
+    homeCulture: {
+      id: 'home',
+      label: String(home.label || DEFAULT_NAMING.homeCulture.label),
+      givenMale: normalizeNameList(home.givenMale).length ? normalizeNameList(home.givenMale) : deepClone(DEFAULT_NAMING.homeCulture.givenMale),
+      givenFemale: normalizeNameList(home.givenFemale).length ? normalizeNameList(home.givenFemale) : deepClone(DEFAULT_NAMING.homeCulture.givenFemale),
+      surnames: normalizeNameList(home.surnames).length ? normalizeNameList(home.surnames) : deepClone(DEFAULT_NAMING.homeCulture.surnames),
+    },
+    cultures: Array.isArray(value.cultures) ? value.cultures.map(normalizeCulture) : deepClone(DEFAULT_NAMING.cultures),
+  }
+}
+
 /**
  * Build the canonical, fully-populated config block from raw template data.
  * Migrates the legacy top-level `election_parties` map into `config.parties`.
@@ -68,5 +104,6 @@ export function normalizeConfig(data) {
     chambers: mergeDefaults(DEFAULT_CHAMBERS, raw.chambers),
     calculations: normalizeCalculations(raw.calculations),
     elections: mergeDefaults(DEFAULT_ELECTION_RULES, raw.elections),
+    naming: normalizeNaming(raw.naming),
   }
 }

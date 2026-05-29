@@ -19,6 +19,17 @@ export function useElectionResults() {
       },
       { immediate: true }
     )
+    // Regenerate names when the naming config changes (it is not part of the
+    // election results pipeline, so it needs its own trigger).
+    watch(
+      () => pipeline.formStore.currentData?.config?.naming,
+      () => {
+        const resultsValue = pipeline.results.value
+        if (!pipeline.hasData.value || !resultsValue?.provinces) return
+        generateAllScopeNames(resultsValue, pipeline.formStore, pipeline.electionStore)
+      },
+      { deep: true }
+    )
   }
 
   return {

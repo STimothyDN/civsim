@@ -2969,3 +2969,116 @@ export async function requestRepresentativeNames({
 
   return parsed || {}
 }
+
+const CULTURE_BANK_LABELS = {
+  givenMale: 'male given names',
+  givenFemale: 'female given names',
+  surnames: 'surnames (family names)',
+}
+
+function sanitizeNameList(value, count) {
+  if (!Array.isArray(value)) return []
+  const seen = new Set()
+  const out = []
+  for (const entry of value) {
+    const name = String(entry || '').trim().replace(/^["'\-•\d.\s]+/, '').trim()
+    if (!name) continue
+    const key = name.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(name)
+    if (out.length >= count) break
+  }
+  return out
+}
+
+/**
+ * Ask LM Studio to generate name banks for a culture from its label.
+ * `categories` is a subset of ['givenMale','givenFemale','surnames'].
+ * Returns an object with an array per requested category.
+ */
+export async function requestCultureNames({
+  label,
+  categories = ['givenMale', 'givenFemale', 'surnames'],
+  count = 60,
+  endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
+  model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
+  onStatus,
+} = {}) {
+  const cultureLabel = String(label || '').trim() || 'a fictional people'
+  const wanted = categories.filter((c) => CULTURE_BANK_LABELS[c])
+  if (!wanted.length) return {}
+
+  emitLlmStatus(onStatus, {
+    phase: 'preparing',
+    progress: 0.1,
+    message: 'Preparing culture naming brief.',
+    detail: `Requesting ${wanted.length} name bank(s) for "${cultureLabel}".`,
+  })
+
+  const keyList = wanted.map((c) => `"${c}" (${CULTURE_BANK_LABELS[c]})`).join(', ')
+  const exampleKeys = wanted.map((c) => `"${c}": ["..."]`).join(', ')
+
+  const messages = [
+    {
+      role: 'system',
+      content: [
+        'You are an onomastics expert who invents authentic personal names for fictional nations.',
+        'You respond with ONLY a single minified JSON object — no prose, no markdown, no code fences.',
+      ].join(' '),
+    },
+    {
+      role: 'user',
+      content: [
+        `Generate personal names appropriate for the culture: "${cultureLabel}".`,
+        `Return a JSON object with exactly these keys: ${keyList}.`,
+        `Each value must be an array of ${count} unique, plausible names as plain strings (given names are single words; surnames are single words).`,
+        'Do not number the names. Do not include titles or honorifics. Do not include explanations.',
+        `Output format: {${exampleKeys}}`,
+      ].join('\n'),
+    },
+  ]
+
+  emitLlmStatus(onStatus, {
+    phase: 'connecting',
+    progress: 0.25,
+    message: 'Connecting to naming historian.',
+    detail: `Generating names for "${cultureLabel}".`,
+  })
+
+  const content = await requestChatCompletion({
+    endpoint,
+    model,
+    temperature: 0.9,
+    max_tokens: REPRESENTATIVE_NAMING_TOKEN_BUDGET,
+    messages,
+    onStatus,
+  })
+
+  emitLlmStatus(onStatus, {
+    phase: 'parsing',
+    progress: 0.8,
+    message: 'Parsing generated names.',
+    detail: 'Extracting name banks from the response.',
+  })
+
+  const parsed = extractJsonObject(stripThinkBlocks(content)) || {}
+  const result = {}
+  for (const category of wanted) {
+    result[category] = sanitizeNameList(parsed[category], count)
+  }
+
+  const totalGenerated = Object.values(result).reduce((sum, arr) => sum + arr.length, 0)
+  emitLlmStatus(onStatus, {
+    phase: 'complete',
+    progress: 1,
+    message: 'Names generated.',
+    detail: `Generated ${totalGenerated} names across ${wanted.length} bank(s).`,
+  })
+
+  if (!totalGenerated) {
+    throw new ModelOutputError('The model did not return any usable names.', 'empty')
+  }
+
+  return result
+}
