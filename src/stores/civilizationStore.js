@@ -109,6 +109,7 @@ export const useCivilizationStore = defineStore('civilization', () => {
   const calculations = computed(() => config.value.calculations || {})
   const electionParams = computed(() => config.value.elections || {})
   const voterBlocs = computed(() => config.value.voterBlocs || [])
+  const naming = computed(() => config.value.naming || {})
 
   const partyConfig = computed(() => formStore.currentData?.config?.parties)
 
@@ -152,6 +153,7 @@ export const useCivilizationStore = defineStore('civilization', () => {
     calculations,
     electionParams,
     voterBlocs,
+    naming,
 
     // Party
     parties,

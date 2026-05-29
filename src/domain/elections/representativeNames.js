@@ -1,8 +1,13 @@
-// Representative name generation for the Khmer Empire
-// Provides culturally appropriate names based on province demographics
+// Representative name generation.
+// Config-driven: a "home culture" name bank plus optional minority/foreign
+// cultures that influence naming where they appear (matched by origin country /
+// group / religion via the shared selector grammar) or by party tie. The banks
+// below are the bundled DEFAULT_NAMING; users can edit them in Advanced Setup.
 
 import { generateSeatDetails } from './chambers/jurisdictionLabels'
 import { SEAT_OFFSETS } from './constants/seatOffsets'
+import { matchesSelector } from './trends/matchTrend'
+import { num } from './normalization/numbers'
 
 // Traditional Khmer given names
 const KHMER_GIVEN_NAMES = {
@@ -321,122 +326,131 @@ function pickRandom(array, rng) {
   return array[Math.floor(rng() * array.length)]
 }
 
-// Determine name style based on province demographics
-function determineNameStyle(demographics) {
-  const { coreKhmer, american, roman, frontier, urban } = demographics
-
-  // Calculate weights for different name styles
-  const traditionalWeight = (coreKhmer / 100) * 0.8 + 0.2
-  const americanWeight = (american / 100) * 0.9
-  const romanWeight = (roman / 100) * 0.9
-  const frontierWeight = (frontier / 100) * 0.7
-
-  // Normalize weights
-  const total = traditionalWeight + americanWeight + romanWeight + frontierWeight
-  const roll = Math.random() * total
-
-  if (roll < traditionalWeight) {
-    return 'traditional'
-  } else if (roll < traditionalWeight + americanWeight) {
-    return 'american'
-  } else if (roll < traditionalWeight + americanWeight + romanWeight) {
-    return 'roman'
-  } else {
-    return 'frontier'
-  }
+/**
+ * DEFAULT naming configuration (config.naming): a home culture plus minority/
+ * foreign cultures. A culture appears for a seat when its `selector` matches the
+ * province (origin country / group / religion grammar shared with voter blocs),
+ * when its `ambient` weight gives it a baseline chance everywhere, and/or when
+ * the seat's party is in its `parties` list. `surnameBlend` is the probability a
+ * matched culture still uses a home-culture surname (cultural mixing); cultures
+ * with no surnames always use the home culture's.
+ */
+export const DEFAULT_NAMING = {
+  homeCulture: {
+    id: 'home',
+    label: 'Khmer',
+    givenMale: KHMER_GIVEN_NAMES.male,
+    givenFemale: KHMER_GIVEN_NAMES.female,
+    surnames: KHMER_SURNAMES,
+  },
+  cultures: [
+    {
+      id: 'american',
+      label: 'American',
+      givenMale: AMERICAN_GIVEN_NAMES.male,
+      givenFemale: AMERICAN_GIVEN_NAMES.female,
+      surnames: AMERICAN_SURNAMES,
+      selector: { any: [{ groupIncludes: ['American'] }, { originalCountryIncludes: ['American', 'United States'] }] },
+      parties: ['white'],
+      influence: 1,
+      ambient: 0,
+      surnameBlend: 0.5,
+    },
+    {
+      id: 'roman',
+      label: 'Roman',
+      givenMale: ROMAN_GIVEN_NAMES.male,
+      givenFemale: ROMAN_GIVEN_NAMES.female,
+      surnames: ROMAN_SURNAMES,
+      selector: { any: [{ groupIncludes: ['Roman'] }, { originalCountryIncludes: ['Roman'] }] },
+      parties: ['purple'],
+      influence: 1,
+      ambient: 0,
+      surnameBlend: 0.5,
+    },
+    {
+      id: 'spanish',
+      label: 'Spanish',
+      givenMale: SPANISH_GIVEN_NAMES.male,
+      givenFemale: SPANISH_GIVEN_NAMES.female,
+      surnames: [],
+      parties: [],
+      influence: 0,
+      ambient: 0.08,
+      surnameBlend: 1,
+    },
+    {
+      id: 'maori',
+      label: 'Maori',
+      givenMale: MAORI_GIVEN_NAMES.male,
+      givenFemale: MAORI_GIVEN_NAMES.female,
+      surnames: [],
+      parties: [],
+      influence: 0,
+      ambient: 0.08,
+      surnameBlend: 1,
+    },
+  ],
 }
 
-// Generate a name based on style, demographics, and party
-function generateName(style, gender, rng, party = null) {
-  const isMale = gender === 'male'
-
-  // Party-specific naming: American and Roman parties get their respective cultural ties
-  const isAmericanParty = party === 'american' || party === 'yellow'
-  const isRomanParty = party === 'roman' || party === 'orange'
-
-  if (isAmericanParty) {
-    // American party: American given name + American OR Khmer surname
-    const useAmericanSurname = rng() < 0.5
-    const givenName = pickRandom(AMERICAN_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)
-    const surname = useAmericanSurname
-      ? pickRandom(AMERICAN_SURNAMES, rng)
-      : pickRandom(KHMER_SURNAMES, rng)
-    return `${givenName} ${surname}`
+function cultureWeightFor(culture, province, party) {
+  let w = num(culture.ambient)
+  if (culture.selector && province && matchesSelector(province, culture.selector)) {
+    w += culture.influence == null ? 1 : num(culture.influence)
   }
-
-  if (isRomanParty) {
-    // Roman party: Roman given name + Roman OR Khmer surname
-    const useRomanSurname = rng() < 0.5
-    const givenName = pickRandom(ROMAN_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)
-    const surname = useRomanSurname
-      ? pickRandom(ROMAN_SURNAMES, rng)
-      : pickRandom(KHMER_SURNAMES, rng)
-    return `${givenName} ${surname}`
+  if (party && Array.isArray(culture.parties) && culture.parties.includes(party)) {
+    w += 1.5
   }
-
-  // Non-party-specific naming based on style/demographics
-  switch (style) {
-    case 'american':
-      // American influence: American given + Khmer surname (globalization)
-      return `${pickRandom(AMERICAN_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-    case 'roman':
-      // Roman influence: Roman given + Khmer surname (globalization)
-      return `${pickRandom(ROMAN_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-    case 'frontier':
-      // Frontier: Traditional Khmer with occasional Maori/Spanish influence
-      const frontierGlobalization = rng()
-      if (frontierGlobalization < 0.15) {
-        // Spanish influence
-        return `${pickRandom(SPANISH_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-      } else if (frontierGlobalization < 0.25) {
-        // Maori influence
-        return `${pickRandom(MAORI_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-      }
-      return `${pickRandom(KHMER_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-    case 'traditional':
-    default:
-      // Traditional Khmer base with small globalization chance
-      const traditionalGlobalization = rng()
-      if (traditionalGlobalization < 0.08) {
-        // Spanish influence
-        return `${pickRandom(SPANISH_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-      } else if (traditionalGlobalization < 0.12) {
-        // Maori influence
-        return `${pickRandom(MAORI_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-      } else if (traditionalGlobalization < 0.18) {
-        // Roman influence
-        return `${pickRandom(ROMAN_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-      } else if (traditionalGlobalization < 0.25) {
-        // American influence
-        return `${pickRandom(AMERICAN_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-      }
-      return `${pickRandom(KHMER_GIVEN_NAMES[isMale ? 'male' : 'female'], rng)} ${pickRandom(KHMER_SURNAMES, rng)}`
-  }
+  return w
 }
 
-// Calculate province demographics for a seat
-function getProvinceDemographics(province) {
-  if (!province) {
-    return { coreKhmer: 100, american: 0, roman: 0, frontier: 0, urban: 50 }
+// Weighted seeded pick of a culture for a seat. The home culture is always in
+// the running; matched/ambient/party-tied cultures compete against it.
+function pickCulture(naming, province, party, rng) {
+  const home = naming.homeCulture || DEFAULT_NAMING.homeCulture
+  const cultures = Array.isArray(naming.cultures) ? naming.cultures : []
+  const entries = [{ culture: home, w: 1 }]
+  let total = 1
+  for (const c of cultures) {
+    const w = cultureWeightFor(c, province, party)
+    if (w > 0) {
+      entries.push({ culture: c, w })
+      total += w
+    }
   }
-
-  const features = province.features || {}
-  const originIndex = features.imperial_origin_index || 0
-  const foreignIndex = features.foreign_origin_index || 0
-
-  return {
-    coreKhmer: Math.round(Math.max(0, 1 - originIndex - foreignIndex) * 100),
-    american: Math.round((features.american_identity_index || 0) * 100),
-    roman: Math.round((features.roman_identity_index || 0) * 100),
-    frontier: Math.round((features.frontier_index || 0) * 100),
-    urban: Math.round((features.urbanization_index || 0) * 100),
+  let roll = rng() * total
+  for (const e of entries) {
+    roll -= e.w
+    if (roll <= 0) return e.culture
   }
+  return home
+}
+
+function givenPool(culture, gender) {
+  const male = culture.givenMale || []
+  const female = culture.givenFemale || []
+  if (gender === 'female') return female.length ? female : male
+  return male.length ? male : female
+}
+
+function generateNameFromCulture(culture, home, gender, rng) {
+  const given =
+    pickRandom(givenPool(culture, gender), rng) ||
+    pickRandom(givenPool(home, gender), rng) ||
+    'Unnamed'
+  const cultureSurnames = culture.surnames || []
+  const useHomeSurname = !cultureSurnames.length || rng() < num(culture.surnameBlend)
+  let pool = useHomeSurname ? (home.surnames || []) : cultureSurnames
+  if (!pool.length) pool = home.surnames || []
+  const surname = pickRandom(pool, rng)
+  return surname ? `${given} ${surname}` : given
 }
 
 // Main function to generate representative names
-export function generateRepresentativeNames(seatDetails, provinces, seed = 'default') {
+export function generateRepresentativeNames(seatDetails, provinces, seed = 'default', naming = DEFAULT_NAMING) {
   const names = {}
   const usedNames = new Set()
+  const home = naming.homeCulture || DEFAULT_NAMING.homeCulture
 
   // Create RNG from seed
   const rng = mulberry32(hashString(seed))
@@ -448,17 +462,15 @@ export function generateRepresentativeNames(seatDetails, provinces, seed = 'defa
       p.counties?.some((c) => c.name === seat.jurisdiction)
     )
 
-    const demographics = getProvinceDemographics(province)
-    const style = determineNameStyle(demographics)
-
     // Alternate gender based on seat index for balance
     const gender = seat.seatIndex % 2 === 0 ? 'male' : 'female'
 
-    // Generate unique name (pass party for party-aware naming)
+    // Generate unique name from a culture chosen by demographics/party.
     let name
     let attempts = 0
     do {
-      name = generateName(style, gender, rng, seat.party)
+      const culture = pickCulture(naming, province, seat.party, rng)
+      name = generateNameFromCulture(culture, home, gender, rng)
       attempts++
     } while (usedNames.has(name) && attempts < 100)
 
@@ -477,12 +489,13 @@ function rosterKey(party, withinPartyIndex, scopeKey) {
 
 // Generate names for a scope+chamber block, applying incumbents where available,
 // and recording new roster entries. Returns { names, rosterEntries }.
-function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbentRoster) {
+function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbentRoster, naming = DEFAULT_NAMING) {
   const names = {}
   const rosterEntries = {}
   const incumbencies = {}
   const usedNames = new Set()
   const rng = mulberry32(hashString(seed))
+  const home = naming.homeCulture || DEFAULT_NAMING.homeCulture
 
   for (const seat of seatDetails || []) {
     const key = rosterKey(seat.party, seat.withinPartyIndex ?? 0, scopeKey)
@@ -494,12 +507,11 @@ function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbe
         p.name === seat.jurisdiction ||
         p.counties?.some((c) => c.name === seat.jurisdiction)
       )
-      const demographics = getProvinceDemographics(province)
-      const style = determineNameStyle(demographics)
       const gender = seat.seatIndex % 2 === 0 ? 'male' : 'female'
       let attempts = 0
       do {
-        name = generateName(style, gender, rng, seat.party)
+        const culture = pickCulture(naming, province, seat.party, rng)
+        name = generateNameFromCulture(culture, home, gender, rng)
         attempts++
       } while (usedNames.has(name) && attempts < 100)
     }
@@ -518,7 +530,8 @@ export function generateAllScopeNames(results, store, electionStore) {
   if (!results?.provinces) return
 
   const resultsValue = results
-  const countryName = store?.currentData?.country?.basic_info?.name || 'Khmer Empire'
+  const countryName = store?.currentData?.country?.basic_info?.name || 'civilization'
+  const naming = store?.currentData?.config?.naming || DEFAULT_NAMING
   const seed = resultsValue.config?.seed || 'default'
   const incumbentRoster = electionStore.incumbentRoster || {}
   const newRoster = {}
@@ -527,7 +540,7 @@ export function generateAllScopeNames(results, store, electionStore) {
     const seatDetails = rawSeatDetails.map((s) => ({ ...s, chamberType, seatIndex: s.seatIndex + offset }))
     if (!seatDetails.length) return
     const nameSeed = `${countryName}_${seed}-${scopeKey}-${chamberType}`
-    const { names, rosterEntries, incumbencies } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, `${scopeKey}_${chamberType}`, incumbentRoster)
+    const { names, rosterEntries, incumbencies } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, `${scopeKey}_${chamberType}`, incumbentRoster, naming)
     electionStore.representativeNames = { ...electionStore.representativeNames, ...names }
     electionStore.representativeIncumbents = { ...electionStore.representativeIncumbents, ...incumbencies }
     Object.assign(newRoster, rosterEntries)

@@ -479,6 +479,40 @@ export const useFormStore = defineStore('form', {
       this._recalcVersion++
       this.scheduleAutosave()
     },
+    addCulture() {
+      if (!this.currentData) return
+      if (!this.currentData.config) this.currentData.config = {}
+      if (!this.currentData.config.naming) {
+        this.currentData.config.naming = { homeCulture: { id: 'home', label: 'Home', givenMale: [], givenFemale: [], surnames: [] }, cultures: [] }
+      }
+      if (!Array.isArray(this.currentData.config.naming.cultures)) this.currentData.config.naming.cultures = []
+      const cultures = this.currentData.config.naming.cultures
+      const used = new Set(cultures.map((c) => c.id))
+      let n = cultures.length + 1
+      let id = `culture-${n}`
+      while (used.has(id)) id = `culture-${++n}`
+      cultures.push({
+        id,
+        label: 'New culture',
+        givenMale: [],
+        givenFemale: [],
+        surnames: [],
+        selector: { originalCountryIncludes: [] },
+        parties: [],
+        influence: 1,
+        ambient: 0,
+        surnameBlend: 0,
+      })
+      this._recalcVersion++
+      this.scheduleAutosave()
+    },
+    removeCulture(index) {
+      const cultures = this.currentData?.config?.naming?.cultures
+      if (!Array.isArray(cultures)) return
+      cultures.splice(index, 1)
+      this._recalcVersion++
+      this.scheduleAutosave()
+    },
     addVoterBloc() {
       if (!this.currentData) return
       if (!this.currentData.config) this.currentData.config = {}

@@ -156,7 +156,8 @@ export const useElectionStore = defineStore('election', {
       this.scenarioMetadataError = message || 'Scenario description could not be generated.'
     },
     generateAndStoreRepresentativeNames(seatDetails, provinces, countryName, seed) {
-      const names = generateRepresentativeNames(seatDetails, provinces, `${countryName}_${seed}`)
+      const naming = useFormStore().currentData?.config?.naming
+      const names = generateRepresentativeNames(seatDetails, provinces, `${countryName}_${seed}`, naming)
       // Merge with existing names instead of overwriting
       this.representativeNames = { ...this.representativeNames, ...names }
       return names
