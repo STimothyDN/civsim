@@ -1,8 +1,13 @@
 <template>
   <div class="toolbar">
-    <button type="button" class="btn-primary" @click="loadDefault">
+    <button type="button" class="btn-primary" @click="openNewTemplate">
       <FilePlus2 :size="16" />
       New Template
+    </button>
+
+    <button type="button" :disabled="!hasData" @click="openWizard">
+      <Wand2 :size="16" />
+      Edit in Wizard
     </button>
 
     <label class="file-input">
@@ -27,24 +32,27 @@
 
 <script>
 import { computed } from 'vue'
-import { Download, FilePlus2, Upload } from 'lucide-vue-next'
+import { Download, FilePlus2, Upload, Wand2 } from 'lucide-vue-next'
 import { useFormStore } from '../stores/formStore'
 import { useElectionStore } from '../stores/electionStore'
+import { useUiStore } from '../stores/uiStore'
 import { useElectionPipeline } from '../composables/electionPipeline'
 import { extractElectionState } from '../domain/templateCodec'
 import exampleData from '../../jayavarman.json'
 
 export default {
   name: 'Toolbar',
-  components: { Download, FilePlus2, Upload },
+  components: { Download, FilePlus2, Upload, Wand2 },
   setup() {
     const store = useFormStore()
     const hasData = computed(() => !!store.currentData)
 
-    function loadDefault() {
-      store.loadDefault()
-      const electionStore = useElectionStore()
-      electionStore.resetScenario()
+    function openNewTemplate() {
+      useUiStore().openNewTemplateModal()
+    }
+
+    function openWizard() {
+      useUiStore().openWizardModal()
     }
 
     function downloadJson() {
@@ -94,7 +102,7 @@ export default {
       e.target.value = ''
     }
 
-    return { loadDefault, onFileChange, downloadJson, downloadExample, hasData }
+    return { openNewTemplate, openWizard, onFileChange, downloadJson, downloadExample, hasData }
   }
 }
 </script>

@@ -4,6 +4,8 @@ export const useUiStore = defineStore('ui', {
   state: () => ({
     toast: null,
     _toastId: 0,
+    newTemplateModalOpen: false,
+    newTemplateMode: 'choice',
     electionNarrativeModalOpen: false,
     electionBroadcastModalOpen: false,
     pollBreakdownModalOpen: false,
@@ -17,6 +19,19 @@ export const useUiStore = defineStore('ui', {
     showToast(message, type = 'info') {
       this._toastId += 1
       this.toast = { message, type, id: this._toastId }
+    },
+    openNewTemplateModal() {
+      this.newTemplateMode = 'choice'
+      this.newTemplateModalOpen = true
+    },
+    openWizardModal() {
+      // Open straight into the wizard walkthrough over the current template,
+      // without offering the scratch/wizard choice or resetting the data.
+      this.newTemplateMode = 'wizard'
+      this.newTemplateModalOpen = true
+    },
+    closeNewTemplateModal() {
+      this.newTemplateModalOpen = false
     },
     openElectionNarrativeModal() {
       this.electionNarrativeModalOpen = true

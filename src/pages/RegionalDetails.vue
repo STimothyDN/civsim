@@ -6,7 +6,7 @@
         <h2>No Regional Data</h2>
         <p>Load or create a template with province groups.</p>
       </div>
-      <button type="button" class="btn-primary" @click="store.loadDefault">
+      <button type="button" class="btn-primary" @click="openNewTemplate">
         <FilePlus2 :size="16" />
         New Template
       </button>
@@ -228,6 +228,7 @@ import CountyTerrainHeatmap from '../components/insights/CountyTerrainHeatmap.vu
 import EntityConstellationCard from '../components/insights/EntityConstellationCard.vue'
 import StatusBadgeRow from '../components/insights/StatusBadgeRow.vue'
 import { useFormStore } from '../stores/formStore'
+import { useUiStore } from '../stores/uiStore'
 import {
   PROVINCE_YIELD_KEYS,
   REGIONAL_VISUALIZATION_MODES,
@@ -401,6 +402,7 @@ export default {
       civicRiskScore, countyReadinessScore,
       formatCompactNumber, formatNumber,
       store,
+      openNewTemplate: () => useUiStore().openNewTemplateModal(),
     }
   },
 }
