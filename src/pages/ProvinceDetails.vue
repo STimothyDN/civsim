@@ -6,7 +6,7 @@
         <h2>No Province Data</h2>
         <p>Load or create a template to compare provinces.</p>
       </div>
-      <button type="button" class="btn-primary" @click="store.loadDefault">
+      <button type="button" class="btn-primary" @click="openNewTemplate">
         <FilePlus2 :size="16" />
         New Template
       </button>
@@ -242,6 +242,7 @@ import CountyTerrainHeatmap from '../components/insights/CountyTerrainHeatmap.vu
 import EntityConstellationCard from '../components/insights/EntityConstellationCard.vue'
 import StatusBadgeRow from '../components/insights/StatusBadgeRow.vue'
 import { useFormStore } from '../stores/formStore'
+import { useUiStore } from '../stores/uiStore'
 import { useCivilizationStore } from '../stores/civilizationStore'
 import {
   PROVINCE_YIELD_KEYS,
@@ -410,6 +411,7 @@ export default {
       civicHealthScore, civicRiskScore, countyReadinessScore,
       formatCompactNumber, formatNumber,
       store, civStore,
+      openNewTemplate: () => useUiStore().openNewTemplateModal(),
     }
   },
 }

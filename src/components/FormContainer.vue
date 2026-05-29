@@ -6,7 +6,7 @@
         <h2>No Template Loaded</h2>
         <p>Blank workspace</p>
       </div>
-      <button type="button" class="btn-primary" @click="store.loadDefault">
+      <button type="button" class="btn-primary" @click="openNewTemplate">
         <FilePlus2 :size="16" />
         New Template
       </button>
@@ -68,6 +68,7 @@
 import { defineAsyncComponent, markRaw, ref, watch } from 'vue'
 import { BadgeCheck, Braces, ChartNoAxesColumnIncreasing, FilePlus2, Flag, Globe2, Layers, MapPinned, Network, SlidersHorizontal } from 'lucide-vue-next'
 import { useFormStore } from '../stores/formStore'
+import { useUiStore } from '../stores/uiStore'
 
 const AdvancedSetup = defineAsyncComponent(() => import('./setup/AdvancedSetup.vue'))
 const ArraySection = defineAsyncComponent(() => import('./ArraySection.vue'))
@@ -134,9 +135,14 @@ export default {
       if (payload?.tab) activeSection.value = normalizeSection(payload.tab)
     }
 
+    function openNewTemplate() {
+      useUiStore().openNewTemplateModal()
+    }
+
     return {
       activeSection,
       handleNavigate,
+      openNewTemplate,
       sections,
       store,
     }

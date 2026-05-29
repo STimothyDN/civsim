@@ -7,6 +7,7 @@
         <component :is="Component" />
       </Transition>
     </router-view>
+    <NewTemplateModal />
     <ElectionNarrativeModal />
     <ElectionBroadcastModal />
     <PollBreakdownModal />
@@ -17,6 +18,7 @@
 <script>
 import AppHeader from './components/AppHeader.vue'
 import AppNav from './components/AppNav.vue'
+import NewTemplateModal from './components/setup/NewTemplateModal.vue'
 import ElectionNarrativeModal from './components/elections/ElectionNarrativeModal.vue'
 import ElectionBroadcastModal from './components/elections/ElectionBroadcastModal.vue'
 import PollBreakdownModal from './components/elections/PollBreakdownModal.vue'
@@ -24,6 +26,6 @@ import ToastNotification from './components/ToastNotification.vue'
 
 export default {
   name: 'App',
-  components: { AppHeader, AppNav, ElectionNarrativeModal, ElectionBroadcastModal, PollBreakdownModal, ToastNotification },
+  components: { AppHeader, AppNav, NewTemplateModal, ElectionNarrativeModal, ElectionBroadcastModal, PollBreakdownModal, ToastNotification },
 }
 </script>

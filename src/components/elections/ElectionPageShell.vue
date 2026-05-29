@@ -4,7 +4,7 @@
       <component :is="icon" :size="52" class="placeholder-icon" />
       <h3>No Election Data</h3>
       <p>Load or create a template to view {{ eyebrow.toLowerCase() }} results.</p>
-      <button type="button" class="btn-primary" style="margin-top: 16px" @click="store.loadDefault">
+      <button type="button" class="btn-primary" style="margin-top: 16px" @click="openNewTemplate">
         <FilePlus2 :size="16" />
         New Template
       </button>
@@ -56,7 +56,9 @@ export default {
       { immediate: true },
     )
 
-    return { hasData, store }
+    const openNewTemplate = () => uiStore.openNewTemplateModal()
+
+    return { hasData, store, openNewTemplate }
   },
 }
 </script>
