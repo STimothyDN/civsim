@@ -143,6 +143,7 @@ export function countyAllowsAmbientPopulation(county) {
 function improvementMultiplier(county) {
   const name = String(county?.improvement?.name || '').trim()
   if (IMPROVEMENT_POP_MULTIPLIERS[name] !== undefined) return IMPROVEMENT_POP_MULTIPLIERS[name]
+  if (hasImprovement(county)) return 1
   if (terrainName(county).includes('Mountain')) return 0.45
   return terrainBaseMultiplier(county)
 }
@@ -170,7 +171,7 @@ function rawCountyPopulationWeight(county) {
   const appealValue = Math.max(APPEAL_MIN, Math.min(APPEAL_MAX, num(county?.appeal)))
   const appealMultiplier = 1 + APPEAL_WEIGHT * appealValue
 
-  const waterMultiplier = isWaterCounty(county) ? WATER_POPULATION_MULTIPLIER : 1
+  const waterMultiplier = isWaterCounty(county) && !hasImprovement(county) ? WATER_POPULATION_MULTIPLIER : 1
 
   const rawWeight =
     distanceMultiplier *

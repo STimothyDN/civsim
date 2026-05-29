@@ -1,7 +1,34 @@
 import { describe, expect, it } from 'vitest'
-import { buildExportTemplate, normalizeTemplateInput } from './templateCodec'
+import { buildExportTemplate, buildFullExportEnvelope, normalizeTemplateInput, extractElectionState } from './templateCodec'
 
 describe('templateCodec', () => {
+  it('round-trips full state: captures computed snapshot on export, strips it on import', () => {
+    const source = normalizeTemplateInput({
+      country: { basic_info: { name: 'Test Realm', leader: 'L' } },
+      province_groups: ['Capital Region'],
+      provinces: [{ name: 'Capital', group: 'Capital Region', population: 10, counties: [] }],
+    })
+
+    const electionSnapshot = { seed: 'abc', trends: [], electionNumber: 2 }
+    const computed = { results: { national: { population: 123 } }, baselineResults: { national: {} } }
+    const envelope = buildFullExportEnvelope(source, [], new Map(), electionSnapshot, computed)
+
+    // Export carries the full computed snapshot + scenario.
+    expect(envelope.schema_version).toBeGreaterThanOrEqual(2)
+    expect(envelope.computed.election_results.national.population).toBe(123)
+    expect(extractElectionState(envelope)).toEqual(electionSnapshot)
+    expect(envelope.config.parties.length).toBeGreaterThan(0)
+
+    // Re-importing the envelope restores source-of-truth and drops derived/meta.
+    const reimported = normalizeTemplateInput(envelope)
+    expect(reimported).not.toHaveProperty('computed')
+    expect(reimported).not.toHaveProperty('schema_version')
+    expect(reimported).not.toHaveProperty('election_state')
+    expect(reimported.country.basic_info.name).toBe('Test Realm')
+    expect(reimported.config.parties.length).toBe(source.config.parties.length)
+  })
+
+
   it('normalizes enriched imports without coercing scalar strings', () => {
     const normalized = normalizeTemplateInput({
       country: {
@@ -39,10 +66,11 @@ describe('templateCodec', () => {
     expect(normalized.provinces[0].counties[0].distance_from_center).toBeNull()
     expect(normalized.provinces[0].counties[0].improvement).toEqual({ name: 'Farm', buildings: {}, great_works: {} })
     expect(normalized.provinces[0].counties[0].features.Wheat).toBe(true)
-    expect(normalized.election_parties.yellow.name).toBe('Divinus Sol')
-    expect(normalized.election_parties.yellow.abbreviation).toBe('DS')
-    expect(normalized.election_parties.yellow.colorName).toBe('Yellow')
-    expect(normalized.election_parties.yellow.color).toBe('#d4a843')
+    const yellow = normalized.config.parties.find((p) => p.id === 'yellow')
+    expect(yellow.name).toBe('Divinus Sol')
+    expect(yellow.abbreviation).toBe('DS')
+    expect(yellow.colorName).toBe('Yellow')
+    expect(yellow.color).toBe('#d4a843')
   })
 
   it('normalizes party names, abbreviations, and palette colors on import', () => {
@@ -55,13 +83,13 @@ describe('templateCodec', () => {
       provinces: [],
     })
 
-    expect(normalized.election_parties.yellow).toEqual({
+    expect(normalized.config.parties.find((p) => p.id === 'yellow')).toMatchObject({
       name: 'Imperial Agrarians',
       abbreviation: 'IA',
       colorName: 'Teal',
       color: '#2dd4bf',
     })
-    expect(normalized.election_parties.orange).toEqual({
+    expect(normalized.config.parties.find((p) => p.id === 'orange')).toMatchObject({
       name: 'United Workers Congress',
       abbreviation: 'UWC',
       colorName: 'Orange',
@@ -144,13 +172,13 @@ describe('templateCodec', () => {
       { name: 'Capital Region', regional_population: 1000, assemblypeople: 12, prelates: 15 },
       { name: 'Frontier', regional_population: null, assemblypeople: null, prelates: null },
     ])
-    expect(output.election_parties.yellow).toEqual({
+    expect(output.config.parties.find((p) => p.id === 'yellow')).toMatchObject({
       name: 'Imperial Agrarians',
       abbreviation: 'IA',
       colorName: 'Teal',
       color: '#2dd4bf',
     })
-    expect(output.election_parties.orange).toEqual({
+    expect(output.config.parties.find((p) => p.id === 'orange')).toMatchObject({
       name: 'United Workers Congress',
       abbreviation: 'UWC',
       colorName: 'Orange',

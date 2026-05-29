@@ -103,17 +103,26 @@ export const useCivilizationStore = defineStore('civilization', () => {
 
   // ── Party Metadata ──
 
-  const partyMeta = computed(() =>
-    partyMetaFromConfig(formStore.currentData?.election_parties)
-  )
+  // ── Config block (single source of truth for tunables) ──
+  const config = computed(() => formStore.currentData?.config || {})
+  const chambers = computed(() => config.value.chambers || {})
+  const calculations = computed(() => config.value.calculations || {})
+  const electionParams = computed(() => config.value.elections || {})
+  const voterBlocs = computed(() => config.value.voterBlocs || [])
 
-  const partyNames = computed(() =>
-    partyNamesFromConfig(formStore.currentData?.election_parties)
-  )
+  const partyConfig = computed(() => formStore.currentData?.config?.parties)
 
-  const partyColors = computed(() =>
-    partyColorsFromConfig(formStore.currentData?.election_parties)
-  )
+  /** Ordered party list (array of party definitions) — the canonical source. */
+  const parties = computed(() => partyConfig.value || [])
+
+  /** Ordered party id list. */
+  const partyIds = computed(() => parties.value.map((party) => party.id))
+
+  const partyMeta = computed(() => partyMetaFromConfig(partyConfig.value))
+
+  const partyNames = computed(() => partyNamesFromConfig(partyConfig.value))
+
+  const partyColors = computed(() => partyColorsFromConfig(partyConfig.value))
 
   return {
     // Core data passthrough
@@ -137,7 +146,16 @@ export const useCivilizationStore = defineStore('civilization', () => {
     countyCount,
     countyDetailCount,
 
+    // Config
+    config,
+    chambers,
+    calculations,
+    electionParams,
+    voterBlocs,
+
     // Party
+    parties,
+    partyIds,
     partyMeta,
     partyNames,
     partyColors,

@@ -259,7 +259,8 @@ import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionFormatters } from '../composables/useElectionFormatters'
 import { useElectionTicker } from '../composables/useElectionTicker'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
-import { APPORTIONMENT, PARTIES, THRESHOLDS, formatShare, lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } from '../domain/elections'
+import { APPORTIONMENT, PARTIES, THRESHOLDS, formatShare } from '../domain/elections'
+import { useChamberLabels } from '../composables/useChamberLabels'
 import { SEAT_OFFSETS } from '../domain/elections/constants/seatOffsets'
 import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
 import { orderRegionsByReference, popularVoteCount, sumSeats } from '../domain/elections/viewHelpers'
@@ -281,6 +282,7 @@ export default {
     VoteDecompositionPanel,
   },
   setup() {
+    const { lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const { baselineResults, previousElectionResults, electionStore, hasData, partyMeta, results, store } = useElectionResults()
     const {
       controlCardStyle,

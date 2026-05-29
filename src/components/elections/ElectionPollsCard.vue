@@ -232,7 +232,8 @@ import { computed, watch } from 'vue'
 import { BrainCircuit, GitCompare, Info, Radio, RefreshCcw } from 'lucide-vue-next'
 import { usePolls } from '../../composables/usePolls'
 import { useElectionResults } from '../../composables/useElectionResults'
-import { PARTIES, formatShare, determineHouseControl, lowerHouseLeaderTitle, upperHouseLeaderTitle, winnerControlStyle } from '../../domain/elections'
+import { PARTIES, formatShare, determineHouseControl, winnerControlStyle } from '../../domain/elections'
+import { useChamberLabels } from '../../composables/useChamberLabels'
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
 import { formatNumber } from '../../domain/formatting'
 import { partyWinnerStyle, sumSeats, topParty } from '../../domain/elections/viewHelpers'
@@ -246,6 +247,7 @@ export default {
   name: 'ElectionPollsCard',
   components: { BrainCircuit, GitCompare, Info, PartyBadge, Radio, RefreshCcw },
   setup() {
+    const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const civStore = useCivilizationStore()
     const uiStore = useUiStore()
     const electionStore = useElectionStore()

@@ -1,6 +1,6 @@
 import { deepClone } from '../utils/object'
 import { defaultTemplate, normalizeIds, sortClosestProvinces } from '../utils/schema'
-import { normalizePartyConfig } from './elections/constants/parties'
+import { normalizeConfig } from './elections/config'
 
 export const CALCULATED_PROVINCE_KEYS = [
   'provincial_population',
@@ -31,16 +31,19 @@ function stripCalculatedProvinceFields(provinces) {
 export function normalizeTemplateInput(template) {
   const source = template || defaultTemplate
   const normalized = deepClone(source)
+  // election_state is restored separately; computed/meta are recomputed on load.
   delete normalized.election_state
+  delete normalized.computed
+  delete normalized.schema_version
+  delete normalized.exported_at
 
   normalized.country = normalized.country || deepClone(defaultTemplate.country)
   normalized.provinces = Array.isArray(normalized.provinces) ? normalized.provinces : []
   normalized.province_groups = normalizeNameArray(normalized.province_groups)
   normalized.global_religions = normalizeNameArray(normalized.global_religions)
-  normalized.election_parties = normalizePartyConfig(normalized.election_parties)
 
   stripCalculatedProvinceFields(normalized.provinces)
-  normalizeIds(normalized)
+  normalizeIds(normalized) // migrates legacy election_parties -> config and normalizes config
 
   return normalized
 }
@@ -49,7 +52,9 @@ export function buildExportTemplate(currentData, provinceCalcs, regionalTotals) 
   if (!currentData) return null
 
   const output = deepClone(currentData)
-  output.election_parties = normalizePartyConfig(output.election_parties)
+  output.config = normalizeConfig(output)
+  delete output.election_parties
+  const homeCountryName = String(currentData?.country?.basic_info?.name || '').trim()
   const calcs = Array.isArray(provinceCalcs) ? provinceCalcs : []
   const totals = regionalTotals instanceof Map ? regionalTotals : new Map()
 
@@ -62,8 +67,8 @@ export function buildExportTemplate(currentData, provinceCalcs, regionalTotals) 
       province.prelates = calc.prelates ?? null
       province.dominant_religion = calc.dominantReligion ?? 'None'
 
-      if (province.is_founded && !province.is_joined && !province.is_conquered) {
-        province.original_country = "Khmer Empire"
+      if (homeCountryName && province.is_founded && !province.is_joined && !province.is_conquered) {
+        province.original_country = homeCountryName
       }
     })
   }
@@ -83,10 +88,30 @@ export function buildExportTemplate(currentData, provinceCalcs, regionalTotals) 
   return output
 }
 
-export function buildFullExportEnvelope(currentData, provinceCalcs, regionalTotals, electionSnapshot) {
+export const EXPORT_SCHEMA_VERSION = 2
+
+/**
+ * Full state export: source-of-truth (country/provinces/config + per-province
+ * calcs + regional totals) PLUS the scenario snapshot and a `computed` block
+ * capturing everything the app derived for the current scenario (full election
+ * results incl. political features, vote shares, seats, controls, diagnostics).
+ *
+ * The `computed` block is for inspection/portability — it is ignored on import
+ * (derived data is recomputed deterministically from inputs + seeds).
+ */
+export function buildFullExportEnvelope(currentData, provinceCalcs, regionalTotals, electionSnapshot, computed = {}) {
   const civData = buildExportTemplate(currentData, provinceCalcs, regionalTotals)
   if (!civData) return null
-  return { ...civData, election_state: electionSnapshot || null }
+  return {
+    schema_version: EXPORT_SCHEMA_VERSION,
+    exported_at: new Date().toISOString(),
+    ...civData,
+    election_state: electionSnapshot || null,
+    computed: {
+      election_results: computed.results || null,
+      baseline_results: computed.baselineResults || null,
+    },
+  }
 }
 
 export function extractElectionState(template) {

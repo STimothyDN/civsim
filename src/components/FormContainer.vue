@@ -53,6 +53,10 @@
         <ReferenceDataSection />
       </section>
 
+      <section v-else-if="activeSection === 'advanced'" class="workspace-panel">
+        <AdvancedSetup />
+      </section>
+
       <section v-else-if="activeSection === 'json'" class="workspace-panel">
         <JSONPreview />
       </section>
@@ -62,9 +66,10 @@
 
 <script>
 import { defineAsyncComponent, markRaw, ref, watch } from 'vue'
-import { BadgeCheck, Braces, ChartNoAxesColumnIncreasing, FilePlus2, Flag, Globe2, Layers, MapPinned, Network } from 'lucide-vue-next'
+import { BadgeCheck, Braces, ChartNoAxesColumnIncreasing, FilePlus2, Flag, Globe2, Layers, MapPinned, Network, SlidersHorizontal } from 'lucide-vue-next'
 import { useFormStore } from '../stores/formStore'
 
+const AdvancedSetup = defineAsyncComponent(() => import('./setup/AdvancedSetup.vue'))
 const ArraySection = defineAsyncComponent(() => import('./ArraySection.vue'))
 const CountryOverview = defineAsyncComponent(() => import('../pages/CountryOverview.vue'))
 const FieldsetGroup = defineAsyncComponent(() => import('./FieldsetGroup.vue'))
@@ -76,6 +81,7 @@ const RegionalDetails = defineAsyncComponent(() => import('../pages/RegionalDeta
 export default {
   name: 'FormContainer',
   components: {
+    AdvancedSetup,
     ArraySection,
     BadgeCheck,
     CountryOverview,
@@ -103,6 +109,7 @@ export default {
       { id: 'country', label: 'Country Data', icon: markRaw(Flag) },
       { id: 'provinces', label: 'Provinces Data', icon: markRaw(MapPinned) },
       { id: 'reference', label: 'Reference Data', icon: markRaw(Layers) },
+      { id: 'advanced', label: 'Advanced Setup', icon: markRaw(SlidersHorizontal) },
       { id: 'json', label: 'JSON Preview', icon: markRaw(Braces) },
     ]
     const sectionIds = new Set(sections.map((section) => section.id))

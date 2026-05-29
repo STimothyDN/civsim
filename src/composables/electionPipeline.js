@@ -27,8 +27,8 @@ if (typeof window !== 'undefined') window.__electionPipelineStats = stats
 
 let singleton = null
 
-function makeRowForProvince(province, index) {
-  const provincialPopulation = calcProvincialPopulation(province?.population, index)
+function makeRowForProvince(province, index, calculations) {
+  const provincialPopulation = calcProvincialPopulation(province?.population, index, calculations)
   return {
     index,
     name: province?.name || `Province ${index + 1}`,
@@ -36,7 +36,7 @@ function makeRowForProvince(province, index) {
     population: province?.population,
     provincialPopulation,
     assemblypeople: calcAssemblypeople(province?.population),
-    prelates: calcPrelates(provincialPopulation),
+    prelates: calcPrelates(provincialPopulation, calculations),
   }
 }
 
@@ -70,7 +70,7 @@ function buildPipeline() {
           const d = data.value
           const province = d?.provinces?.[index]
           if (!province) return null
-          const row = makeRowForProvince(province, index)
+          const row = makeRowForProvince(province, index, d?.config?.calculations)
           stats.buildUnit++
           return buildProvinceFeatureUnit(d, row)
         })
@@ -100,7 +100,7 @@ function buildPipeline() {
         const ownUnit = ensureFeatureUnit(index).value
         if (!ownUnit) return null
 
-        const row = makeRowForProvince(province, index)
+        const row = makeRowForProvince(province, index, d?.config?.calculations)
         const units = new Map()
         const ownKey = provinceNameKey(row.name || ownUnit.province.name)
         if (ownKey) units.set(ownKey, ownUnit)
@@ -137,7 +137,12 @@ function buildPipeline() {
         return out
       })
       const regions = computed(() =>
-        addRegionControls(aggregateRegions(provinces.value), configRef.value.trends, configRef.value.partyNames)
+        addRegionControls(
+          aggregateRegions(provinces.value, configRef.value.partyList),
+          configRef.value.trends,
+          configRef.value.partyNames,
+          configRef.value.coalitionPartners
+        )
       )
       const national = computed(() => calculateNational(provinces.value, configRef.value))
       const diagnostics = computed(() => {

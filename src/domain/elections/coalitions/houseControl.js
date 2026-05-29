@@ -1,4 +1,4 @@
-import { PARTIES, PARTY_NAMES } from '../constants/parties'
+import { PARTY_NAMES } from '../constants/parties'
 import { num, sumObjectValues } from '../normalization/numbers'
 import { trendClimateScore } from '../trends/matchTrend'
 
@@ -17,15 +17,15 @@ export const NATURAL_PARTNERS = {
   purple: ['red', 'blue', 'yellow', 'white', 'orange'],
 }
 
-function dominantParty(seats = {}) {
-  return [...PARTIES].sort((a, b) => {
+function dominantParty(seats = {}, order = Object.keys(seats)) {
+  return [...order].sort((a, b) => {
     const seatDiff = num(seats[b]) - num(seats[a])
-    return seatDiff || PARTIES.indexOf(a) - PARTIES.indexOf(b)
+    return seatDiff || order.indexOf(a) - order.indexOf(b)
   })[0]
 }
 
-function coalitionPartnerScore(leaderParty, partnerParty, seats = {}, trends = [], secondLargestParty = null, priorControl = null) {
-  const naturalOrder = NATURAL_PARTNERS[leaderParty] || []
+function coalitionPartnerScore(leaderParty, partnerParty, seats = {}, trends = [], secondLargestParty = null, priorControl = null, coalitionPartners = NATURAL_PARTNERS) {
+  const naturalOrder = (coalitionPartners && coalitionPartners[leaderParty]) || NATURAL_PARTNERS[leaderParty] || []
   const naturalRank = naturalOrder.indexOf(partnerParty)
   const naturalScore = naturalRank >= 0 ? (naturalOrder.length - naturalRank) / naturalOrder.length : 0
   const totalSeats = Math.max(1, sumObjectValues(seats))
@@ -59,18 +59,19 @@ function coalitionPartnerScore(leaderParty, partnerParty, seats = {}, trends = [
   return score
 }
 
-export function determineHouseControl(seats = {}, trends = [], partyNames = PARTY_NAMES, priorControl = null) {
+export function determineHouseControl(seats = {}, trends = [], partyNames = PARTY_NAMES, priorControl = null, coalitionPartners = NATURAL_PARTNERS) {
+  const order = Object.keys(seats)
   const totalSeats = sumObjectValues(seats)
   const majority = Math.floor(totalSeats / 2) + 1
-  const leaderParty = dominantParty(seats)
+  const leaderParty = dominantParty(seats, order)
   const leaderSeats = num(seats[leaderParty])
 
   // Calculate second largest party (excluding leader party)
-  const secondLargestParty = [...PARTIES]
+  const secondLargestParty = [...order]
     .filter((party) => party !== leaderParty && num(seats[party]) > 0)
     .sort((a, b) => {
       const seatDiff = num(seats[b]) - num(seats[a])
-      return seatDiff || PARTIES.indexOf(a) - PARTIES.indexOf(b)
+      return seatDiff || order.indexOf(a) - order.indexOf(b)
     })[0]
 
   if (!totalSeats) {
@@ -99,11 +100,11 @@ export function determineHouseControl(seats = {}, trends = [], partyNames = PART
     }
   }
 
-  const partners = PARTIES
+  const partners = [...order]
     .filter((party) => party !== leaderParty && num(seats[party]) > 0)
     .sort((a, b) => {
-      const scoreDiff = coalitionPartnerScore(leaderParty, b, seats, trends, secondLargestParty, priorControl) - coalitionPartnerScore(leaderParty, a, seats, trends, secondLargestParty, priorControl)
-      return scoreDiff || num(seats[b]) - num(seats[a]) || PARTIES.indexOf(a) - PARTIES.indexOf(b)
+      const scoreDiff = coalitionPartnerScore(leaderParty, b, seats, trends, secondLargestParty, priorControl, coalitionPartners) - coalitionPartnerScore(leaderParty, a, seats, trends, secondLargestParty, priorControl, coalitionPartners)
+      return scoreDiff || num(seats[b]) - num(seats[a]) || order.indexOf(a) - order.indexOf(b)
     })
 
   const supportParties = []

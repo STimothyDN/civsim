@@ -128,7 +128,7 @@ export const useFormStore = defineStore('form', {
       // Access _recalcVersion to create a reactive dependency so
       // that bumping it forces Vue to recompute this getter.
       void state._recalcVersion
-      return computeAllProvinceCalcs(state.currentData?.provinces)
+      return computeAllProvinceCalcs(state.currentData?.provinces, state.currentData?.config?.calculations)
     },
 
     uniqueTerrains(state) {
@@ -162,7 +162,7 @@ export const useFormStore = defineStore('form', {
     /** @deprecated Use civilizationStore.partyMeta instead. Kept for backward compatibility. */
     partyMeta(state) {
       void state._recalcVersion
-      return partyMetaFromConfig(state.currentData?.election_parties)
+      return partyMetaFromConfig(state.currentData?.config?.parties)
     },
   },
   actions: {
@@ -327,9 +327,9 @@ export const useFormStore = defineStore('form', {
       URL.revokeObjectURL(url)
       this.showToast('JSON file downloaded', 'success')
     },
-    downloadJsonWithElection(electionSnapshot = null) {
+    downloadJsonWithElection(electionSnapshot = null, computedSnapshot = {}) {
       const regionalTotals = computeRegionalTotals(this.currentData?.provinces, this.provinceCalcs)
-      const output = buildFullExportEnvelope(this.currentData, this.provinceCalcs, regionalTotals, electionSnapshot)
+      const output = buildFullExportEnvelope(this.currentData, this.provinceCalcs, regionalTotals, electionSnapshot, computedSnapshot)
       if (!output) return
       const rawName = this.currentData?.country?.basic_info?.name || ''
       const safeName = rawName
@@ -394,31 +394,126 @@ export const useFormStore = defineStore('form', {
       renameGlobalReligion(this.currentData, index, newName)
       this.scheduleAutosave()
     },
-    setPartyName(party, name) {
-      if (!this.currentData?.election_parties?.[party]) return
-      this.currentData.election_parties[party].name = String(name || '').trim()
+    _findParty(partyId) {
+      const parties = this.currentData?.config?.parties
+      if (!Array.isArray(parties)) return null
+      return parties.find((party) => party.id === partyId) || null
+    },
+    setPartyName(partyId, name) {
+      const party = this._findParty(partyId)
+      if (!party) return
+      party.name = String(name || '').trim()
       this._recalcVersion++
       this.scheduleAutosave()
     },
-    setPartyAbbreviation(party, abbreviation) {
-      if (!this.currentData?.election_parties?.[party]) return
-      this.currentData.election_parties[party].abbreviation = String(abbreviation || '').trim().toUpperCase().replace(/\s+/g, '').slice(0, 8)
+    setPartyAbbreviation(partyId, abbreviation) {
+      const party = this._findParty(partyId)
+      if (!party) return
+      party.abbreviation = String(abbreviation || '').trim().toUpperCase().replace(/\s+/g, '').slice(0, 8)
       this._recalcVersion++
       this.scheduleAutosave()
     },
-    setPartyColor(party, color) {
-      if (!this.currentData?.election_parties?.[party]) return
-      const option = partyPaletteOption(color, this.currentData.election_parties[party].colorName)
-      this.currentData.election_parties[party].colorName = option.name
-      this.currentData.election_parties[party].color = option.color
+    setPartyColor(partyId, color) {
+      const party = this._findParty(partyId)
+      if (!party) return
+      const option = partyPaletteOption(color, party.colorName)
+      party.colorName = option.name
+      party.color = option.color
       this._recalcVersion++
       this.scheduleAutosave()
     },
-    setPartyColorName(party, colorName) {
-      if (!this.currentData?.election_parties?.[party]) return
-      const option = partyPaletteOption(colorName, this.currentData.election_parties[party].colorName)
-      this.currentData.election_parties[party].colorName = option.name
-      this.currentData.election_parties[party].color = option.color
+    setPartyColorName(partyId, colorName) {
+      const party = this._findParty(partyId)
+      if (!party) return
+      const option = partyPaletteOption(colorName, party.colorName)
+      party.colorName = option.name
+      party.color = option.color
+      this._recalcVersion++
+      this.scheduleAutosave()
+    },
+    addParty(name = '') {
+      if (!this.currentData) return null
+      if (!Array.isArray(this.currentData.config?.parties)) {
+        if (!this.currentData.config) this.currentData.config = {}
+        this.currentData.config.parties = []
+      }
+      const parties = this.currentData.config.parties
+      const usedIds = new Set(parties.map((p) => p.id))
+      let base = String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `party-${parties.length + 1}`
+      let id = base
+      let n = 1
+      while (usedIds.has(id)) id = `${base}-${++n}`
+      const palette = partyPaletteOption(undefined, 'Slate')
+      parties.push({
+        id,
+        name: String(name || '').trim() || `Party ${parties.length + 1}`,
+        abbreviation: id.slice(0, 3).toUpperCase(),
+        colorName: palette.name,
+        color: palette.color,
+        ideology: '',
+        coalitionPartners: [],
+        bias: { county: 0, province: 0, national: 0 },
+        affinities: { county: {}, province: {}, national: {} },
+      })
+      this._recalcVersion++
+      this.scheduleAutosave()
+      return id
+    },
+    removeParty(partyId) {
+      const parties = this.currentData?.config?.parties
+      if (!Array.isArray(parties)) return
+      const index = parties.findIndex((p) => p.id === partyId)
+      if (index === -1) return
+      parties.splice(index, 1)
+      // Drop voter blocs and coalition references targeting the removed party.
+      const blocs = this.currentData.config.voterBlocs
+      if (Array.isArray(blocs)) {
+        this.currentData.config.voterBlocs = blocs.filter((b) => b.party !== partyId)
+      }
+      parties.forEach((p) => {
+        if (Array.isArray(p.coalitionPartners)) {
+          p.coalitionPartners = p.coalitionPartners.filter((id) => id !== partyId)
+        }
+      })
+      this._recalcVersion++
+      this.scheduleAutosave()
+    },
+    addVoterBloc() {
+      if (!this.currentData) return
+      if (!this.currentData.config) this.currentData.config = {}
+      if (!Array.isArray(this.currentData.config.voterBlocs)) this.currentData.config.voterBlocs = []
+      const blocs = this.currentData.config.voterBlocs
+      const firstParty = this.currentData.config.parties?.[0]?.id || ''
+      let id = `bloc-${blocs.length + 1}`
+      const used = new Set(blocs.map((b) => b.id))
+      let n = blocs.length + 1
+      while (used.has(id)) id = `bloc-${++n}`
+      blocs.push({
+        id,
+        label: 'New voter bloc',
+        party: firstParty,
+        source: { selector: { originalCountryIncludes: [] } },
+        strength: { county: 0, province: 0, national: 0 },
+      })
+      this._recalcVersion++
+      this.scheduleAutosave()
+    },
+    removeVoterBloc(index) {
+      const blocs = this.currentData?.config?.voterBlocs
+      if (!Array.isArray(blocs)) return
+      blocs.splice(index, 1)
+      this._recalcVersion++
+      this.scheduleAutosave()
+    },
+    reorderParty(partyId, direction) {
+      const parties = this.currentData?.config?.parties
+      if (!Array.isArray(parties)) return
+      const index = parties.findIndex((p) => p.id === partyId)
+      if (index === -1) return
+      const target = direction === 'up' ? index - 1 : index + 1
+      if (target < 0 || target >= parties.length) return
+      const [moved] = parties.splice(index, 1)
+      parties.splice(target, 0, moved)
       this._recalcVersion++
       this.scheduleAutosave()
     },

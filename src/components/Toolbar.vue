@@ -30,6 +30,7 @@ import { computed } from 'vue'
 import { Download, FilePlus2, Upload } from 'lucide-vue-next'
 import { useFormStore } from '../stores/formStore'
 import { useElectionStore } from '../stores/electionStore'
+import { useElectionPipeline } from '../composables/electionPipeline'
 import { extractElectionState } from '../domain/templateCodec'
 import exampleData from '../../jayavarman.json'
 
@@ -48,7 +49,19 @@ export default {
 
     function downloadJson() {
       const electionStore = useElectionStore()
-      store.downloadJsonWithElection(electionStore.snapshotElectionState())
+      // Capture the full computed state for the current scenario so the export
+      // is a complete snapshot of what the app is rendering.
+      let computedSnapshot = {}
+      try {
+        const pipeline = useElectionPipeline()
+        computedSnapshot = {
+          results: pipeline.results?.value || null,
+          baselineResults: pipeline.baselineResults?.value || null,
+        }
+      } catch (err) {
+        computedSnapshot = {}
+      }
+      store.downloadJsonWithElection(electionStore.snapshotElectionState(), computedSnapshot)
     }
 
     function downloadExample() {

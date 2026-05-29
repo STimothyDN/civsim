@@ -1,5 +1,7 @@
-import { THRESHOLDS, BASELINE_ELECTION_CONFIG } from './constants/apportionmentRules'
-import { PARTIES, partyMetaFromConfig, partyNamesFromConfig } from './constants/parties'
+import { THRESHOLDS, APPORTIONMENT, DEFAULT_VOLATILITY, DEFAULT_VOTE_BLEND, BASELINE_ELECTION_CONFIG } from './constants/apportionmentRules'
+import { PARTIES, normalizePartyConfig, partyMetaFromConfig, partyNamesFromConfig } from './constants/parties'
+import { DEFAULT_VOTER_BLOCS } from './constants/defaultVoterBlocs'
+import { aggregateNationalBlocMembership } from './features/voterBlocs'
 import { apportionDHondt, apportionModifiedSainteLague, apportionSainteLague, createEmptySeats } from './apportionment/highestAverages'
 import { allocateCountyPopulations } from './population/allocateCountyPopulations'
 import { calculateCountyFeatures } from './features/countyFeatures'
@@ -16,36 +18,52 @@ import { clamp, num, roundTo, sumObjectValues } from './normalization/numbers'
 import { determineHouseControl } from './coalitions/houseControl'
 import { applyNeighborInfluence } from './scoring/applyNeighborInfluence'
 
-function mergeConfig(electionConfig = {}) {
+function mergeConfig(electionConfig = {}, rules = {}) {
+  const volatilityBase = rules.volatility || DEFAULT_VOLATILITY
+  const voteBlendBase = rules.voteBlend || DEFAULT_VOTE_BLEND
   return {
     ...BASELINE_ELECTION_CONFIG,
+    apportionment: { ...APPORTIONMENT, ...(rules.apportionment || {}) },
+    thresholds: { ...THRESHOLDS, ...(rules.thresholds || {}) },
     ...electionConfig,
     volatility: {
-      ...BASELINE_ELECTION_CONFIG.volatility,
+      ...volatilityBase,
       ...(electionConfig.volatility || {}),
     },
     voteBlend: {
-      ...BASELINE_ELECTION_CONFIG.voteBlend,
+      ...voteBlendBase,
       ...(electionConfig.voteBlend || {}),
     },
     trends: Array.isArray(electionConfig.trends) ? electionConfig.trends : [],
   }
 }
 
-function normalizeVoteShares(shares = {}) {
-  const totals = Object.fromEntries(PARTIES.map((party) => [party, Math.max(0, num(shares?.[party]))]))
-  const total = sumObjectValues(totals)
-  if (total <= 0) return scoresToVoteShares(totals)
-  return Object.fromEntries(PARTIES.map((party) => [party, totals[party] / total]))
+// Select the highest-averages method by config name.
+function apportionByMethod(method, voteShares, seatCount, options = {}) {
+  switch (method) {
+    case 'sainteLague': return apportionSainteLague(voteShares, seatCount, options)
+    case 'modifiedSainteLague': return apportionModifiedSainteLague(voteShares, seatCount, options)
+    case 'dhondt':
+    default: return apportionDHondt(voteShares, seatCount, options)
+  }
 }
 
-function blendVoteShares(localShares, climateShares, localWeight) {
+function normalizeVoteShares(shares = {}, parties) {
+  const list = parties || Object.keys(shares || {})
+  const totals = Object.fromEntries(list.map((party) => [party, Math.max(0, num(shares?.[party]))]))
+  const total = sumObjectValues(totals)
+  if (total <= 0) return scoresToVoteShares(totals, list)
+  return Object.fromEntries(list.map((party) => [party, totals[party] / total]))
+}
+
+function blendVoteShares(localShares, climateShares, localWeight, parties) {
+  const list = parties || Object.keys({ ...localShares, ...climateShares })
   const local = clamp(num(localWeight, 0.5), 0, 1)
   const climate = 1 - local
-  return normalizeVoteShares(Object.fromEntries(PARTIES.map((party) => [
+  return normalizeVoteShares(Object.fromEntries(list.map((party) => [
     party,
     local * num(localShares?.[party]) + climate * num(climateShares?.[party]),
-  ])))
+  ])), list)
 }
 
 function rawProvinceFor(data, row) {
@@ -154,7 +172,7 @@ function countyDataQuality(province = {}, row = {}) {
 }
 
 function calculateCountyVote(county, province, config) {
-  const rawScores = calculateCountyPartyScores(county, province)
+  const rawScores = calculateCountyPartyScores(county, province, { parties: config.partyDefs, voterBlocs: config.voterBlocs })
   const trendScores = applyTrends(rawScores, county, 'county', config.trends)
   const adjustedScores = applyJitter(trendScores, {
     national: 'national',
@@ -173,7 +191,8 @@ function calculateCountyVote(county, province, config) {
 }
 
 function calculateProvinceAssembly(province, counties, config) {
-  const rawScores = applyNeighborInfluence(calculateProvincePartyScores(province), province)
+  const scoringOptions = { parties: config.partyDefs, voterBlocs: config.voterBlocs }
+  const rawScores = applyNeighborInfluence(calculateProvincePartyScores(province, scoringOptions), province, scoringOptions)
   const trendScores = applyTrends(rawScores, province, 'province', config.trends)
   const adjustedScores = applyJitter(trendScores, {
     national: 'national',
@@ -188,8 +207,8 @@ function calculateProvinceAssembly(province, counties, config) {
   )
   const localWeight = num(config.voteBlend?.provincialAssemblyLocalWeight, 0.65)
   const voteShares = blendVoteShares(localVoteShares, climateVoteShares, localWeight)
-  const seats = apportionDHondt(voteShares, province.assemblypeople, {
-    threshold: THRESHOLDS.provincialAssembly,
+  const seats = apportionByMethod(config.apportionment?.provincialAssembly, voteShares, province.assemblypeople, {
+    threshold: config.thresholds?.provincialAssembly ?? THRESHOLDS.provincialAssembly,
     rawScores: adjustedScores,
   })
 
@@ -202,7 +221,7 @@ function calculateProvinceAssembly(province, counties, config) {
       climate_weight: 1 - clamp(localWeight, 0, 1),
     },
     seats,
-    control: determineHouseControl(seats, config.trends, config.partyNames),
+    control: determineHouseControl(seats, config.trends, config.partyNames, null, config.coalitionPartners),
     raw_scores: rawScores,
     adjusted_scores: adjustedScores,
   }
@@ -214,19 +233,19 @@ function calculateProvincePrelates(province, counties, config, priorControl = nu
     (county) => county.county_population,
     (county) => county.vote_shares
   )
-  const seats = apportionModifiedSainteLague(voteShares, province.prelates, {
-    threshold: THRESHOLDS.provincialPrelates,
+  const seats = apportionByMethod(config.apportionment?.provincialPrelates, voteShares, province.prelates, {
+    threshold: config.thresholds?.provincialPrelates ?? THRESHOLDS.provincialPrelates,
   })
 
   return {
     vote_shares: voteShares,
     seats,
-    control: determineHouseControl(seats, config.trends, config.partyNames, priorControl),
+    control: determineHouseControl(seats, config.trends, config.partyNames, priorControl, config.coalitionPartners),
   }
 }
 
 function calculateProvincePrelatesCouncil(counties, config, priorControl = null) {
-  const seats = createEmptySeats()
+  const seats = createEmptySeats(config.partyList)
   counties.forEach((county) => {
     if (num(county.county_population) <= 0) return
     let winner = null
@@ -252,7 +271,7 @@ function calculateProvincePrelatesCouncil(counties, config, priorControl = null)
   return {
     vote_shares: voteShares,
     seats,
-    control: determineHouseControl(seats, config.trends, config.partyNames, priorControl),
+    control: determineHouseControl(seats, config.trends, config.partyNames, priorControl, config.coalitionPartners),
   }
 }
 
@@ -260,8 +279,9 @@ function buildProvinceFeatureUnit(data, row) {
   const nationalCapitalContinent = (data?.provinces || []).find(p => p.is_national_capital)?.continent ?? null
   const country = { ...(data?.country || {}), national_capital_continent: nationalCapitalContinent }
   const provinceInput = createProvinceInput(data, row)
-  const empireReligionTotals = buildEmpireReligionTotals(data)
-  const featureOptions = { provinceIndex: provinceInput.provinceIndex, empireReligionTotals }
+  const calculations = data?.config?.calculations
+  const empireReligionTotals = buildEmpireReligionTotals(data, calculations)
+  const featureOptions = { provinceIndex: provinceInput.provinceIndex, empireReligionTotals, calculations }
   const baseFeatures = calculateProvinceBaseFeatures(provinceInput, country, featureOptions)
   const allocatedCounties = allocateCountyPopulations(provinceInput, provinceInput.provincial_population)
   const preliminaryCountyUnits = allocatedCounties.map((county, index) => {
@@ -371,7 +391,7 @@ function buildProvinceResult(data, row, config, featureUnitsByName = null) {
     ? counties.filter((county) => num(county.county_population) > 0).length
     : province.prelates
   const national_prelate_delegation = apportionDHondt(assembly.vote_shares, province.prelates, {
-    threshold: THRESHOLDS.nationalPrelates,
+    threshold: config.thresholds?.nationalPrelates ?? THRESHOLDS.nationalPrelates,
     rawScores: assembly.adjusted_scores,
   })
 
@@ -422,7 +442,7 @@ function buildProvinceResult(data, row, config, featureUnitsByName = null) {
   }
 }
 
-function aggregateRegions(provinces) {
+function aggregateRegions(provinces, parties = PARTIES) {
   const regions = {}
 
   provinces.forEach((province) => {
@@ -430,8 +450,8 @@ function aggregateRegions(provinces) {
     if (!regions[group]) {
       regions[group] = {
         name: group,
-        assembly: { seats: createEmptySeats(), vote_shares: emptyPartyMap() },
-        prelates: { seats: createEmptySeats(), vote_shares: emptyPartyMap() },
+        assembly: { seats: createEmptySeats(parties), vote_shares: emptyPartyMap(0, parties) },
+        prelates: { seats: createEmptySeats(parties), vote_shares: emptyPartyMap(0, parties) },
         province_count: 0,
         population: 0,
         assemblypeople: 0,
@@ -446,7 +466,7 @@ function aggregateRegions(provinces) {
     region.assemblypeople += province.assemblypeople
     region.prelate_count += province.prelates.seat_count
     region.provinces.push(province.name)
-    PARTIES.forEach((party) => {
+    parties.forEach((party) => {
       region.assembly.seats[party] += num(province.assembly.seats[party])
       region.prelates.seats[party] += num(province.prelates.seats[party])
       region.assembly.vote_shares[party] += num(province.assembly.vote_shares[party]) * province.provincial_population
@@ -455,7 +475,7 @@ function aggregateRegions(provinces) {
   })
 
   Object.values(regions).forEach((region) => {
-    PARTIES.forEach((party) => {
+    parties.forEach((party) => {
       region.assembly.vote_shares[party] = region.population ? region.assembly.vote_shares[party] / region.population : 0
       region.prelates.vote_shares[party] = region.population ? region.prelates.vote_shares[party] / region.population : 0
     })
@@ -464,10 +484,10 @@ function aggregateRegions(provinces) {
   return regions
 }
 
-function addRegionControls(regions, trends, partyNames) {
+function addRegionControls(regions, trends, partyNames, coalitionPartners) {
   Object.values(regions).forEach((region) => {
-    region.assembly.control = determineHouseControl(region.assembly.seats, trends, partyNames)
-    region.prelates.control = determineHouseControl(region.prelates.seats, trends, partyNames, region.assembly.control)
+    region.assembly.control = determineHouseControl(region.assembly.seats, trends, partyNames, null, coalitionPartners)
+    region.prelates.control = determineHouseControl(region.prelates.seats, trends, partyNames, region.assembly.control, coalitionPartners)
     region.dominant_party = region.assembly.control.leaderParty
   })
   return regions
@@ -476,7 +496,12 @@ function addRegionControls(regions, trends, partyNames) {
 function calculateNational(provinces, config) {
   const features = calculateNationalFeatures(provinces)
   const unit = { id: 'national', name: 'National', political_features: features, features }
-  const rawScores = calculateNationalPartyScores(features)
+  const blocMembership = aggregateNationalBlocMembership(provinces, config.voterBlocs)
+  const rawScores = calculateNationalPartyScores(features, {
+    parties: config.partyDefs,
+    voterBlocs: config.voterBlocs,
+    blocMembership,
+  })
   const trendScores = applyTrends(rawScores, unit, 'national', config.trends)
   const adjustedScores = applyJitter(trendScores, { national: 'national' }, config)
   const climateVoteShares = scoresToVoteShares(adjustedScores)
@@ -489,11 +514,17 @@ function calculateNational(provinces, config) {
   const voteShares = blendVoteShares(localVoteShares, climateVoteShares, localWeight)
   const assemblySeatCount = provinces.reduce((sum, province) => sum + num(province.assemblypeople), 0)
   const prelateSeatCount = provinces.reduce((sum, province) => sum + num(province.raw_prelate_count), 0)
-  const assemblySeats = apportionSainteLague(voteShares, assemblySeatCount, {
-    threshold: THRESHOLDS.nationalAssembly,
+  const assemblySeats = apportionByMethod(config.apportionment?.nationalAssembly, voteShares, assemblySeatCount, {
+    threshold: config.thresholds?.nationalAssembly ?? THRESHOLDS.nationalAssembly,
     rawScores: adjustedScores,
   })
   const prelateSeats = sumPartyMaps(provinces.map((province) => province.national_prelate_delegation))
+  // Population-weighted national council (prelate) popular vote.
+  const prelateVoteShares = weightedVoteShares(
+    provinces,
+    (province) => province.provincial_population,
+    (province) => province.prelates.vote_shares
+  )
 
   return {
     features,
@@ -507,14 +538,15 @@ function calculateNational(provinces, config) {
         climate_weight: 1 - clamp(localWeight, 0, 1),
       },
       seats: assemblySeats,
-      control: determineHouseControl(assemblySeats, config.trends, config.partyNames),
+      control: determineHouseControl(assemblySeats, config.trends, config.partyNames, null, config.coalitionPartners),
       raw_scores: rawScores,
       adjusted_scores: adjustedScores,
       seat_count: assemblySeatCount,
     },
     prelates: {
+      vote_shares: prelateVoteShares,
       seats: prelateSeats,
-      control: determineHouseControl(prelateSeats, config.trends, config.partyNames, determineHouseControl(assemblySeats, config.trends, config.partyNames)),
+      control: determineHouseControl(prelateSeats, config.trends, config.partyNames, determineHouseControl(assemblySeats, config.trends, config.partyNames, null, config.coalitionPartners), config.coalitionPartners),
       seat_count: prelateSeatCount,
     },
   }
@@ -584,28 +616,33 @@ export {
   provinceNameKey,
 }
 
-export function buildElectionConfig(data, electionConfig = {}) {
-  const partyMeta = partyMetaFromConfig(data?.election_parties)
-  const partyNames = partyNamesFromConfig(data?.election_parties)
+function partyConfigBits(data) {
+  const source = data?.config?.parties ?? data?.election_parties
+  const partyDefs = normalizePartyConfig(source)
   return {
-    ...mergeConfig(electionConfig),
-    partyNames,
-    partyMeta,
+    partyDefs,
+    partyList: partyDefs.map((party) => party.id),
+    partyMeta: partyMetaFromConfig(source),
+    partyNames: partyNamesFromConfig(source),
+    coalitionPartners: Object.fromEntries(partyDefs.map((party) => [party.id, party.coalitionPartners || []])),
+    voterBlocs: Array.isArray(data?.config?.voterBlocs) ? data.config.voterBlocs : DEFAULT_VOTER_BLOCS,
+  }
+}
+
+export function buildElectionConfig(data, electionConfig = {}) {
+  return {
+    ...mergeConfig(electionConfig, data?.config?.elections || {}),
+    ...partyConfigBits(data),
   }
 }
 
 export function simulateElection({ data, provinceRows = [], electionConfig = {} } = {}) {
-  const partyMeta = partyMetaFromConfig(data?.election_parties)
-  const partyNames = partyNamesFromConfig(data?.election_parties)
-  const config = {
-    ...mergeConfig(electionConfig),
-    partyNames,
-    partyMeta,
-  }
+  const config = buildElectionConfig(data, electionConfig)
+  const { partyMeta, partyList, coalitionPartners } = config
   const rows = Array.isArray(provinceRows) ? provinceRows : []
   const featureUnitsByName = buildFeatureUnitsByName(data || {}, rows)
   const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, featureUnitsByName))
-  const regions = addRegionControls(aggregateRegions(provinces), config.trends, config.partyNames)
+  const regions = addRegionControls(aggregateRegions(provinces, partyList), config.trends, config.partyNames, coalitionPartners)
   const national = calculateNational(provinces, config)
   const diagnostics = validateResults(provinces, national)
 

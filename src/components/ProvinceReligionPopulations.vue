@@ -60,10 +60,11 @@ function originalCountry(province) {
 }
 
 function foreignOriginIndexOf(province, country) {
-  const empireName = String(country?.basic_info?.name || 'Khmer Empire').trim().toLowerCase()
+  const empireName = String(country?.basic_info?.name || '').trim().toLowerCase()
   const origin = originalCountry(province).toLowerCase()
   if (!origin) return province?.is_joined || province?.is_conquered ? 1 : 0
-  return origin === empireName || origin === 'khmer empire' ? 0 : 1
+  if (!empireName) return province?.is_joined || province?.is_conquered ? 1 : 0
+  return origin === empireName ? 0 : 1
 }
 
 export default {

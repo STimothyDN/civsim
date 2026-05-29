@@ -4,18 +4,18 @@ import { calcScaledFollowers } from '../../../utils/calculatedFields'
 const LISTED_RELIGION_FOLLOWER_FLOOR = 0.25
 const SPREAD_RATE = 0.0015
 
-function scaledFollowerForListing(religion, provinceIndex) {
+function scaledFollowerForListing(religion, provinceIndex, calculations) {
   const raw = num(religion?.followers)
   const rawWithFloor = raw > 0 ? raw : LISTED_RELIGION_FOLLOWER_FLOOR
-  return calcScaledFollowers(rawWithFloor, provinceIndex)
+  return calcScaledFollowers(rawWithFloor, provinceIndex, calculations)
 }
 
-export function buildScaledFollowerMap(province, provinceIndex) {
+export function buildScaledFollowerMap(province, provinceIndex, calculations) {
   if (!Array.isArray(province?.religions)) return {}
   return province.religions.reduce((acc, religion) => {
     const name = String(religion?.name || '').trim()
     if (!name) return acc
-    acc[name] = num(acc[name]) + scaledFollowerForListing(religion, provinceIndex)
+    acc[name] = num(acc[name]) + scaledFollowerForListing(religion, provinceIndex, calculations)
     return acc
   }, {})
 }
@@ -25,11 +25,11 @@ export function buildScaledFollowerMap(province, provinceIndex) {
  * the form store (must contain `provinces` with `religions` and `population`).
  * Returns a plain `{ religionName: totalScaledFollowers }` map.
  */
-export function buildEmpireReligionTotals(data) {
+export function buildEmpireReligionTotals(data, calculations) {
   const provinces = Array.isArray(data?.provinces) ? data.provinces : []
   const totals = {}
   provinces.forEach((province, index) => {
-    const followersByReligion = buildScaledFollowerMap(province, index)
+    const followersByReligion = buildScaledFollowerMap(province, index, calculations)
     for (const [name, scaled] of Object.entries(followersByReligion)) {
       totals[name] = num(totals[name]) + scaled
     }

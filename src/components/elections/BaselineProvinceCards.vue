@@ -64,7 +64,7 @@ import { useElectionLeaders } from '../../composables/useElectionLeaders'
 import { useElectionFormatters } from '../../composables/useElectionFormatters'
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
 import { SEAT_OFFSETS } from '../../domain/elections/constants/seatOffsets'
-import { lowerHouseLeaderTitle, upperHouseLeaderTitle } from '../../domain/elections'
+import { useChamberLabels } from '../../composables/useChamberLabels'
 
 export default {
   name: 'BaselineProvinceCards',
@@ -73,6 +73,7 @@ export default {
     provinceIndex: { type: Number, required: true },
   },
   setup(props) {
+    const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const { baselineResults, store, electionStore, partyMeta } = useElectionResults()
     const {
       controlCardStyle,

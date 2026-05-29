@@ -20,7 +20,6 @@
 
 <script>
 import { computed } from 'vue'
-import { PARTIES } from '../../domain/elections'
 import { useUiStore } from '../../stores/uiStore'
 
 export default {
@@ -35,7 +34,7 @@ export default {
 
     function makeSegments(seats, seatCount) {
       const total = Math.max(1, seatCount)
-      return PARTIES
+      return Object.keys(props.partyMeta)
         .map((party) => ({
           party,
           count: seats[party] || 0,

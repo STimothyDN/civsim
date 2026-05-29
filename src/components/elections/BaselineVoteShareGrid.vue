@@ -1,7 +1,7 @@
 <template>
   <div class="baseline-vote-grid">
     <div
-      v-for="party in PARTIES"
+      v-for="party in partyIds"
       :key="party"
       class="baseline-vote-card"
       :class="{ 'baseline-vote-card--top': topPartyKey === party }"
@@ -17,7 +17,6 @@
 <script>
 import { computed } from 'vue'
 import { useCivilizationStore } from '../../stores/civilizationStore'
-import { PARTIES } from '../../domain/elections/constants/parties'
 import { partyWinnerStyle, topParty } from '../../domain/elections/viewHelpers'
 import { formatShare } from '../../domain/elections'
 
@@ -29,6 +28,7 @@ export default {
   setup(props) {
     const civStore = useCivilizationStore()
     const partyMeta = computed(() => civStore.partyMeta)
+    const partyIds = computed(() => civStore.partyIds)
     const topPartyKey = computed(() => topParty(props.voteShares))
 
     function partyStyleFor(party) {
@@ -42,7 +42,7 @@ export default {
     }
 
     return {
-      PARTIES,
+      partyIds,
       partyMeta,
       topPartyKey,
       partyStyleFor,
