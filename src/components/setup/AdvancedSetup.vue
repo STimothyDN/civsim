@@ -58,6 +58,42 @@
         <p>Each party's score is its base support plus the weighted sum of these feature affinities. Positive pulls the party up; negative pushes it down. Defaults reproduce the bundled example.</p>
       </header>
 
+      <!-- WEIGHT GENERATORS -->
+      <div class="generators">
+        <div class="generators__buttons">
+          <button type="button" class="btn-generate" @click="applyWeights('balanced')">
+            Balanced Weights <InfoTip :text="TIPS.genBalanced" />
+          </button>
+          <button type="button" class="btn-generate" @click="applyWeights('data-driven')">
+            Data Driven Weights <InfoTip :text="TIPS.genDataDriven" />
+          </button>
+          <button type="button" class="btn-generate" @click="applyWeights('random')">
+            Randomize Weights <InfoTip :text="TIPS.genRandom" />
+          </button>
+        </div>
+        <p class="generators__note">These overwrite all matrix weights below from your input data. Balanced respects each party's Major / Minor tier.</p>
+
+        <div class="tier-row">
+          <span class="tier-row__label">Party tiers <InfoTip :text="TIPS.tier" /></span>
+          <div v-for="party in parties" :key="party.id" class="tier-chip">
+            <span class="tier-chip__swatch" :style="{ background: party.color }"></span>
+            <span class="tier-chip__abbr">{{ party.abbreviation }}</span>
+            <div class="tier-toggle" role="group" :aria-label="`${party.name} tier`">
+              <button
+                type="button"
+                :class="{ 'tier-toggle__btn--active': party.tier !== 'minor' }"
+                @click="store.setPartyTier(party.id, 'major')"
+              >Major</button>
+              <button
+                type="button"
+                :class="{ 'tier-toggle__btn--active': party.tier === 'minor' }"
+                @click="store.setPartyTier(party.id, 'minor')"
+              >Minor</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="scope-tabs">
         <button
           v-for="scope in scopes"
@@ -265,6 +301,7 @@ import { useFormStore } from '../../stores/formStore'
 import { useCivilizationStore } from '../../stores/civilizationStore'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { FEATURE_GROUPS, featuresForScope } from '../../domain/elections/features/featureCatalog'
+import { generatePoliticalModel } from '../../domain/elections/weightGenerators'
 import PowerBalanceStrip from '../elections/PowerBalanceStrip.vue'
 import InfoTip from './InfoTip.vue'
 
@@ -299,6 +336,10 @@ const TIPS = {
   prelateTiers: 'Council (prelate) seats awarded by province size: a province at or above a tier\'s threshold gets that many seats.',
   apportionment: 'Seat-allocation formula per chamber. D\'Hondt favors larger parties; Sainte-Laguë is friendlier to smaller parties; Modified Sainte-Laguë raises the first-seat bar slightly.',
   voteBlend: 'How much a result leans on local outcomes vs. the broader national climate. 1 = fully local, 0 = fully climate.',
+  genBalanced: 'Pre-fills the matrix so parties come out as evenly matched as the data allows — without exaggerated weights. Major-tier parties target wide, equal support; Minor-tier parties stay focused and smaller.',
+  genDataDriven: 'Pre-fills the matrix from the data\'s real cleavages: features that vary most across your provinces get the most weight, so the election mirrors the underlying data distribution.',
+  genRandom: 'Pre-fills the matrix with sparse random weights within sane bounds — a quick way to get an unpredictable but playable starting point.',
+  tier: 'Major parties are meant for wide appeal; Minor parties are focused niche parties. The Balanced generator keeps minors smaller than majors.',
 }
 
 export default {
@@ -328,6 +369,20 @@ export default {
     function pct(value) {
       const n = Number(value)
       return Number.isFinite(n) ? `${(n * 100).toFixed(1)}%` : '—'
+    }
+
+    const GENERATOR_LABELS = { balanced: 'Balanced weights', 'data-driven': 'Data-driven weights', random: 'Randomized weights' }
+    function applyWeights(mode) {
+      const partyList = parties.value
+      if (!store.currentData || !partyList.length) return
+      if (!Array.isArray(store.currentData.provinces) || !store.currentData.provinces.length) {
+        store.showToast('Add province data first to generate weights from it.', 'error')
+        return
+      }
+      const model = generatePoliticalModel(mode, store.currentData, partyList)
+      const withIds = model.map((m, i) => ({ id: partyList[i].id, ...m }))
+      store.applyPoliticalModel(withIds)
+      store.showToast(`${GENERATOR_LABELS[mode] || 'Weights'} applied`, 'success')
     }
 
     function clampBias(value) {
@@ -399,7 +454,7 @@ export default {
       activeTab, activeScope,
       setNum, setText, affinity, featuresInGroup, scopeLabel, humanize,
       sourceKind, sourceValue, setSourceKind, setSourceValue,
-      featureTip, clampBias,
+      featureTip, clampBias, applyWeights,
       TIPS, BIAS_MIN, BIAS_MAX, BIAS_TIP: 'The party\'s starting score before any feature weighting. Raise it to strengthen the party everywhere; lower it to weaken it. Slider covers the usual range; type any value in the box.',
     }
   },
@@ -446,6 +501,26 @@ export default {
 .prc-stat__pct { font-size: 0.95rem; font-weight: 700; line-height: 1.1; }
 .prc-stat__seats { font-size: 0.66rem; color: var(--text-secondary, #cbd5e1); }
 .matrix__feature .info-tip { margin-left: 4px; }
+
+/* Weight generators */
+.generators { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.75rem; border: 1px solid var(--border, #2a3344); border-radius: 10px; background: var(--bg-input, transparent); }
+.generators__buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.btn-generate {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.5rem 0.9rem; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--accent, #6366f1); background: var(--accent, #6366f1); color: #fff;
+  font-size: 0.85rem; font-weight: 600;
+}
+.btn-generate:hover { filter: brightness(1.08); }
+.generators__note { margin: 0; color: var(--muted, #94a3b8); font-size: 0.78rem; }
+.tier-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; padding-top: 0.5rem; border-top: 1px solid var(--border, #1e2735); }
+.tier-row__label { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted, #94a3b8); font-weight: 700; }
+.tier-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.4rem; border: 1px solid var(--border, #2a3344); border-radius: 8px; }
+.tier-chip__swatch { width: 9px; height: 9px; border-radius: 50%; }
+.tier-chip__abbr { font-size: 0.72rem; font-weight: 700; }
+.tier-toggle { display: inline-flex; border: 1px solid var(--border, #2a3344); border-radius: 6px; overflow: hidden; }
+.tier-toggle button { padding: 0.15rem 0.45rem; font-size: 0.68rem; border: none; background: transparent; color: var(--muted, #94a3b8); cursor: pointer; }
+.tier-toggle__btn--active { background: var(--accent, #6366f1); color: #fff; }
 .matrix input { width: 4.2rem; padding: 0.2rem; text-align: right; border-radius: 5px; border: 1px solid var(--border, #2a3344); background: transparent; color: inherit; }
 .field-grid, .chamber-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
 .field-grid label, .chamber-col label, .bloc-row label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; color: var(--muted, #94a3b8); }
