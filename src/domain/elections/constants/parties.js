@@ -99,6 +99,7 @@ function normalizeOneParty(source, index, usedIds) {
     ),
     colorName: colorOption.name,
     color: colorOption.color,
+    tier: (source?.tier ?? defaults.tier) === 'minor' ? 'minor' : 'major',
     ideology: String(source?.ideology ?? defaults.ideology ?? '').trim(),
     coalitionPartners: Array.isArray(source?.coalitionPartners)
       ? source.coalitionPartners.slice()

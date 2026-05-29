@@ -450,6 +450,7 @@ export const useFormStore = defineStore('form', {
         abbreviation: id.slice(0, 3).toUpperCase(),
         colorName: palette.name,
         color: palette.color,
+        tier: 'major',
         ideology: '',
         coalitionPartners: [],
         bias: { county: 0, province: 0, national: 0 },
@@ -514,6 +515,31 @@ export const useFormStore = defineStore('form', {
       if (target < 0 || target >= parties.length) return
       const [moved] = parties.splice(index, 1)
       parties.splice(target, 0, moved)
+      this._recalcVersion++
+      this.scheduleAutosave()
+    },
+    setPartyTier(partyId, tier) {
+      const party = this._findParty(partyId)
+      if (!party) return
+      party.tier = tier === 'minor' ? 'minor' : 'major'
+      this.scheduleAutosave()
+    },
+    /**
+     * Replace every party's affinities + bias (the political model) in bulk.
+     * `newParties` is a full party array; only affinities/bias are taken from it,
+     * other fields (id/name/color/tier/coalitionPartners) are preserved from the
+     * matching current party by id.
+     */
+    applyPoliticalModel(newParties) {
+      const parties = this.currentData?.config?.parties
+      if (!Array.isArray(parties) || !Array.isArray(newParties)) return
+      const byId = new Map(newParties.map((p) => [p.id, p]))
+      parties.forEach((party) => {
+        const next = byId.get(party.id)
+        if (!next) return
+        if (next.affinities) party.affinities = next.affinities
+        if (next.bias) party.bias = next.bias
+      })
       this._recalcVersion++
       this.scheduleAutosave()
     },
