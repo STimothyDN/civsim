@@ -273,7 +273,8 @@ import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionFormatters } from '../composables/useElectionFormatters'
 import { useElectionTicker } from '../composables/useElectionTicker'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
-import { lowerHouseName, PARTIES, formatShare, trendHasMatchingEffect, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } from '../domain/elections'
+import { PARTIES, formatShare, trendHasMatchingEffect } from '../domain/elections'
+import { useChamberLabels } from '../composables/useChamberLabels'
 import { SEAT_OFFSETS } from '../domain/elections/constants/seatOffsets'
 import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
 import { provinceFeatureRadarOption } from '../domain/elections/charts/electionChartOptions'
@@ -289,6 +290,7 @@ export default {
     ProvinceSelectorGrid,
   },
   setup() {
+    const { lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const selectedIndex = ref(0)
     const { baselineResults, previousElectionResults, electionStore, partyMeta, results, store } = useElectionResults()
     const {

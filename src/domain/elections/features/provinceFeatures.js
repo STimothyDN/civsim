@@ -52,13 +52,15 @@ function originalCountry(province) {
 }
 
 function currentCountryName(country = {}) {
-  return String(country?.basic_info?.name || 'Khmer Empire').trim()
+  return String(country?.basic_info?.name || '').trim()
 }
 
 function isImperialOrigin(province, country = {}) {
   const origin = originalCountry(province)
   if (!origin) return !province?.is_joined && !province?.is_conquered
-  return origin.toLowerCase() === currentCountryName(country).toLowerCase() || origin.toLowerCase() === 'khmer empire'
+  const home = currentCountryName(country).toLowerCase()
+  if (!home) return !province?.is_joined && !province?.is_conquered
+  return origin.toLowerCase() === home
 }
 
 function closestDistances(province = {}) {
@@ -117,7 +119,7 @@ export function calculateProvinceBaseFeatures(province, country = {}, options = 
   const empireReligionTotals = options.empireReligionTotals || {}
   const stateReligion = country?.state_religion || null
 
-  const scaledProvincePop = Math.max(1, num(calcProvincialPopulation(num(province?.population), provinceIndex), 1))
+  const scaledProvincePop = Math.max(1, num(calcProvincialPopulation(num(province?.population), provinceIndex, options.calculations), 1))
   const faithIndex = norm(num(province?.yields?.faith) / civPopulation, NORMALIZATION_MAX.faith_per_capita)
   const loyaltyIndex = norm(province?.loyalty, NORMALIZATION_MAX.loyalty)
   const happinessIndex = normRange(
@@ -160,7 +162,7 @@ export function calculateProvinceBaseFeatures(province, country = {}, options = 
   // through the same calcProvincialPopulation curve and divided by the
   // province's own scaled population. Empire-wide globalization adds a small
   // ambient floor for every religion in every province.
-  const followersByReligion = buildScaledFollowerMap(province, provinceIndex)
+  const followersByReligion = buildScaledFollowerMap(province, provinceIndex, options.calculations)
   const religionAffinity = provinceReligionAffinity({
     connectednessIndex: connectivity.connectedness_index,
     faithIndex,

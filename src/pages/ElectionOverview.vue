@@ -229,7 +229,8 @@ import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionTicker } from '../composables/useElectionTicker'
 import { useElectionStore } from '../stores/electionStore'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
-import { PARTIES, formatShare, lowerHouseName, upperHouseName } from '../domain/elections'
+import { PARTIES, formatShare } from '../domain/elections'
+import { useChamberLabels } from '../composables/useChamberLabels'
 import { SEAT_OFFSETS } from '../domain/elections/constants/seatOffsets'
 import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
 import { regionalStackedSeatOption } from '../domain/elections/charts/electionChartOptions'
@@ -270,6 +271,7 @@ export default {
     ProvinceChart,
   },
   setup() {
+    const { lowerHouseName, upperHouseName } = useChamberLabels()
     const electionStore = useElectionStore()
     const { hasData, partyMeta, results, store } = useElectionResults()
     const { controlCardStyle } = useElectionFormatters(store)

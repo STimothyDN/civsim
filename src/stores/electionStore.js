@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { BASELINE_ELECTION_CONFIG, generateRandomTrendPackage } from '../domain/elections'
+import { useFormStore } from './formStore'
 import { makeSeed } from '../domain/elections/randomness/seededRandom'
 import { generateRepresentativeNames } from '../domain/elections/representativeNames'
 
@@ -48,7 +49,10 @@ export const useElectionStore = defineStore('election', {
       return state.trendPackageId === 'baseline' && state.seed === 'baseline' && state.jitterSeed === 'baseline' && state.trends.length === 0
     },
     electionYear(state) {
-      return 2026 + state.electionNumber * 2
+      const cfg = useFormStore().currentData?.config?.calculations?.electionYear
+      const base = Number(cfg?.base)
+      const increment = Number(cfg?.increment)
+      return (Number.isFinite(base) ? base : 2026) + state.electionNumber * (Number.isFinite(increment) ? increment : 2)
     },
     pendingTrends(state) {
       const confirmedCount = state.trendHistory.flat().length

@@ -7,6 +7,7 @@ import {
   apportionModifiedSainteLague,
   apportionSainteLague,
   countyAllowsAmbientPopulation,
+  countyPopulationWeight,
   generateRandomTrendPackage,
   generateTrendPackageFromSelections,
   matchesSelector,
@@ -194,6 +195,22 @@ describe('election domain', () => {
     expect(counties.find((county) => county.tile_id === 'tile_2').county_population).toBe(0)
     expect(counties.find((county) => county.tile_id === 'tile_3').county_population).toBeGreaterThan(0)
     expect(counties.find((county) => county.tile_id === 'tile_4').county_population).toBeGreaterThan(0)
+  })
+
+  it('does not apply negative terrain population effects to improved counties', () => {
+    const neutralImprovement = { name: 'Harbor', buildings: {}, great_works: {} }
+    const baseCounty = {
+      distance_from_center: 0,
+      improvement: neutralImprovement,
+      citizens_working: null,
+      features: {},
+      yields: {},
+    }
+
+    expect(countyPopulationWeight({ ...baseCounty, terrain: 'Plains' })).toBeCloseTo(1)
+    expect(countyPopulationWeight({ ...baseCounty, terrain: 'Desert' })).toBeCloseTo(1)
+    expect(countyPopulationWeight({ ...baseCounty, terrain: 'Coast' })).toBeCloseTo(1)
+    expect(countyPopulationWeight({ ...baseCounty, terrain: 'Grassland (Mountain)' })).toBeCloseTo(1)
   })
 
   it('derives expanded county indexes from terrain, settlement, and improvement details', () => {
@@ -611,12 +628,14 @@ describe('election domain', () => {
   })
 
   it('keeps Solidarity and Lotus minor outside their natural regions', () => {
+    // Identity is now selector-driven (group / original_country / religion),
+    // not hardcoded feature indices, via the configurable voter-bloc layer.
     const outsideProvince = {
       is_conquered: false,
+      group: 'Heartland',
+      original_country: '',
+      religion_shares: {},
       political_features: {
-        american_identity_index: 0,
-        roman_identity_index: 0,
-        taoist_share: 0,
         commerce_index: 0.8,
         localist_index: 0.8,
         spiritual_index: 0.8,
@@ -626,12 +645,14 @@ describe('election domain', () => {
       },
     }
     const americanProvince = {
+      ...outsideProvince,
       is_conquered: true,
-      political_features: { ...outsideProvince.political_features, american_identity_index: 1 },
+      original_country: 'American',
     }
     const romanProvince = {
+      ...outsideProvince,
       is_conquered: true,
-      political_features: { ...outsideProvince.political_features, roman_identity_index: 1 },
+      original_country: 'Roman',
     }
 
     expect(calculateProvincePartyScores(outsideProvince).white).toBeLessThan(calculateProvincePartyScores(americanProvince).white)

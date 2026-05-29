@@ -19,7 +19,7 @@ export function createEmptySeats(parties = PARTIES) {
 }
 
 export function apportionHighestAverages(voteShares, seatCount, divisorFn, options = {}) {
-  const parties = options.parties || PARTIES
+  const parties = options.parties || Object.keys(voteShares || {}) || PARTIES
   const threshold = num(options.threshold)
   const rawScores = options.rawScores || {}
   const seats = createEmptySeats(parties)

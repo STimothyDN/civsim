@@ -7,7 +7,7 @@
             <Radio :size="18" class="broadcast-blink" />
             <span id="broadcast-title">
               {{ broadcastTitle }}
-              BROADCAST — KHMER STATE TELEVISION
+              {{ stateTvLabel }}
             </span>
           </div>
           <button type="button" class="close-btn" aria-label="Close broadcast" @click="close">
@@ -73,6 +73,7 @@
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { ArrowRight, FastForward, Radio, X } from 'lucide-vue-next'
 import { useUiStore } from '../../stores/uiStore'
+import { useFormStore } from '../../stores/formStore'
 import { useElectionStore } from '../../stores/electionStore'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { usePolls } from '../../composables/usePolls'
@@ -116,6 +117,11 @@ export default {
       if (uiStore.broadcastScope === 'overview') return 'ELECTION OVERVIEW'
       if (uiStore.broadcastScope === 'national') return 'NATIONAL'
       return String(uiStore.broadcastTargetName || uiStore.broadcastScope || 'ELECTION').toUpperCase()
+    })
+
+    const stateTvLabel = computed(() => {
+      const name = String(useFormStore().currentData?.country?.basic_info?.name || '').trim()
+      return `BROADCAST — ${(name || 'STATE').toUpperCase()} STATE TELEVISION`
     })
 
     async function startBroadcast() {
@@ -281,6 +287,7 @@ export default {
     return {
       close,
       broadcastTitle,
+      stateTvLabel,
       currentParagraphText,
       displayedParagraphs,
       fastForward,

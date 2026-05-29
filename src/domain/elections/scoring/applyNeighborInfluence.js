@@ -29,7 +29,7 @@ function neighborInfluenceWeight(neighbor, targetPopulation) {
   return distanceWeight * directionWeight
 }
 
-export function applyNeighborInfluence(rawScores, province) {
+export function applyNeighborInfluence(rawScores, province, scoringOptions = {}) {
   const adjacent = Array.isArray(province.adjacent_provinces)
     ? province.adjacent_provinces.slice(0, MAX_NEIGHBORS)
     : []
@@ -48,7 +48,7 @@ export function applyNeighborInfluence(rawScores, province) {
     const weight = neighborInfluenceWeight(neighbor, targetPop)
     if (weight <= 0) continue
 
-    const neighborScores = calculateProvincePartyScores(neighbor)
+    const neighborScores = calculateProvincePartyScores(neighbor, scoringOptions)
     const neighborShares = scoresToVoteShares(neighborScores)
 
     for (const party of parties) {

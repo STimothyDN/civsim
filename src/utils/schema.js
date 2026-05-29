@@ -1,4 +1,4 @@
-import { DEFAULT_PARTY_CONFIG, normalizePartyConfig } from '../domain/elections/constants/parties'
+import { createDefaultConfig, normalizeConfig } from '../domain/elections/config'
 
 export const defaultTemplate = {
   country: {
@@ -18,7 +18,7 @@ export const defaultTemplate = {
   provinces: [],
   province_groups: [],
   global_religions: [],
-  election_parties: DEFAULT_PARTY_CONFIG,
+  config: createDefaultConfig(),
 };
 
 export function createEmptyReligion() {
@@ -146,7 +146,9 @@ function normalizeClosestProvinces(value) {
 
 export function normalizeIds(data) {
   if (!data) return;
-  data.election_parties = normalizePartyConfig(data.election_parties)
+  // Migrate legacy top-level election_parties map into the config block.
+  data.config = normalizeConfig(data)
+  delete data.election_parties
   if (!Array.isArray(data.provinces)) return;
   data.provinces.forEach((province, provinceIndex) => {
     province.city_id = provinceIndex + 1;

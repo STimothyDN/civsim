@@ -107,7 +107,7 @@ import { getSeatOffset } from '../../domain/elections/constants/seatOffsets'
 import { useElectionStore } from '../../stores/electionStore'
 import { chamberControlStyle } from '../../domain/elections/chambers/controlStyles'
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
-import { lowerHouseLeaderTitle, upperHouseLeaderTitle } from '../../domain/elections'
+import { useChamberLabels } from '../../composables/useChamberLabels'
 import { num } from '../../domain/elections/normalization/numbers'
 
 export default {
@@ -127,6 +127,7 @@ export default {
     compact: { type: Boolean, default: false },
   },
   setup(props) {
+    const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const electionStore = useElectionStore()
     const expandedCaucuses = ref(new Set())
 

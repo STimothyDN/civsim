@@ -216,13 +216,14 @@ import { useElectionStore } from '../stores/electionStore'
 import { PARTIES } from '../domain/elections/constants/parties'
 import { getSeatOffset } from '../domain/elections/constants/seatOffsets'
 import { generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
-import { lowerHouseLeaderTitle, upperHouseLeaderTitle } from '../domain/elections'
+import { useChamberLabels } from '../composables/useChamberLabels'
 import { num } from '../domain/elections/normalization/numbers'
 
 export default {
   name: 'RepresentativeDirectory',
   components: { Crown, ElectionPageShell, IncumbencyBadge, Landmark, PartyBadge, PartyCompositionDonut, Swords, Users },
   setup() {
+    const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const { results, store } = useElectionResults()
     const electionStore = useElectionStore()
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')

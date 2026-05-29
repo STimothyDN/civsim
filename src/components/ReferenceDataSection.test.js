@@ -68,7 +68,7 @@ describe('ReferenceDataSection', () => {
     await yellowRow.get('input[aria-label="yellow abbreviated party name"]').setValue('IA')
     await yellowRow.get('button[aria-label="Teal Party"]').trigger('click')
 
-    expect(store.currentData.election_parties.yellow).toEqual({
+    expect(store.currentData.config.parties.find((p) => p.id === 'yellow')).toMatchObject({
       name: 'Imperial Agrarians',
       abbreviation: 'IA',
       colorName: 'Teal',
