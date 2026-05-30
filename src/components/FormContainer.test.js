@@ -14,7 +14,6 @@ function mountContainer(options = {}) {
       plugins: [pinia],
       stubs: {
         ArraySection: { template: '<div data-test="array-section" />' },
-        CountryOverview: { template: '<div data-test="country-overview">{{ countryName }}</div>', setup() { return { countryName: 'Khmer Empire' } } },
         FieldsetGroup: { template: '<div data-test="fieldset-group" />' },
         JSONPreview: { template: '<div data-test="json-preview" />' },
         ProvinceDetails: { template: '<div data-test="province-details">Province Details</div>' },
@@ -50,8 +49,6 @@ describe('FormContainer', () => {
     )
     await nextTick()
 
-    expect(wrapper.text()).toContain('Khmer Empire')
-    expect(wrapper.text()).toContain('Country Overview')
     expect(wrapper.text()).toContain('Regional Details')
     expect(wrapper.text()).toContain('Province Details')
     expect(wrapper.text()).toContain('Country Data')

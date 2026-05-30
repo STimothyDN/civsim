@@ -12,7 +12,13 @@ app.use(pinia)
 app.use(router)
 
 const formStore = useFormStore(pinia)
-formStore.hydrateFromAutosave()
-formStore.startAutosave()
 
+// Mount first for instant first paint; the autosaved world hydrates
+// asynchronously from IndexedDB just after (the app shows proper empty
+// states until it arrives). Then arm the debounced autosave.
 app.mount('#app')
+
+formStore
+  .hydrateFromAutosave()
+  .catch(() => {})
+  .finally(() => formStore.startAutosave())
