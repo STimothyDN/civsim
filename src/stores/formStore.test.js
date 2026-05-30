@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { AUTOSAVE_KEY, createAutosavePayload } from '../domain/autosave'
+import { __setDefaultAdapter, createLocalStorageAdapter } from '../domain/idbStorage'
 import { useFormStore } from './formStore'
 
 function sampleTemplate() {
@@ -38,6 +39,8 @@ describe('formStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
+    // Pin autosave to a deterministic synchronous backend for tests.
+    __setDefaultAdapter(createLocalStorageAdapter())
   })
 
   it('renames and removes province groups across province assignments', () => {
@@ -148,18 +151,56 @@ describe('formStore', () => {
     expect(store.currentData.provinces[0].counties[1].features.Fish).toBe(true)
   })
 
-  it('hydrates valid autosave data and clears invalid drafts', () => {
+  it('hydrates valid autosave data and clears invalid drafts', async () => {
     const store = useFormStore()
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(createAutosavePayload(sampleTemplate(), '2026-04-30T12:00:00.000Z')))
 
-    expect(store.hydrateFromAutosave()).toBe(true)
+    expect(await store.hydrateFromAutosave()).toBe(true)
     expect(store.currentData.country.basic_info.name).toBe('Khmer Empire')
     expect(store.lastAutosavedAt).toBe('2026-04-30T12:00:00.000Z')
 
     const freshStore = useFormStore()
     freshStore.currentData = null
     localStorage.setItem(AUTOSAVE_KEY, '{bad json')
-    expect(freshStore.hydrateFromAutosave()).toBe(false)
+    expect(await freshStore.hydrateFromAutosave()).toBe(false)
     expect(localStorage.getItem(AUTOSAVE_KEY)).toBeNull()
+  })
+
+  it('keeps multiple worlds and toggles the active civilization', () => {
+    const store = useFormStore()
+    store.loadTemplate(sampleTemplate(), { silent: true })
+    const first = store.activeWorldId
+    expect(store.worldSummaries.map((w) => w.name)).toEqual(['Khmer Empire'])
+
+    store.addWorld(
+      {
+        country: { basic_info: { name: 'Mauryan Realm', leader: 'Ashoka' } },
+        province_groups: [],
+        global_religions: [],
+        provinces: [{ name: 'Pataliputra', group: '', population: 7, counties: [] }],
+      },
+      { silent: true }
+    )
+    expect(store.worlds.length).toBe(2)
+    expect(store.currentData.country.basic_info.name).toBe('Mauryan Realm')
+    const second = store.activeWorldId
+    expect(second).not.toBe(first)
+
+    // Edit the active (second) world, then switch away and back.
+    store.setValueAtPath('country.basic_info.leader', 'Bindusara')
+
+    expect(store.switchWorld(first)).toBe(true)
+    expect(store.currentData.country.basic_info.name).toBe('Khmer Empire')
+    expect(store.activeWorldId).toBe(first)
+
+    store.switchWorld(second)
+    expect(store.currentData.country.basic_info.name).toBe('Mauryan Realm')
+    expect(store.currentData.country.basic_info.leader).toBe('Bindusara')
+
+    // Removing the active world falls back to the remaining one.
+    store.removeWorld(second)
+    expect(store.worlds.length).toBe(1)
+    expect(store.currentData.country.basic_info.name).toBe('Khmer Empire')
+    expect(store.activeWorldId).toBe(first)
   })
 })

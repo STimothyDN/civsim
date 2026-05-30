@@ -1,0 +1,46 @@
+/* ============================================================
+   CIV SIM · ELECTIONS — next-gen climate bar + call board
+   Ported from the redesign elections mockup.
+   ============================================================ */
+
+/* ---------- Climate / scenario strip ---------- */
+.climate-bar {
+  display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center;
+  padding: 14px 16px; margin-bottom: 16px;
+  border: 1px solid var(--line-gold); border-radius: var(--r-lg);
+  background: radial-gradient(600px 200px at 90% -60%, rgba(227,189,87,0.1), transparent 60%), linear-gradient(120deg, var(--surface-1), var(--surface-0));
+}
+.climate-bar__l { min-width: 0; }
+.climate-scenario { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; flex-wrap: wrap; }
+.climate-scenario h3 { font-family: var(--font-display); font-size: 16px; color: var(--ink); }
+.climate-seed { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+.climate-bar__r { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+
+.trend-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.tchip {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; white-space: nowrap;
+  border-radius: var(--r-sm); font-size: 11px; border: 1px solid var(--line);
+  background: var(--surface-0); color: var(--ink-2);
+}
+.tchip b { font-weight: 700; color: var(--ink); }
+.tchip__delta { font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px; background: var(--surface-2); color: var(--ink-2); }
+.tchip--azure { border-color: rgba(87,163,232,0.3); } .tchip--azure .tchip__delta { background: rgba(87,163,232,0.14); color: var(--azure); }
+.tchip--jade { border-color: rgba(69,192,138,0.3); } .tchip--jade .tchip__delta { background: rgba(69,192,138,0.14); color: var(--jade); }
+.tchip--coral { border-color: rgba(236,122,95,0.3); } .tchip--coral .tchip__delta { background: rgba(236,122,95,0.14); color: var(--coral); }
+.tchip--rose { border-color: rgba(239,121,179,0.3); } .tchip--rose .tchip__delta { background: rgba(239,121,179,0.14); color: var(--rose); }
+.tchip--gold { border-color: var(--line-gold); } .tchip--gold .tchip__delta { background: var(--gold-soft); color: var(--gold); }
+.tchip--label { background: transparent; border-color: transparent; color: var(--ink-3); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; padding: 6px 2px; }
+.tchip--pending { border-style: dashed; }
+
+/* ---------- Province call board ---------- */
+.callboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+@media (max-width: 1180px) { .callboard { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 720px) { .callboard { grid-template-columns: repeat(2, 1fr); } }
+.callcard { display: flex; flex-direction: column; gap: 8px; padding: 11px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface-0); border-left: 3px solid var(--call-c, var(--ink-3)); transition: border-color var(--t-fast), transform var(--t-fast); }
+.callcard:hover { transform: translateY(-2px); }
+.callcard__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.callcard__name { font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.callcard__body { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.callcard__margin { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+.callcard__bar { display: flex; height: 6px; border-radius: var(--r-pill); overflow: hidden; background: var(--inset); }
+.callcard__bar i { height: 100%; }

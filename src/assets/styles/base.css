@@ -1,151 +1,32 @@
-/* ===== Design Tokens ===== */
-:root {
-  --bg-base: #101116;
-  --bg-surface: #18191f;
-  --bg-surface-raised: #20222a;
-  --bg-surface-overlay: #292c35;
-  --bg-input: #12141a;
+/* ============================================================
+   LEGACY ELEMENT + BUTTON COMPATIBILITY
+   Tokens, resets, type utilities and the .btn system now live in
+   tokens.css. This file keeps the pre-refactor markup (bare
+   <button>, .btn-primary/.btn-danger/.btn-ghost, .toolbar,
+   .file-input) looking native in the next-gen system.
+   ============================================================ */
 
-  --accent: #d4a843;
-  --accent-dim: #a07e2e;
-  --accent-glow: rgba(212, 168, 67, 0.25);
-  --accent-gradient: linear-gradient(135deg, #d4a843 0%, #c5953a 50%, #b8862f 100%);
-  --data-blue: #4e79a7;
-  --data-orange: #f28e2b;
-  --data-red: #e15759;
-  --data-teal: #76b7b2;
-  --data-green: #59a14f;
-  --data-purple: #af7aa1;
-
-  --danger: #e54545;
-  --danger-bg: rgba(229, 69, 69, 0.12);
-  --danger-border: rgba(229, 69, 69, 0.3);
-  --success: #34d399;
-  --info: #60a5fa;
-
-  --text-primary: #e8e6e1;
-  --text-secondary: #9b9a97;
-  --text-muted: #5c5b58;
-  --text-accent: #d4a843;
-
-  --border: #333540;
-  --border-subtle: #252831;
-  --border-focus: var(--accent);
-
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 10px;
-
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
-
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
-
-  color-scheme: dark;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--bg-base);
-  color: var(--text-primary);
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(212, 168, 67, 0.045), transparent 260px),
-    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px),
-    var(--bg-base);
-  background-size: auto, 64px 64px, auto;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-base); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-/* ===== App Shell ===== */
-.app-shell {
-  max-width: 1480px;
-  margin: 0 auto;
-  padding: 0 24px 48px;
-}
-
-/* ===== Header ===== */
-.app-header {
-  padding: 26px 0 18px;
-  border-bottom: 1px solid rgba(212, 168, 67, 0.22);
-  margin-bottom: 16px;
-}
-
-.app-header-inner {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.app-header-icon {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  color: var(--accent);
-}
-
-.app-header h1 {
-  margin: 0;
-  font-family: 'Cinzel', serif;
-  font-size: clamp(1.5rem, 2.5vw, 2rem);
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0;
-}
-
-.app-header p {
-  margin: 6px 0 0;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  padding-left: 54px;
-}
-
-/* ===== Toolbar ===== */
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 22px;
-  padding: 14px 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--bg-base);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-/* ===== Buttons ===== */
+/* Bare buttons inherit the new pill anatomy */
 button, .file-input span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
+  gap: 7px;
+  border: 1px solid var(--line-2);
+  background: var(--surface-1);
+  color: var(--ink);
+  padding: 8px 13px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all var(--transition-fast);
+  font-size: 12.5px;
+  font-weight: 600;
   white-space: nowrap;
+  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast), filter var(--t-fast);
 }
 
 button:hover, .file-input span:hover {
-  background: var(--bg-surface-raised);
-  border-color: var(--text-muted);
+  background: var(--surface-2);
+  border-color: var(--line-3);
 }
 
 button:active { transform: scale(0.97); }
@@ -156,42 +37,65 @@ button:disabled {
   transform: none;
 }
 
-/* Primary button */
+/* Primary (gold) */
 .btn-primary {
-  background: var(--accent-gradient);
-  border-color: var(--accent-dim);
-  color: #1a1400;
-  font-weight: 600;
+  background: var(--gold-grad);
+  border-color: var(--gold-deep);
+  color: var(--gold-ink);
+  font-weight: 700;
+  box-shadow: 0 3px 14px -5px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,0.35);
 }
 .btn-primary:hover {
-  filter: brightness(1.1);
-  border-color: var(--accent);
+  filter: brightness(1.07);
+  border-color: var(--gold-deep);
+  background: var(--gold-grad);
 }
 
-/* Danger button */
+/* Danger */
 .btn-danger {
-  background: var(--danger-bg);
-  border-color: var(--danger-border);
-  color: #f87171;
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
+  color: var(--down);
 }
 .btn-danger:hover {
-  background: rgba(229,69,69,0.2);
-  border-color: #e54545;
+  background: rgba(239, 90, 82, 0.2);
+  border-color: var(--danger);
 }
 
-/* Ghost button */
+/* Ghost */
 .btn-ghost {
   background: transparent;
   border-color: transparent;
+  color: var(--ink-2);
 }
-.btn-ghost:hover { background: var(--bg-surface); }
+.btn-ghost:hover { background: var(--surface-1); color: var(--ink); }
 
-.file-input {
-  display: inline-flex;
-  align-items: center;
+/* Signal / AI (teal) */
+.btn-signal {
+  background: rgba(52, 205, 192, 0.08);
+  border-color: rgba(52, 205, 192, 0.32);
+  color: var(--teal);
 }
+.btn-signal:hover {
+  background: rgba(52, 205, 192, 0.14);
+  box-shadow: 0 0 16px -4px rgba(52, 205, 192, 0.4);
+}
+
+.file-input { display: inline-flex; align-items: center; }
 .file-input input { display: none; }
 
-.toolbar button, .toolbar .file-input span {
-  padding: 8px 14px;
+/* ===== In-page toolbar (home / builder) ===== */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--sheen), var(--surface-0);
 }
+.toolbar button, .toolbar .file-input span {
+  padding: 8px 13px;
+}
+</content>

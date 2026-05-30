@@ -4,7 +4,7 @@ import { defaultTemplate, normalizeIds, createBlankArrayItem, sortClosestProvinc
 import { getValueAtPath, setValueAtPath, removeValueAtPath } from '../utils/path'
 import { deepClone } from '../utils/object'
 import { computeAllProvinceCalcs, computeRegionalTotals, resetJitterCache } from '../utils/calculatedFields'
-import { clearAutosavedTemplate, readAutosavedTemplate, writeAutosavedTemplate } from '../domain/autosave'
+import { clearAutosavedTemplate, readAutosavedState, writeAutosavedState } from '../domain/autosave'
 import { partyMetaFromConfig, partyPaletteOption } from '../domain/elections/constants/parties'
 import { buildExportTemplate, buildFullExportEnvelope, normalizeTemplateInput } from '../domain/templateCodec'
 import {
@@ -16,6 +16,22 @@ import {
   setRegionalCapital,
 } from '../domain/templateOperations'
 import { useUiStore } from './uiStore'
+import { useElectionStore } from './electionStore'
+import { usePollingStore } from './pollingStore'
+
+function makeWorldId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  return `world-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function defaultPollingSnapshot() {
+  return { pollSeed: 'poll-baseline', view: 'national', regionName: '', provinceIndex: 0, comparePollsters: [] }
+}
+
+function worldDisplayName(data) {
+  const name = data?.country?.basic_info?.name
+  return (typeof name === 'string' && name.trim()) || 'Untitled Civilization'
+}
 
 function collectUniqueCountyField(data, fieldPath) {
   if (!data || !Array.isArray(data.provinces)) return []
@@ -122,8 +138,28 @@ export const useFormStore = defineStore('form', {
     currentData: null,
     lastAutosavedAt: null,
     _recalcVersion: 0,
+    // Multi-civ registry. The active world's live data IS `currentData`;
+    // inactive worlds keep their data + election/polling snapshots here.
+    worlds: [],
+    activeWorldId: null,
   }),
   getters: {
+    /** Display rows for the world switcher (active world reads live data). */
+    worldSummaries(state) {
+      void state._recalcVersion
+      return state.worlds.map((world) => {
+        const isActive = world.id === state.activeWorldId
+        const data = isActive ? state.currentData : world.data
+        return {
+          id: world.id,
+          active: isActive,
+          name: worldDisplayName(data),
+          leader: data?.country?.basic_info?.leader || '',
+          provinceCount: data?.provinces?.length || 0,
+          savedAt: world.savedAt || null,
+        }
+      })
+    },
     provinceCalcs(state) {
       // Access _recalcVersion to create a reactive dependency so
       // that bumping it forces Vue to recompute this getter.
@@ -172,11 +208,115 @@ export const useFormStore = defineStore('form', {
     loadTemplate(template, options = {}) {
       resetJitterCache()
       invalidateUniqueValueCache()
-      this.currentData = normalizeTemplateInput(template || defaultTemplate)
+      const data = normalizeTemplateInput(template || defaultTemplate)
+      this.currentData = data
+      this._registerActiveWorld(data, options)
       if (!options.silent) this.showToast('Template loaded successfully', 'success')
     },
     loadDefault() {
       this.loadTemplate(defaultTemplate)
+    },
+
+    // ── Multi-civ world registry ──────────────────────────────────────────
+
+    /** Ensure the freshly-loaded data is reflected as the active world record. */
+    _registerActiveWorld(data, options = {}) {
+      const existing = this.activeWorldId ? this.worlds.find((w) => w.id === this.activeWorldId) : null
+      if (existing) {
+        existing.data = data
+        existing.savedAt = new Date().toISOString()
+        return existing
+      }
+      const record = {
+        id: makeWorldId(),
+        data,
+        election: options.election || null,
+        polling: defaultPollingSnapshot(),
+        savedAt: new Date().toISOString(),
+      }
+      this.worlds.push(record)
+      this.activeWorldId = record.id
+      return record
+    },
+
+    /** Stash the active world's live data + election/polling back into its record. */
+    _snapshotActiveWorld() {
+      if (!this.activeWorldId) return
+      const record = this.worlds.find((w) => w.id === this.activeWorldId)
+      if (!record) return
+      record.data = this.currentData
+      record.election = useElectionStore().snapshotElectionState()
+      record.polling = { ...usePollingStore().$state }
+      record.savedAt = new Date().toISOString()
+    },
+
+    /** Restore a world's election + polling state into their stores. */
+    _applyWorldSideState(record) {
+      const election = useElectionStore()
+      if (record?.election) election.hydrateElectionState(record.election)
+      else election.resetScenario()
+      usePollingStore().$patch({ ...defaultPollingSnapshot(), ...(record?.polling || {}) })
+    },
+
+    /** Switch the active civilization, snapshotting the current one first. */
+    switchWorld(id) {
+      if (id === this.activeWorldId) return false
+      const target = this.worlds.find((w) => w.id === id)
+      if (!target) return false
+      this._snapshotActiveWorld()
+      resetJitterCache()
+      invalidateUniqueValueCache()
+      this.currentData = target.data
+      this.activeWorldId = id
+      this._applyWorldSideState(target)
+      this._recalcVersion++
+      this.scheduleAutosave()
+      this.showToast(`Switched to ${worldDisplayName(this.currentData)}`, 'success')
+      return true
+    },
+
+    /** Add a new civilization (parking the current one) and activate it. */
+    addWorld(template, options = {}) {
+      this._snapshotActiveWorld()
+      resetJitterCache()
+      invalidateUniqueValueCache()
+      const data = normalizeTemplateInput(template || defaultTemplate)
+      const record = {
+        id: makeWorldId(),
+        data,
+        election: options.election || null,
+        polling: defaultPollingSnapshot(),
+        savedAt: new Date().toISOString(),
+      }
+      this.worlds.push(record)
+      this.currentData = data
+      this.activeWorldId = record.id
+      this._applyWorldSideState(record)
+      this._recalcVersion++
+      this.scheduleAutosave()
+      if (!options.silent) this.showToast(`Added ${worldDisplayName(data)}`, 'success')
+      return record.id
+    },
+
+    /** Remove a civilization; if it was active, fall back to another (or empty). */
+    removeWorld(id) {
+      const index = this.worlds.findIndex((w) => w.id === id)
+      if (index === -1) return
+      const wasActive = id === this.activeWorldId
+      const name = worldDisplayName(wasActive ? this.currentData : this.worlds[index].data)
+      this.worlds.splice(index, 1)
+
+      if (wasActive) {
+        const next = this.worlds[0] || null
+        resetJitterCache()
+        invalidateUniqueValueCache()
+        this.currentData = next ? next.data : null
+        this.activeWorldId = next ? next.id : null
+        this._applyWorldSideState(next)
+        this._recalcVersion++
+      }
+      this.scheduleAutosave()
+      this.showToast(`Removed ${name}`, 'info')
     },
     setValueAtPath(path, value) {
       if (!this.currentData) return
@@ -602,37 +742,46 @@ export const useFormStore = defineStore('form', {
       this._recalcVersion++
       this.showToast('Values recalculated', 'success')
     },
-    hydrateFromAutosave() {
-      const { template, savedAt, error } = readAutosavedTemplate()
+    async hydrateFromAutosave() {
+      const { worlds, activeWorldId, error } = await readAutosavedState()
       if (error) {
         this.showToast('Autosaved draft was invalid and has been cleared', 'error')
         return false
       }
-      if (!template) return false
+      if (!worlds || !worlds.length) return false
 
       resetJitterCache()
       invalidateUniqueValueCache()
-      this.currentData = template
-      this.lastAutosavedAt = savedAt
-      this.showToast('Autosaved template restored', 'success')
+      this.worlds = worlds
+      const active = worlds.find((w) => w.id === activeWorldId) || worlds[0]
+      this.activeWorldId = active.id
+      this.currentData = active.data
+      this.lastAutosavedAt = active.savedAt || null
+      this._applyWorldSideState(active)
+      this.showToast(
+        worlds.length > 1 ? `Restored ${worlds.length} worlds` : 'Autosaved world restored',
+        'success'
+      )
       return true
     },
-    persistAutosaveNow() {
+    async persistAutosaveNow() {
       clearPendingAutosave()
-      if (!this.currentData) {
-        clearAutosavedTemplate()
+      this._snapshotActiveWorld()
+      if (!this.worlds.length) {
+        await clearAutosavedTemplate()
         this.lastAutosavedAt = null
         return false
       }
 
-      const saved = writeAutosavedTemplate(normalizeTemplateInput(this.currentData))
+      const saved = await writeAutosavedState({ worlds: this.worlds, activeWorldId: this.activeWorldId })
       if (saved) this.lastAutosavedAt = new Date().toISOString()
       return saved
     },
     scheduleAutosave() {
       clearPendingAutosave()
       autosaveTimer = setTimeout(() => {
-        this.persistAutosaveNow()
+        // Fire-and-forget: IndexedDB writes are async and must not block edits.
+        Promise.resolve(this.persistAutosaveNow()).catch(() => {})
       }, AUTOSAVE_DELAY)
     },
     startAutosave() {

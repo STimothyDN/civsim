@@ -100,6 +100,8 @@
       />
     </section>
 
+    <ProvinceCallBoard :provinces="results.provinces" :party-meta="partyMeta" />
+
     <VoteDecompositionPanel :results="results" :party-meta="partyMeta" />
 
     <div class="election-data-grid">
@@ -251,6 +253,7 @@ import PartyBadge from '../components/elections/PartyBadge.vue'
 import IncumbencyBadge from '../components/elections/IncumbencyBadge.vue'
 import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
+import ProvinceCallBoard from '../components/elections/ProvinceCallBoard.vue'
 import VoteDecompositionPanel from '../components/elections/VoteDecompositionPanel.vue'
 import SeatEfficiencyTable from '../components/elections/SeatEfficiencyTable.vue'
 import CoalitionArithmeticPanel from '../components/elections/CoalitionArithmeticPanel.vue'
@@ -277,6 +280,7 @@ export default {
     IncumbencyBadge,
     PartySwingCards,
     PopularVoteBoard,
+    ProvinceCallBoard,
     SeatEfficiencyTable,
     TriangleAlert,
     VoteDecompositionPanel,

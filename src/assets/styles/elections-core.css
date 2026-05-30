@@ -463,9 +463,10 @@
   gap: 14px;
   padding: 16px;
   margin-bottom: 16px;
+  border-color: var(--line-gold);
   background:
-    linear-gradient(135deg, rgba(212, 168, 67, 0.07), transparent 46%),
-    var(--bg-surface);
+    radial-gradient(600px 220px at 92% -50%, rgba(227, 189, 87, 0.12), transparent 60%),
+    linear-gradient(120deg, var(--surface-1), var(--surface-0));
 }
 
 .election-scenario-main {
@@ -506,8 +507,9 @@
 .election-seed-row {
   flex-wrap: wrap;
   margin-top: 6px;
-  color: var(--text-muted);
-  font-size: 0.78rem;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
 }
 
 .election-seed-row span {
@@ -550,22 +552,40 @@
 }
 
 .trend-chip {
-  padding: 7px 9px;
-  color: var(--text-secondary);
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
+  padding: 6px 10px;
+  color: var(--ink-2);
+  background: var(--surface-0);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  font-weight: 600;
+  transition: border-color var(--t-fast), background var(--t-fast);
 }
+
+.trend-chip:hover { border-color: var(--line-2); background: var(--surface-1); }
 
 .trend-chip small {
-  color: var(--text-muted);
+  color: var(--ink-3);
 }
 
-.trend-chip--baseline {
-  color: var(--accent);
-  background: rgba(212, 168, 67, 0.1);
-  border-color: rgba(212, 168, 67, 0.25);
+.trend-chip--round-label,
+.trend-chip--round-label:hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 6px 2px;
+}
+
+.trend-chip--pending { border-style: dashed; }
+
+.trend-chip--baseline,
+.trend-chip--baseline:hover {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-color: var(--line-gold);
 }
 
 .party-shift-list {

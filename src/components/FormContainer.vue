@@ -29,8 +29,8 @@
         </button>
       </div>
 
-      <section v-if="activeSection === 'country-overview'" class="workspace-panel workspace-panel--flush">
-        <CountryOverview @navigate="handleNavigate" />
+      <section v-if="activeSection === 'province-grid'" class="workspace-panel workspace-panel--flush">
+        <ProvinceGrid />
       </section>
 
       <section v-else-if="activeSection === 'regional-details'" class="workspace-panel workspace-panel--flush">
@@ -66,14 +66,14 @@
 
 <script>
 import { defineAsyncComponent, markRaw, ref, watch } from 'vue'
-import { BadgeCheck, Braces, ChartNoAxesColumnIncreasing, FilePlus2, Flag, Globe2, Layers, MapPinned, Network, SlidersHorizontal } from 'lucide-vue-next'
+import { Braces, ChartNoAxesColumnIncreasing, FilePlus2, Flag, Globe2, Grid3x3, Layers, MapPinned, Network, SlidersHorizontal } from 'lucide-vue-next'
 import { useFormStore } from '../stores/formStore'
 import { useUiStore } from '../stores/uiStore'
 
 const AdvancedSetup = defineAsyncComponent(() => import('./setup/AdvancedSetup.vue'))
 const ArraySection = defineAsyncComponent(() => import('./ArraySection.vue'))
-const CountryOverview = defineAsyncComponent(() => import('../pages/CountryOverview.vue'))
 const FieldsetGroup = defineAsyncComponent(() => import('./FieldsetGroup.vue'))
+const ProvinceGrid = defineAsyncComponent(() => import('./builder/ProvinceGrid.vue'))
 const JSONPreview = defineAsyncComponent(() => import('./JSONPreview.vue'))
 const ProvinceDetails = defineAsyncComponent(() => import('../pages/ProvinceDetails.vue'))
 const ReferenceDataSection = defineAsyncComponent(() => import('./ReferenceDataSection.vue'))
@@ -84,27 +84,26 @@ export default {
   components: {
     AdvancedSetup,
     ArraySection,
-    BadgeCheck,
-    CountryOverview,
     FieldsetGroup,
     FilePlus2,
     Globe2,
     JSONPreview,
     Network,
     ProvinceDetails,
+    ProvinceGrid,
     ReferenceDataSection,
     RegionalDetails,
   },
   props: {
     initialSection: {
       type: String,
-      default: 'country-overview',
+      default: 'province-grid',
     },
   },
   setup(props) {
     const store = useFormStore()
     const sections = [
-      { id: 'country-overview', label: 'Country Overview', icon: markRaw(BadgeCheck) },
+      { id: 'province-grid', label: 'Province Grid', icon: markRaw(Grid3x3) },
       { id: 'regional-details', label: 'Regional Details', icon: markRaw(Network) },
       { id: 'province-details', label: 'Province Details', icon: markRaw(ChartNoAxesColumnIncreasing) },
       { id: 'country', label: 'Country Data', icon: markRaw(Flag) },
@@ -120,7 +119,7 @@ export default {
     }
     const normalizeSection = (section) => {
       const normalized = sectionAliases[section] || section
-      return sectionIds.has(normalized) ? normalized : 'country-overview'
+      return sectionIds.has(normalized) ? normalized : 'province-grid'
     }
     const activeSection = ref(normalizeSection(props.initialSection))
 

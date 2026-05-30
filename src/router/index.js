@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+const CommandCenter = () => import('../pages/CommandCenter.vue')
+const OverviewRoute = () => import('../pages/OverviewRoute.vue')
 const HomePage = () => import('../pages/HomePage.vue')
 const ElectionSimulator = () => import('../pages/ElectionSimulator.vue')
 const PreElectionPage = () => import('../pages/PreElectionPage.vue')
@@ -12,13 +14,25 @@ const RepresentativeDirectory = () => import('../pages/RepresentativeDirectory.v
 const routes = [
   {
     path: '/',
-    name: 'Home',
+    name: 'CommandCenter',
+    component: CommandCenter,
+    meta: { title: 'Civ Sim — Command Center' },
+  },
+  {
+    path: '/overview',
+    name: 'CountryOverview',
+    component: OverviewRoute,
+    meta: { title: 'Civ Sim — Country Overview' },
+  },
+  {
+    path: '/builder',
+    name: 'Builder',
     component: HomePage,
-    meta: { title: 'Civ Sim — Data Input and Overview' },
+    meta: { title: 'Civ Sim — Builder' },
   },
   {
     path: '/provinces/details',
-    redirect: { path: '/', query: { section: 'province-details' } },
+    redirect: { path: '/builder', query: { section: 'province-details' } },
   },
   {
     path: '/elections',
