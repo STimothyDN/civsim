@@ -2,8 +2,8 @@
   <ElectionPageShell
     :icon="Vote"
     eyebrow="National Elections"
-    :title="`National Decision Desk`"
-    :subtitle="`${countryName} · ${formatCompactNumber(results?.national?.population || 0)} people · ${regionRows.length} regions`"
+    :title="`National Returns Desk`"
+    :subtitle="`${countryName} · ${formatCompactNumber(results?.national?.population || 0)} subjects · ${regionRows.length} regions`"
     scope="national"
   >
     <template #hero-calls>
@@ -296,7 +296,7 @@ export default {
       partyStyle,
     } = useElectionFormatters(store)
 
-    const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
+    const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Unnamed Realm')
     const nationalLowerHouseName = lowerHouseName('national')
     const nationalUpperHouseName = upperHouseName('national')
     const regionOrder = computed(() => store.currentData?.province_groups || [])

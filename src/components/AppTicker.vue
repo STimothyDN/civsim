@@ -30,7 +30,7 @@ export default {
       const out = []
       const info = data.country?.basic_info
       if (info?.name) {
-        out.push({ tag: 'WORLD', tone: 'gold', text: `${info.name}${info.leader ? ` — ${info.leader}` : ''}` })
+        out.push({ tag: 'REALM', tone: 'gold', text: `${info.name}${info.leader ? ` — ${info.leader}` : ''}` })
       }
       const provinces = data.provinces?.length
       if (provinces) out.push({ tag: 'ATLAS', tone: 'azure', text: `${provinces} provinces under administration` })
@@ -39,10 +39,10 @@ export default {
       const groups = data.province_groups?.length
       if (groups) out.push({ tag: 'REGIONS', tone: 'ink', text: `${groups} regional blocs` })
       const parties = data.config?.parties?.length
-      if (parties) out.push({ tag: 'PARTIES', tone: 'coral', text: `${parties} parties contesting` })
+      if (parties) out.push({ tag: 'FACTIONS', tone: 'coral', text: `${parties} factions contesting` })
       const religions = data.global_religions?.length
       if (religions) out.push({ tag: 'FAITH', tone: 'ink', text: `${religions} recognized religions` })
-      out.push({ tag: 'STATE', tone: 'jade', text: 'Autosaved to local atlas' })
+      out.push({ tag: 'STATE', tone: 'jade', text: 'Autosaved to the royal atlas' })
       return out
     })
 

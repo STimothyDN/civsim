@@ -3,7 +3,7 @@
     :icon="LayoutDashboard"
     eyebrow="Election Overview"
     :title="`${countryName} Election Board`"
-    :subtitle="`${formatCompactNumber(results?.national?.population || 0)} people · ${results?.provinces?.length || 0} provinces · ${regionRows.length} regions`"
+    :subtitle="`${formatCompactNumber(results?.national?.population || 0)} subjects · ${results?.provinces?.length || 0} provinces · ${regionRows.length} regions`"
     scope="overview"
     :hide-hero="true"
   >
@@ -276,7 +276,7 @@ export default {
     const { hasData, partyMeta, results, store } = useElectionResults()
     const { controlCardStyle } = useElectionFormatters(store)
 
-    const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
+    const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Unnamed Realm')
     const popularVoteLeader = computed(() => leaderFromShares(results.value.national.assembly.vote_shares))
 
     const nationalAssemblySeatDetails = computed(() => generateSeatDetails({

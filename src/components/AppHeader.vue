@@ -16,26 +16,26 @@
 
     <label class="searchbox">
       <Search :size="14" />
-      <input type="text" placeholder="Jump to province, party, region…" aria-label="Search" />
+      <input type="text" placeholder="Seek a province, faction, or region…" aria-label="Search" />
       <kbd>⌘K</kbd>
     </label>
 
     <label class="file-input">
-      <span class="btn btn--ghost btn--sm" title="Load a template JSON file">
+      <span class="btn btn--ghost btn--sm" title="Load a realm from a JSON file">
         <Upload :size="14" />
         Import
       </span>
       <input type="file" accept=".json" @change="onFileChange" />
     </label>
 
-    <button type="button" class="btn btn--sm" :disabled="!hasData" title="Download the current world as JSON" @click="downloadJson">
+    <button type="button" class="btn btn--sm" :disabled="!hasData" title="Download the current realm as JSON" @click="downloadJson">
       <Download :size="14" />
       Export
     </button>
 
-    <button type="button" class="btn btn--primary btn--sm" title="Start a new template" @click="openNewTemplate">
+    <button type="button" class="btn btn--primary btn--sm" title="Found a new realm" @click="openNewTemplate">
       <Plus :size="14" />
-      New World
+      New Realm
     </button>
   </header>
 </template>
@@ -110,7 +110,7 @@ export default {
           if (electionState) electionStore.hydrateElectionState(electionState)
           else electionStore.resetScenario()
         } catch (err) {
-          store.showToast('Invalid JSON file. Please choose a valid template file.', 'error')
+          store.showToast('Invalid JSON file. Please choose a valid realm file.', 'error')
         }
       }
       reader.readAsText(file)

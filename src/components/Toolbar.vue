@@ -2,12 +2,12 @@
   <div class="toolbar">
     <button type="button" class="btn-primary" @click="openNewTemplate">
       <FilePlus2 :size="16" />
-      New Template
+      New Realm
     </button>
 
     <button type="button" :disabled="!hasData" @click="openWizard">
       <Wand2 :size="16" />
-      Edit in Wizard
+      Revise in Wizard
     </button>
 
     <label class="file-input">
@@ -95,7 +95,7 @@ export default {
           if (electionState) electionStore.hydrateElectionState(electionState)
           else electionStore.resetScenario()
         } catch (err) {
-          store.showToast('Invalid JSON file. Please choose a valid template file.', 'error')
+          store.showToast('Invalid JSON file. Please choose a valid realm file.', 'error')
         }
       }
       reader.readAsText(file)

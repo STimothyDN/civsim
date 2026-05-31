@@ -54,7 +54,7 @@ describe('ProvinceDetails', () => {
     )
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Province Decision Desk')
+    expect(wrapper.text()).toContain('Provincial Survey Desk')
     expect(wrapper.text()).toContain('Population vs Representation')
     expect(wrapper.text()).toContain('Capital')
 

@@ -2,8 +2,8 @@
   <ElectionPageShell
     :icon="Building2"
     eyebrow="Provincial Elections"
-    :title="`${selectedProvince?.name || 'Provincial'} Decision Desk`"
-    :subtitle="selectedProvince ? `${selectedProvince.name} · ${selectedProvince.group} · ${formatCompactNumber(selectedProvince.provincial_population)} people` : ''"
+    :title="`${selectedProvince?.name || 'Provincial'} Returns Desk`"
+    :subtitle="selectedProvince ? `${selectedProvince.name} · ${selectedProvince.group} · ${formatCompactNumber(selectedProvince.provincial_population)} subjects` : ''"
     scope="provincial"
     :target-name="selectedProvince?.name"
   >

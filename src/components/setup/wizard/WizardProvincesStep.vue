@@ -1,8 +1,8 @@
 <template>
   <div class="wizard-step-body">
     <p class="wizard-step-lead">
-      Add each province and fill the key figures inline. Expand a row for yields,
-      religions, counties, and finer details — everything is optional and saves as you type.
+      Chart each province and fill the key figures inline. Expand a row for yields,
+      faiths, counties, and finer details — everything is optional and saves as you type.
     </p>
 
     <div v-if="provinces.length === 0" class="wizard-empty wizard-empty--block">

@@ -4,25 +4,25 @@
     <div v-if="!hasData" class="empty-workspace">
       <Globe2 :size="52" style="color: var(--gold)" />
       <div>
-        <h2>No World Loaded</h2>
-        <p>Create a template or import a world to open the command center.</p>
+        <h2>The Atlas Is Empty</h2>
+        <p>Found a realm or load one from file to open the court.</p>
       </div>
       <button type="button" class="btn btn--primary" @click="openNewTemplate">
         <FilePlus2 :size="16" />
-        New Template
+        New Realm
       </button>
     </div>
 
     <template v-else>
       <div class="view-head">
         <div>
-          <div class="eyebrow eyebrow--gold">Command Center</div>
-          <h1>Welcome back{{ leaderFirstName ? `, ${leaderFirstName}` : '' }}</h1>
-          <p>Your empire at a glance — pick up where you left off or run a fresh simulation.</p>
+          <div class="eyebrow eyebrow--gold">The Court</div>
+          <h1>The Realm at a Glance{{ leaderFirstName ? ` — ${leaderFirstName}'s reign` : '' }}</h1>
+          <p>A standing survey of the realm — take up where you left off, or call a fresh election.</p>
         </div>
         <div class="view-head__actions">
-          <button type="button" class="btn" @click="recalculate"><RefreshCw :size="15" :class="{ spin: recalcSpinning }" />Recalculate</button>
-          <button type="button" class="btn btn--primary" @click="go('/elections')"><Vote :size="15" />Run election</button>
+          <button type="button" class="btn" @click="recalculate"><RefreshCw :size="15" :class="{ spin: recalcSpinning }" />Re-survey</button>
+          <button type="button" class="btn btn--primary" @click="go('/elections')"><Vote :size="15" />Call election</button>
         </div>
       </div>
 
@@ -36,14 +36,14 @@
             <template v-if="stateReligion !== 'None'"> · {{ stateReligion }}</template>
           </div>
           <div class="hero__chips">
-            <span class="chip"><Users :size="11" />{{ formatCompactNumber(totalProvincialPopulation) }} citizens</span>
+            <span class="chip"><Users :size="11" />{{ formatCompactNumber(totalProvincialPopulation) }} subjects</span>
             <span class="chip"><Map :size="11" />{{ groupCount }} regions</span>
             <span class="chip"><Grid3x3 :size="11" />{{ provinceCount }} provinces</span>
             <span v-if="assemblyLeader" class="chip chip--gold"><Trophy :size="11" />{{ assemblyLeader.abbr }} plurality</span>
           </div>
           <div class="hero__cta">
-            <button type="button" class="btn btn--primary" @click="go('/overview')"><Globe2 :size="15" />Open overview</button>
-            <button type="button" class="btn" @click="go('/builder')"><PencilLine :size="15" />Edit world</button>
+            <button type="button" class="btn btn--primary" @click="go('/overview')"><Globe2 :size="15" />Open the Atlas</button>
+            <button type="button" class="btn" @click="go('/builder')"><PencilLine :size="15" />Survey the realm</button>
           </div>
         </div>
         <div class="hero__r">
@@ -57,12 +57,12 @@
       <!-- KPI -->
       <div class="grid grid--4 home-kpis">
         <div class="kpi kpi--accent">
-          <div class="kpi__label label">Provincial Population</div>
+          <div class="kpi__label label">Subjects of the Realm</div>
           <div class="kpi__value num">{{ formatCompactNumber(totalProvincialPopulation) }}</div>
           <div class="kpi__foot"><span class="kpi__sub">across all provinces</span></div>
         </div>
         <div class="kpi">
-          <div class="kpi__label label">Economy / Turn</div>
+          <div class="kpi__label label">Treasury / Turn</div>
           <div class="kpi__value num">{{ formatCompactNumber(totalEconomyOutput) }}</div>
           <div class="kpi__foot"><span class="kpi__sub">gold · faith · culture · science</span></div>
         </div>
@@ -74,7 +74,7 @@
         <div class="kpi">
           <div class="kpi__label label">Counties Surveyed</div>
           <div class="kpi__value num">{{ countyDetailCount }}<em class="kpi__unit">/ {{ countyCount }}</em></div>
-          <div class="kpi__foot"><span class="kpi__sub">detailed records</span></div>
+          <div class="kpi__foot"><span class="kpi__sub">recorded in the census</span></div>
         </div>
       </div>
 
@@ -86,7 +86,7 @@
             <header class="panel__head">
               <div class="panel__head-l">
                 <span class="panel__icon"><LayoutGrid :size="15" /></span>
-                <div><div class="eyebrow">Jump back in</div><h3 class="panel__title">Continue building</h3></div>
+                <div><div class="eyebrow">Take up the work</div><h3 class="panel__title">Affairs of State</h3></div>
               </div>
             </header>
             <div class="jump-grid">
@@ -127,7 +127,7 @@
             <header class="panel__head">
               <div class="panel__head-l">
                 <span class="panel__icon"><Vote :size="15" /></span>
-                <div><div class="eyebrow">Live projection</div><h3 class="panel__title">National Vote</h3></div>
+                <div><div class="eyebrow">Projected returns</div><h3 class="panel__title">The National Vote</h3></div>
               </div>
               <div class="panel__head-r">
                 <button type="button" class="btn btn--sm btn--ghost" @click="go('/elections')">Details <ArrowRight :size="13" /></button>
@@ -154,14 +154,14 @@
                 </div>
               </div>
             </template>
-            <p v-else class="ov-empty">No simulation yet — open the simulator to project the assembly.</p>
+            <p v-else class="ov-empty">No returns yet — open the simulator to project the assembly.</p>
           </section>
 
           <section class="panel">
             <header class="panel__head">
               <div class="panel__head-l">
                 <span class="panel__icon"><ScrollText :size="15" /></span>
-                <div><div class="eyebrow">Briefing</div><h3 class="panel__title">State of the World</h3></div>
+                <div><div class="eyebrow">Dispatches</div><h3 class="panel__title">State of the Realm</h3></div>
               </div>
             </header>
             <div class="feed">
@@ -276,10 +276,10 @@ export default {
     })
 
     const jumps = computed(() => [
-      { title: 'Builder', desc: 'Define regions, provinces & counties', stat: `${overview.provinceCount.value} provinces`, icon: Layers, action: () => go('/builder') },
-      { title: 'Country Overview', desc: 'Vital signs & national dashboards', stat: `${overview.groupCount.value} regions`, icon: Globe2, action: () => go('/overview') },
-      { title: 'Run Election', desc: 'Simulate the national assembly', stat: `${Object.keys(partyMeta.value).length} parties`, icon: Vote, action: () => go('/elections') },
-      { title: 'Quick Wizard', desc: 'Fast guided data entry', stat: 'Guided', icon: Sparkles, action: () => ui.openWizardModal() },
+      { title: 'Builder', desc: 'Chart regions, provinces & counties', stat: `${overview.provinceCount.value} provinces`, icon: Layers, action: () => go('/builder') },
+      { title: 'Country Overview', desc: 'Vital signs across the realm', stat: `${overview.groupCount.value} regions`, icon: Globe2, action: () => go('/overview') },
+      { title: 'Call an Election', desc: 'Project the national assembly', stat: `${Object.keys(partyMeta.value).length} factions`, icon: Vote, action: () => go('/elections') },
+      { title: 'Guided Setup', desc: 'A guided path through every detail', stat: 'Guided', icon: Sparkles, action: () => ui.openWizardModal() },
     ])
 
     const briefing = computed(() => {
@@ -291,10 +291,10 @@ export default {
         out.push({ icon: Map, tone: 'azure', value: overview.topRegion.value.name, label: 'is the largest region', meta: formatCompactNumber(overview.topRegion.value.provincialPopulation) })
       }
       if (overview.dominantReligion.value?.name && overview.dominantReligion.value.name !== 'None') {
-        out.push({ icon: Sparkles, tone: 'gold', value: overview.dominantReligion.value.name, label: 'leads in followers', meta: `${overview.religionCount.value} faiths` })
+        out.push({ icon: Sparkles, tone: 'gold', value: overview.dominantReligion.value.name, label: 'leads the faithful', meta: `${overview.religionCount.value} religions` })
       }
       if (overview.topYield.value?.label) {
-        out.push({ icon: Zap, tone: 'jade', value: overview.topYield.value.label, label: 'is the top national yield', meta: formatCompactNumber(overview.topYield.value.total) })
+        out.push({ icon: Zap, tone: 'jade', value: overview.topYield.value.label, label: 'is the realm’s chief yield', meta: formatCompactNumber(overview.topYield.value.total) })
       }
       out.push({ icon: Grid3x3, tone: 'azure', value: `${overview.countyDetailCount.value}/${overview.countyCount.value}`, label: 'county records surveyed', meta: 'census' })
       return out

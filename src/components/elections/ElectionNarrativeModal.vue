@@ -5,7 +5,7 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">Election Narrative</p>
-            <h2 id="election-narrative-title">Shape The Election Climate</h2>
+            <h2 id="election-narrative-title">Shape the Climate of the Realm</h2>
           </div>
           <button type="button" class="close-btn" aria-label="Close election narrative modal" @click="close">
             <X :size="18" />
@@ -35,7 +35,7 @@
         </form>
 
         <div v-if="!formStore.currentData" class="narrative-warning">
-          Load or create a template before applying an election narrative.
+          Load or found a realm before applying an election narrative.
         </div>
 
         <LlmStatusIndicator
@@ -122,7 +122,7 @@ export default {
       const prompt = narrative.value.trim()
       if (!prompt || isLoading.value) return
       if (!formStore.currentData) {
-        uiStore.showToast('Load or create a template before applying an election narrative.', 'error')
+        uiStore.showToast('Load or found a realm before applying an election narrative.', 'error')
         return
       }
 

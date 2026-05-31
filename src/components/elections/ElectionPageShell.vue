@@ -3,10 +3,10 @@
     <div v-if="!hasData" class="election-page-placeholder">
       <component :is="icon" :size="52" class="placeholder-icon" />
       <h3>No Election Data</h3>
-      <p>Load or create a template to view {{ eyebrow.toLowerCase() }} results.</p>
+      <p>Load or found a realm to view {{ eyebrow.toLowerCase() }} results.</p>
       <button type="button" class="btn-primary" style="margin-top: 16px" @click="openNewTemplate">
         <FilePlus2 :size="16" />
-        New Template
+        New Realm
       </button>
     </div>
 

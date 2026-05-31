@@ -3,10 +3,10 @@
     <!-- Heading -->
     <div class="view-head">
       <div>
-        <div class="eyebrow eyebrow--gold">Atlas · Country Overview</div>
+        <div class="eyebrow eyebrow--gold">Atlas · State of the Realm</div>
         <h1>{{ countryName }}</h1>
         <p>
-          {{ formatCompactNumber(totalProvincialPopulation) }} citizens ·
+          {{ formatCompactNumber(totalProvincialPopulation) }} subjects ·
           {{ provinceCount }} provinces · {{ groupCount }} regions ·
           {{ countyDetailCount }}/{{ countyCount }} county records
         </p>
@@ -30,12 +30,12 @@
     <!-- KPI strip -->
     <div class="grid grid--6 ov-kpis">
       <div class="kpi kpi--accent">
-        <div class="kpi__label label">Population</div>
+        <div class="kpi__label label">Subjects</div>
         <div class="kpi__value num">{{ formatCompactNumber(totalProvincialPopulation) }}</div>
         <div class="kpi__foot"><span class="kpi__sub">provincial · {{ formatNumber(totalRawPopulation) }} raw</span></div>
       </div>
       <div class="kpi">
-        <div class="kpi__label label">Economy / Turn</div>
+        <div class="kpi__label label">Treasury / Turn</div>
         <div class="kpi__value num">{{ formatCompactNumber(totalEconomyOutput) }}</div>
         <div class="kpi__foot"><span class="kpi__sub">gold · faith · culture · science</span></div>
       </div>
@@ -127,7 +127,7 @@
             :title="`${seg.name}: ${formatNumber(seg.value)}`"
           />
         </div>
-        <p v-else class="ov-empty">No religion data yet.</p>
+        <p v-else class="ov-empty">No religions recorded yet.</p>
         <div class="mosaic-legend">
           <span v-for="seg in religionMosaic" :key="seg.name" class="mosaic-legend__item">
             <span class="mosaic-legend__sw" :style="{ background: seg.color }" />
@@ -149,7 +149,7 @@
             <div class="meter" style="height:8px;background:var(--inset)"><i :style="{ width: b.bar + '%', background: b.color }" /></div>
             <b>{{ b.provinces }}</b>
           </div>
-          <p v-if="!originBlocRows.length" class="ov-empty">No origin data yet.</p>
+          <p v-if="!originBlocRows.length" class="ov-empty">No heritage recorded yet.</p>
         </div>
       </section>
 

@@ -1,8 +1,8 @@
 <template>
   <div class="wizard-step-body">
     <p class="wizard-step-lead">
-      Start with the headline facts about your nation. These show up across the
-      Country Overview and feed national economic totals.
+      Begin with the headline facts of your realm. These appear across the
+      Country Overview and feed the national treasury totals.
     </p>
 
     <div class="wizard-grid wizard-grid--two">
@@ -37,7 +37,7 @@
       </label>
     </div>
 
-    <h4 class="wizard-subhead">Economy <small>output per turn</small></h4>
+    <h4 class="wizard-subhead">Treasury <small>output per turn</small></h4>
     <div class="wizard-grid wizard-grid--four">
       <label v-for="field in economyFields" :key="field.key" class="wizard-field wizard-field--compact">
         <span>{{ field.label }} <InfoTip :text="field.tip" /></span>

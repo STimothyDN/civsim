@@ -67,7 +67,7 @@ describe('RegionalDetails', () => {
     )
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Regional Decision Desk')
+    expect(wrapper.text()).toContain('Regional Survey Desk')
     expect(wrapper.text()).toContain('Core')
     expect(wrapper.text()).toContain('Frontier')
 

@@ -86,7 +86,7 @@ export function useBuilderOverview(store) {
   const rows = computed(() => civStore.provinceRows)
   const configuredGroups = computed(() => civStore.configuredGroups)
 
-  const countryName = computed(() => countryInfo.value.name || 'Untitled Civilization')
+  const countryName = computed(() => countryInfo.value.name || 'Unnamed Realm')
   const provinceCount = computed(() => rows.value.length)
   const groupCount = computed(() => store.currentData?.province_groups?.length || 0)
   const religionCount = computed(() => store.currentData?.global_religions?.length || 0)

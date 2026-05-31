@@ -2,8 +2,8 @@
   <ElectionPageShell
     :icon="MapIcon"
     eyebrow="Regional Elections"
-    :title="`${selectedRegion?.name || 'Regional'} Decision Desk`"
-    :subtitle="selectedRegion ? `${formatCompactNumber(selectedRegion.population)} people · ${selectedRegion.province_count} provinces` : ''"
+    :title="`${selectedRegion?.name || 'Regional'} Returns Desk`"
+    :subtitle="selectedRegion ? `${formatCompactNumber(selectedRegion.population)} subjects · ${selectedRegion.province_count} provinces` : ''"
     scope="regional"
     :target-name="selectedRegion?.name"
   >

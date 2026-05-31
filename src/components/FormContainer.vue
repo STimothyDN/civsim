@@ -3,12 +3,12 @@
     <div v-if="!store.currentData" class="empty-workspace">
       <Globe2 :size="52" class="text-[var(--accent)]" />
       <div>
-        <h2>No Template Loaded</h2>
-        <p>Blank workspace</p>
+        <h2>No Realm Loaded</h2>
+        <p>An empty atlas</p>
       </div>
       <button type="button" class="btn-primary" @click="openNewTemplate">
         <FilePlus2 :size="16" />
-        New Template
+        New Realm
       </button>
     </div>
 

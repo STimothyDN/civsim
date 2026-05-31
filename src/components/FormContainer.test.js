@@ -33,7 +33,7 @@ describe('FormContainer', () => {
   it('renders an empty state before data is loaded', () => {
     const { wrapper } = mountContainer()
 
-    expect(wrapper.text()).toContain('No Template Loaded')
+    expect(wrapper.text()).toContain('No Realm Loaded')
   })
 
   it('shows builder sections and switches between them', async () => {

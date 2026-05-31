@@ -10,7 +10,7 @@
       <div class="overview-hero-call" style="display: flex; gap: 8px; align-items: center;">
         <button type="button" class="btn-primary" @click="pollingStore.randomizePolls">
           <RefreshCcw :size="16" />
-          Refresh polling
+          Refresh the polls
         </button>
       </div>
     </template>
@@ -69,7 +69,7 @@ export default {
   setup() {
     const pollingStore = usePollingStore()
     const { baselineResults, previousElectionResults, electionStore, partyMeta, results, store } = useElectionResults()
-    const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
+    const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Unnamed Realm')
     const climateName = computed(() => results.value.config.scenarioName || 'Election Climate')
     const activeTrendCount = computed(() => results.value.config.trends.length)
 

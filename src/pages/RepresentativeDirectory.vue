@@ -2,7 +2,7 @@
   <ElectionPageShell
     :icon="Users"
     eyebrow="Representative Directory"
-    :title="'Master Representative List'"
+    :title="'Roll of Representatives'"
     :subtitle="`${totalRepresentatives} representatives across all scopes · ${countryName}`"
     scope="directory"
   >
@@ -226,7 +226,7 @@ export default {
     const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const { results, store } = useElectionResults()
     const electionStore = useElectionStore()
-    const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Untitled Civilization')
+    const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Unnamed Realm')
 
     const viewMode = ref('table')
     const groupBy = ref('scope')

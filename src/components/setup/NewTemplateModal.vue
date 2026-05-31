@@ -10,8 +10,8 @@
       >
         <header class="modal-header">
           <div>
-            <p class="eyebrow">{{ phase === 'wizard' ? `Civilization Wizard · Step ${step + 1} of ${steps.length}` : 'New Template' }}</p>
-            <h2 id="new-template-title">{{ phase === 'wizard' ? steps[step].title : 'Create a new civilization' }}</h2>
+            <p class="eyebrow">{{ phase === 'wizard' ? `Realm Wizard · Step ${step + 1} of ${steps.length}` : 'New Realm' }}</p>
+            <h2 id="new-template-title">{{ phase === 'wizard' ? steps[step].title : 'Found a new realm' }}</h2>
           </div>
           <button type="button" class="close-btn" aria-label="Close" @click="close">
             <X :size="18" />
@@ -22,12 +22,12 @@
         <div v-if="phase === 'choice'" class="new-template-choices">
           <button type="button" class="new-template-choice" @click="chooseScratch">
             <FilePlus2 :size="28" />
-            <strong>Start from scratch</strong>
-            <span>Load a blank template and build everything yourself in the full editor.</span>
+            <strong>Start from a blank atlas</strong>
+            <span>Open an empty realm and chart everything yourself in the full editor.</span>
           </button>
           <button type="button" class="new-template-choice new-template-choice--accent" @click="chooseWizard">
             <Wand2 :size="28" />
-            <strong>Civilization Wizard</strong>
+            <strong>Realm Wizard</strong>
             <span>A guided walkthrough that steps you through every detail in one place. Save and exit any time.</span>
           </button>
         </div>
@@ -94,7 +94,7 @@ export default {
     const step = ref(0)
 
     const steps = [
-      { title: 'Your Civilization', component: markRaw(WizardCountryStep) },
+      { title: 'Your Realm', component: markRaw(WizardCountryStep) },
       { title: 'Reference Data', component: markRaw(WizardReferenceStep) },
       { title: 'Provinces & Counties', component: markRaw(WizardProvincesStep) },
     ]
@@ -142,13 +142,13 @@ export default {
     function saveAndExit() {
       formStore.persistAutosaveNow()
       uiStore.closeNewTemplateModal()
-      uiStore.showToast('Draft saved. You can keep editing in the workspace.', 'success')
+      uiStore.showToast('Draft saved. You can keep editing in the atlas.', 'success')
     }
 
     function finish() {
       formStore.persistAutosaveNow()
       uiStore.closeNewTemplateModal()
-      uiStore.showToast('Civilization created', 'success')
+      uiStore.showToast('Realm founded', 'success')
     }
 
     return { uiStore, phase, step, steps, chooseScratch, chooseWizard, next, prev, close, saveAndExit, finish }

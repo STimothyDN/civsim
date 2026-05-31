@@ -30,7 +30,7 @@ function defaultPollingSnapshot() {
 
 function worldDisplayName(data) {
   const name = data?.country?.basic_info?.name
-  return (typeof name === 'string' && name.trim()) || 'Untitled Civilization'
+  return (typeof name === 'string' && name.trim()) || 'Unnamed Realm'
 }
 
 function collectUniqueCountyField(data, fieldPath) {
@@ -211,7 +211,7 @@ export const useFormStore = defineStore('form', {
       const data = normalizeTemplateInput(template || defaultTemplate)
       this.currentData = data
       this._registerActiveWorld(data, options)
-      if (!options.silent) this.showToast('Template loaded successfully', 'success')
+      if (!options.silent) this.showToast('Realm loaded', 'success')
     },
     loadDefault() {
       this.loadTemplate(defaultTemplate)
@@ -271,7 +271,7 @@ export const useFormStore = defineStore('form', {
       this._applyWorldSideState(target)
       this._recalcVersion++
       this.scheduleAutosave()
-      this.showToast(`Switched to ${worldDisplayName(this.currentData)}`, 'success')
+      this.showToast(`Now charting ${worldDisplayName(this.currentData)}`, 'success')
       return true
     },
 
@@ -294,7 +294,7 @@ export const useFormStore = defineStore('form', {
       this._applyWorldSideState(record)
       this._recalcVersion++
       this.scheduleAutosave()
-      if (!options.silent) this.showToast(`Added ${worldDisplayName(data)}`, 'success')
+      if (!options.silent) this.showToast(`Founded ${worldDisplayName(data)}`, 'success')
       return record.id
     },
 
@@ -465,7 +465,7 @@ export const useFormStore = defineStore('form', {
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
-      this.showToast('JSON file downloaded', 'success')
+      this.showToast('Atlas exported', 'success')
     },
     downloadJsonWithElection(electionSnapshot = null, computedSnapshot = {}) {
       const regionalTotals = computeRegionalTotals(this.currentData?.provinces, this.provinceCalcs)
@@ -487,7 +487,7 @@ export const useFormStore = defineStore('form', {
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
-      this.showToast('Full state exported to JSON', 'success')
+      this.showToast('Full atlas exported to JSON', 'success')
     },
     loadFromFile(file) {
       const reader = new FileReader()
@@ -496,7 +496,7 @@ export const useFormStore = defineStore('form', {
           const parsed = JSON.parse(reader.result)
           this.loadTemplate(parsed)
         } catch (err) {
-          this.showToast('Invalid JSON file. Please choose a valid template file.', 'error')
+          this.showToast('Invalid JSON file. Please choose a valid realm file.', 'error')
         }
       }
       reader.readAsText(file)
@@ -740,7 +740,7 @@ export const useFormStore = defineStore('form', {
     recalculate() {
       resetJitterCache()
       this._recalcVersion++
-      this.showToast('Values recalculated', 'success')
+      this.showToast('The realm has been re-surveyed', 'success')
     },
     async hydrateFromAutosave() {
       const { worlds, activeWorldId, error } = await readAutosavedState()
@@ -759,7 +759,7 @@ export const useFormStore = defineStore('form', {
       this.lastAutosavedAt = active.savedAt || null
       this._applyWorldSideState(active)
       this.showToast(
-        worlds.length > 1 ? `Restored ${worlds.length} worlds` : 'Autosaved world restored',
+        worlds.length > 1 ? `Restored ${worlds.length} realms` : 'Autosaved realm restored',
         'success'
       )
       return true

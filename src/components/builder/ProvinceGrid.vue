@@ -3,11 +3,11 @@
     <div class="view-head">
       <div>
         <div class="eyebrow eyebrow--gold">Builder</div>
-        <h1>Province Grid</h1>
-        <p>Edit your empire as a live spreadsheet — every change re-rolls the totals instantly.</p>
+        <h1>Province Ledger</h1>
+        <p>Survey your realm as a live ledger — every change re-rolls the totals at once.</p>
       </div>
       <div class="view-head__actions">
-        <button type="button" class="btn" @click="openWizard"><Sparkles :size="15" />Quick wizard</button>
+        <button type="button" class="btn" @click="openWizard"><Sparkles :size="15" />Guided setup</button>
         <button type="button" class="btn btn--primary" @click="addProvince"><Plus :size="15" />Add province</button>
       </div>
     </div>
@@ -52,7 +52,7 @@
 
         <div v-if="!displayRows.length" class="empty-workspace" style="min-height: 220px">
           <MapPinned :size="40" style="color: var(--gold)" />
-          <div><h2>No provinces yet</h2><p>Add a province to start building your empire.</p></div>
+          <div><h2>No provinces yet</h2><p>Add a province to begin mapping your realm.</p></div>
           <button type="button" class="btn btn--primary" @click="addProvince"><Plus :size="15" />Add province</button>
         </div>
 

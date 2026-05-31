@@ -9,11 +9,11 @@
       </span>
       <span class="rail__title">
         <b>CIV SIM</b>
-        <span>Atlas</span>
+        <span>Atlas of the Realm</span>
       </span>
     </div>
 
-    <div class="rail__group-label eyebrow">Workspace</div>
+    <div class="rail__group-label eyebrow">The Realm</div>
     <router-link
       v-for="item in workspace"
       :key="item.to"
@@ -26,21 +26,21 @@
       <span v-if="item.badge != null" class="nav-item__badge num">{{ item.badge }}</span>
     </router-link>
 
-    <div class="rail__group-label eyebrow">Tools</div>
+    <div class="rail__group-label eyebrow">Chancery</div>
     <button type="button" class="nav-item" @click="recalculate">
       <RefreshCw :size="17" :class="{ spin: recalcSpinning }" />
-      <span>Recalculate</span>
+      <span>Re-survey</span>
     </button>
     <button type="button" class="nav-item" :disabled="!hasData" @click="openWizard">
       <Wand2 :size="17" />
-      <span>Edit in Wizard</span>
+      <span>Revise in Wizard</span>
     </button>
 
     <div class="rail__foot">
       <div class="world-switcher" :class="{ 'world-switcher--open': switcherOpen }">
         <div v-if="switcherOpen" class="world-switcher__pop">
           <div class="world-switcher__head">
-            <span class="eyebrow">Loaded Worlds</span>
+            <span class="eyebrow">Charted Realms</span>
             <span class="num world-switcher__count">{{ worlds.length }}</span>
           </div>
           <div class="world-switcher__list">
@@ -66,15 +66,15 @@
                 @click.stop="removeWorld(world.id)"
               ><X :size="13" /></span>
             </button>
-            <p v-if="!worlds.length" class="world-switcher__empty">No worlds loaded yet.</p>
+            <p v-if="!worlds.length" class="world-switcher__empty">No realms charted yet.</p>
           </div>
           <div class="world-switcher__actions">
-            <label class="world-switcher__action" title="Load a civilization from a JSON file">
+            <label class="world-switcher__action" title="Load a realm from a JSON file">
               <input type="file" accept=".json" hidden @change="onLoadCiv" />
-              <Upload :size="14" /> Load civ…
+              <Upload :size="14" /> Load realm…
             </label>
-            <button type="button" class="world-switcher__action" title="Start a fresh civilization" @click="newCiv">
-              <Plus :size="14" /> New civ
+            <button type="button" class="world-switcher__action" title="Found a fresh realm" @click="newCiv">
+              <Plus :size="14" /> New realm
             </button>
           </div>
         </div>
@@ -111,13 +111,13 @@ export default {
 
     const hasData = computed(() => !!store.currentData)
     const countryName = computed(() => {
-      if (!store.currentData) return 'No World Loaded'
-      return store.currentData.country?.basic_info?.name?.trim() || 'Untitled Civilization'
+      if (!store.currentData) return 'No Realm Charted'
+      return store.currentData.country?.basic_info?.name?.trim() || 'Unnamed Realm'
     })
     const provinceCount = computed(() => store.currentData?.provinces?.length ?? null)
     const worldSub = computed(() => {
       const leader = store.currentData?.country?.basic_info?.leader
-      return hasData.value ? `${leader || 'Unassigned'} · autosaved` : 'Create or load a template'
+      return hasData.value ? `${leader || 'Unassigned'} · autosaved` : 'Found or load a realm'
     })
 
     const workspace = computed(() => [
@@ -168,7 +168,7 @@ export default {
           const electionState = extractElectionState(parsed)
           store.addWorld(parsed, { election: electionState })
         } catch (err) {
-          store.showToast('Invalid JSON file. Please choose a valid template file.', 'error')
+          store.showToast('Invalid JSON file. Please choose a valid realm file.', 'error')
         }
       }
       reader.readAsText(file)

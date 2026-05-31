@@ -4,11 +4,11 @@
       <Network :size="52" class="text-[var(--accent)]" />
       <div>
         <h2>No Regional Data</h2>
-        <p>Load or create a template with province groups.</p>
+        <p>Load or found a realm with province groups.</p>
       </div>
       <button type="button" class="btn-primary" @click="openNewTemplate">
         <FilePlus2 :size="16" />
-        New Template
+        New Realm
       </button>
     </div>
 
@@ -16,12 +16,12 @@
       <header class="province-details-header">
         <div class="province-title-block">
           <p class="eyebrow">Regional Details</p>
-          <h2>Regional Decision Desk</h2>
+          <h2>Regional Survey Desk</h2>
           <p class="province-deck">{{ chartRows.length }} regions · {{ currentMode.label }}</p>
           <div class="province-context-chips">
             <span>{{ rows.length }} regions</span>
             <span>{{ totalProvinces }} provinces</span>
-            <span>{{ formatCompactNumber(totalProvincialPopulation) }} people</span>
+            <span>{{ formatCompactNumber(totalProvincialPopulation) }} subjects</span>
             <span v-if="focusedRow">Focus: {{ focusedRow.name }}</span>
           </div>
         </div>
@@ -46,7 +46,7 @@
         <div class="constellation-band-head">
           <div>
             <p class="eyebrow">Region Constellation</p>
-            <h3>Click a region to focus the drill-in</h3>
+            <h3>Choose a region to open its dossier</h3>
           </div>
           <div class="constellation-controls">
             <label class="province-search-field">

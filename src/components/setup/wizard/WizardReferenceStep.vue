@@ -2,7 +2,7 @@
   <div class="wizard-step-body">
     <p class="wizard-step-lead">
       Define the shared building blocks your provinces will reference: regional
-      groups, religions, and the political parties that contest elections.
+      groups, faiths, and the factions that contest elections.
     </p>
 
     <div class="wizard-grid wizard-grid--two">
