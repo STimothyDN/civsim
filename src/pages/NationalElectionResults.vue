@@ -3,7 +3,7 @@
     :icon="Vote"
     eyebrow="National Elections"
     :title="`National Returns Desk`"
-    :subtitle="`${countryName} · ${formatCompactNumber(results?.national?.population || 0)} subjects · ${regionRows.length} regions`"
+    :subtitle="`${countryName} · ${formatCompactNumber(results?.national?.population || 0)} subjects${regionRows.length ? ` · ${regionRows.length} regions` : ''}`"
     scope="national"
   >
     <template #hero-calls>

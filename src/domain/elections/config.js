@@ -5,8 +5,10 @@ import {
   DEFAULT_CALCULATIONS,
   DEFAULT_ELECTION_RULES,
   DEFAULT_NAMING,
+  DEFAULT_STRUCTURE,
   createDefaultConfig,
 } from './constants/defaultConfig'
+import { POLITICAL_STRUCTURES } from './constants/politicalStructures'
 import { DEFAULT_VOTER_BLOCS } from './constants/defaultVoterBlocs'
 
 export { createDefaultConfig }
@@ -38,6 +40,10 @@ function normalizeVoterBlocs(value) {
       id: String(bloc.id || `bloc-${index + 1}`),
       label: String(bloc.label || bloc.id || `Voter bloc ${index + 1}`),
       party: String(bloc.party || ''),
+      // Optional link to a representative-naming culture (config.naming.cultures[].id).
+      // When set, reps of this bloc's party draw on that culture's names in
+      // provinces where the bloc is present (province-aware naming).
+      cultureId: bloc.cultureId ? String(bloc.cultureId) : null,
       source: isPlainObject(bloc.source) ? deepClone(bloc.source) : {},
       strength: isPlainObject(bloc.strength)
         ? { county: Number(bloc.strength.county) || 0, province: Number(bloc.strength.province) || 0, national: Number(bloc.strength.national) || 0 }
@@ -92,6 +98,35 @@ function normalizeNaming(value) {
   }
 }
 
+const VALID_UPPER_BASES = new Set(['equalPerProvince', 'degressiveTiers'])
+
+/**
+ * Normalize the per-template political structure knobs. Only the predefined
+ * structure shape is trusted (resolved at engine time); this validates the
+ * user-editable id + knobs, falling back to decentralized defaults.
+ */
+function normalizeStructure(value) {
+  const out = mergeDefaults(DEFAULT_STRUCTURE, value)
+  out.id = POLITICAL_STRUCTURES[value?.id] ? value.id : DEFAULT_STRUCTURE.id
+  if (!isPlainObject(out.national)) out.national = deepClone(DEFAULT_STRUCTURE.national)
+  if (!isPlainObject(out.national.lower)) out.national.lower = {}
+  if (!isPlainObject(out.national.upper)) out.national.upper = {}
+
+  const divisor = Number(out.national.lower.populationDivisor)
+  out.national.lower.populationDivisor =
+    Number.isFinite(divisor) && divisor > 0 ? divisor : DEFAULT_STRUCTURE.national.lower.populationDivisor
+
+  out.national.upper.basis = VALID_UPPER_BASES.has(out.national.upper.basis)
+    ? out.national.upper.basis
+    : DEFAULT_STRUCTURE.national.upper.basis
+
+  const seats = Math.round(Number(out.national.upper.seatsPerProvince))
+  out.national.upper.seatsPerProvince =
+    Number.isFinite(seats) && seats >= 0 ? seats : DEFAULT_STRUCTURE.national.upper.seatsPerProvince
+
+  return out
+}
+
 /**
  * Build the canonical, fully-populated config block from raw template data.
  * Migrates the legacy top-level `election_parties` map into `config.parties`.
@@ -104,6 +139,7 @@ export function normalizeConfig(data) {
     chambers: mergeDefaults(DEFAULT_CHAMBERS, raw.chambers),
     calculations: normalizeCalculations(raw.calculations),
     elections: mergeDefaults(DEFAULT_ELECTION_RULES, raw.elections),
+    structure: normalizeStructure(raw.structure),
     naming: normalizeNaming(raw.naming),
   }
 }

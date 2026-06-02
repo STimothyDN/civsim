@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useCivilizationStore } from '../stores/civilizationStore'
+import { getStructure } from '../domain/elections'
 
 const CommandCenter = () => import('../pages/CommandCenter.vue')
 const OverviewRoute = () => import('../pages/OverviewRoute.vue')
@@ -65,6 +67,15 @@ const routes = [
         name: 'RegionalElectionResults',
         component: RegionalElectionResults,
         meta: { title: 'Civ Sim — Regional Election Results' },
+        beforeEnter: (to, from, next) => {
+          // Structures without a region tier (e.g. federalist) have no regional view.
+          const civStore = useCivilizationStore()
+          if (!getStructure(civStore.structure?.id).hasRegionTier) {
+            next({ name: 'NationalElectionResults' })
+            return
+          }
+          next()
+        },
       },
       {
         path: 'provincial',

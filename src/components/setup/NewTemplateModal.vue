@@ -80,6 +80,7 @@ import { useFormStore } from '../../stores/formStore'
 import { useElectionStore } from '../../stores/electionStore'
 import { useUiStore } from '../../stores/uiStore'
 import WizardCountryStep from './wizard/WizardCountryStep.vue'
+import WizardStructureStep from './wizard/WizardStructureStep.vue'
 import WizardReferenceStep from './wizard/WizardReferenceStep.vue'
 import WizardProvincesStep from './wizard/WizardProvincesStep.vue'
 
@@ -95,6 +96,7 @@ export default {
 
     const steps = [
       { title: 'Your Realm', component: markRaw(WizardCountryStep) },
+      { title: 'Political Structure', component: markRaw(WizardStructureStep) },
       { title: 'Reference Data', component: markRaw(WizardReferenceStep) },
       { title: 'Provinces & Counties', component: markRaw(WizardProvincesStep) },
     ]

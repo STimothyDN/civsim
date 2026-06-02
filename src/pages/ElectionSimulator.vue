@@ -56,10 +56,12 @@
 </template>
 
 <script>
-import { markRaw } from 'vue'
+import { computed, markRaw, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Activity, BrainCircuit, Building2, ClipboardList, LayoutDashboard, Map, Radio, Users, Vote } from 'lucide-vue-next'
 import { useUiStore } from '../stores/uiStore'
+import { useCivilizationStore } from '../stores/civilizationStore'
+import { getStructure } from '../domain/elections'
 import ElectionContextChip from '../components/elections/ElectionContextChip.vue'
 
 export default {
@@ -69,8 +71,11 @@ export default {
     const route = useRoute()
     const router = useRouter()
     const uiStore = useUiStore()
+    const civStore = useCivilizationStore()
 
-    const tabs = [
+    const hasRegionTier = computed(() => getStructure(civStore.structure?.id).hasRegionTier)
+
+    const allTabs = [
       { to: '/elections/pre-election', label: 'Pre-Election', icon: markRaw(ClipboardList) },
       { to: '/elections/overview', label: 'Overview', icon: markRaw(LayoutDashboard) },
       { to: '/elections/national', label: 'National', icon: markRaw(Vote) },
@@ -78,6 +83,19 @@ export default {
       { to: '/elections/provincial', label: 'Provincial', icon: markRaw(Building2) },
       { to: '/elections/directory', label: 'Directory', icon: markRaw(Users) },
     ]
+    const tabs = computed(() =>
+      allTabs.filter((tab) => tab.to !== '/elections/regional' || hasRegionTier.value)
+    )
+
+    // Redirect away from the regional view when the active structure has no
+    // region tier. Reactive so it also fires once autosave hydration resolves
+    // (the beforeEnter guard can run before the store is hydrated) and when the
+    // user switches structure while sitting on the regional page.
+    watch(hasRegionTier, (has) => {
+      if (!has && route.path === '/elections/regional') {
+        router.replace('/elections/national')
+      }
+    }, { immediate: true })
 
     return { route, router, tabs, uiStore }
   },

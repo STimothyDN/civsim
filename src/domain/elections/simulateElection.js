@@ -17,6 +17,8 @@ import { applyTrends } from './trends/applyTrends'
 import { clamp, num, roundTo, sumObjectValues } from './normalization/numbers'
 import { determineHouseControl } from './coalitions/houseControl'
 import { applyNeighborInfluence } from './scoring/applyNeighborInfluence'
+import { resolveStructure } from './constants/politicalStructures'
+import { calculateNationalFederalist } from './structures/federalistNational'
 
 function mergeConfig(electionConfig = {}, rules = {}) {
   const volatilityBase = rules.volatility || DEFAULT_VOLATILITY
@@ -355,6 +357,14 @@ function buildFeatureUnitsByName(data, rows) {
   return map
 }
 
+// Seats a single province sends to the federalist national upper house:
+// the degressive tier count (= province.prelates) or a fixed equal count.
+function federalistUpperSeatsForProvince(province, config) {
+  const upper = config.structure?.national?.upper || {}
+  if (upper.basis === 'degressiveTiers') return Math.max(0, Math.round(num(province.prelates)))
+  return Math.max(0, Math.round(num(upper.seatsPerProvince, 2)))
+}
+
 function buildProvinceResult(data, row, config, featureUnitsByName = null) {
   const raw = rawProvinceFor(data, row)
   const ownKey = provinceNameKey(row?.name || raw?.name)
@@ -390,10 +400,20 @@ function buildProvinceResult(data, row, config, featureUnitsByName = null) {
   const prelateSeatCount = usesCountyCouncil
     ? counties.filter((county) => num(county.county_population) > 0).length
     : province.prelates
-  const national_prelate_delegation = apportionDHondt(assembly.vote_shares, province.prelates, {
-    threshold: config.thresholds?.nationalPrelates ?? THRESHOLDS.nationalPrelates,
-    rawScores: assembly.adjusted_scores,
-  })
+  // Each province's delegation to the national upper house. The semantics vary
+  // by structure: decentralized derives it from the provincial assembly vote
+  // across the province's prelate seats; federalist uses the province's council
+  // vote across its national upper-house allotment (equal-per-province or the
+  // degressive tier count). Used both to total the national upper house and to
+  // label each national council seat with its province of origin.
+  const national_prelate_delegation = config.structure?.id === 'federalist'
+    ? apportionDHondt(prelates.vote_shares, federalistUpperSeatsForProvince(province, config), {
+      threshold: config.thresholds?.nationalPrelates ?? THRESHOLDS.nationalPrelates,
+    })
+    : apportionDHondt(assembly.vote_shares, province.prelates, {
+      threshold: config.thresholds?.nationalPrelates ?? THRESHOLDS.nationalPrelates,
+      rawScores: assembly.adjusted_scores,
+    })
 
   return {
     provinceIndex: province.provinceIndex,
@@ -493,7 +513,16 @@ function addRegionControls(regions, trends, partyNames, coalitionPartners) {
   return regions
 }
 
+// National-tier dispatch by political structure. Decentralized keeps the
+// original aggregation/blend; federalist rebuilds the chambers from provinces.
 function calculateNational(provinces, config) {
+  if (config.structure?.id === 'federalist') {
+    return calculateNationalFederalist(provinces, config)
+  }
+  return calculateNationalDecentralized(provinces, config)
+}
+
+function calculateNationalDecentralized(provinces, config) {
   const features = calculateNationalFeatures(provinces)
   const unit = { id: 'national', name: 'National', political_features: features, features }
   const blocMembership = aggregateNationalBlocMembership(provinces, config.voterBlocs)
@@ -633,6 +662,9 @@ export function buildElectionConfig(data, electionConfig = {}) {
   return {
     ...mergeConfig(electionConfig, data?.config?.elections || {}),
     ...partyConfigBits(data),
+    // Attached AFTER the spreads so a stray electionConfig.structure can't clobber them.
+    structure: resolveStructure(data?.config?.structure),
+    calculations: data?.config?.calculations,
   }
 }
 
@@ -642,7 +674,9 @@ export function simulateElection({ data, provinceRows = [], electionConfig = {} 
   const rows = Array.isArray(provinceRows) ? provinceRows : []
   const featureUnitsByName = buildFeatureUnitsByName(data || {}, rows)
   const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, featureUnitsByName))
-  const regions = addRegionControls(aggregateRegions(provinces, partyList), config.trends, config.partyNames, coalitionPartners)
+  const regions = config.structure?.hasRegionTier
+    ? addRegionControls(aggregateRegions(provinces, partyList), config.trends, config.partyNames, coalitionPartners)
+    : {}
   const national = calculateNational(provinces, config)
   const diagnostics = validateResults(provinces, national)
 

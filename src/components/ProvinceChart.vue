@@ -5,7 +5,7 @@
 <script>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { use, init } from 'echarts/core'
-import { BarChart, HeatmapChart, LineChart, RadarChart, ScatterChart, TreemapChart } from 'echarts/charts'
+import { BarChart, HeatmapChart, LineChart, PieChart, RadarChart, ScatterChart, TreemapChart } from 'echarts/charts'
 import {
   DataZoomComponent,
   GridComponent,
@@ -24,6 +24,7 @@ use([
   HeatmapChart,
   LegendComponent,
   LineChart,
+  PieChart,
   RadarChart,
   RadarComponent,
   ScatterChart,

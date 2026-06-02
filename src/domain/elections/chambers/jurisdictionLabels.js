@@ -64,10 +64,53 @@ function generateAssemblyLabels({ scope, seats, provinces = [], selectedProvince
 }
 
 /**
- * National Assembly: For each party's seats, find their strongest supporting provinces.
- * Label seats with provinces weighted by contribution to that party's national vote.
+ * Stable ordering of provinces for seat attribution: national capital first,
+ * then regional capitals, then alphabetical.
+ */
+function compareProvincesForSeating(a, b) {
+  if (a.is_national_capital && !b.is_national_capital) return -1
+  if (!a.is_national_capital && b.is_national_capital) return 1
+  if (a.is_regional_capital && !b.is_regional_capital) return -1
+  if (!a.is_regional_capital && b.is_regional_capital) return 1
+  return (a.name || '').localeCompare(b.name || '')
+}
+
+/**
+ * Build national-chamber seat labels from an explicit per-province delegation
+ * (each province → party → seat count). Used when a province carries an exact
+ * delegation for the chamber (federalist lower house via
+ * `national_assembly_delegation`; any structure's upper house via
+ * `national_prelate_delegation`).
+ */
+function generateNationalDelegationLabels(provinces, seats, delegationKey) {
+  const seatAssignments = []
+  const sortedProvinces = [...provinces].sort(compareProvincesForSeating)
+
+  for (const province of sortedProvinces) {
+    const delegation = province[delegationKey] || {}
+    const provinceName = province.name || 'Unknown Province'
+    for (const party of PARTIES) {
+      const partySeatsFromProvince = num(delegation[party])
+      for (let i = 0; i < partySeatsFromProvince; i++) {
+        seatAssignments.push({ provinceName, party })
+      }
+    }
+  }
+
+  return reorderAssignmentsByPartyGrouping(seatAssignments, seats)
+}
+
+/**
+ * National Assembly: when provinces carry an explicit lower-house delegation
+ * (federalist, districted by province) attribute each seat to the province that
+ * elected it. Otherwise (decentralized, at-large) label seats with provinces
+ * weighted by contribution to that party's national vote.
  */
 function generateNationalAssemblyLabels(provinces, seats) {
+  if (provinces.some((p) => p && p.national_assembly_delegation)) {
+    return generateNationalDelegationLabels(provinces, seats, 'national_assembly_delegation')
+  }
+
   const seatAssignments = []
 
   // For each party, calculate their vote share in each province weighted by population
@@ -304,35 +347,9 @@ function generateCouncilLabels({
  * how many seats each party gets from each province.
  */
 function generateNationalCouncilLabels(provinces, seats) {
-  // Build a flat list of [provinceName, party] for each national council seat
-  const seatAssignments = []
-
-  // Process provinces in a consistent order
-  const sortedProvinces = [...provinces].sort((a, b) => {
-    // National capitals first, then regional capitals, then alphabetical
-    if (a.is_national_capital && !b.is_national_capital) return -1
-    if (!a.is_national_capital && b.is_national_capital) return 1
-    if (a.is_regional_capital && !b.is_regional_capital) return -1
-    if (!a.is_regional_capital && b.is_regional_capital) return 1
-    return (a.name || '').localeCompare(b.name || '')
-  })
-
-  for (const province of sortedProvinces) {
-    const delegation = province.national_prelate_delegation || {}
-    const provinceName = province.name || 'Unknown Province'
-
-    // For each party, add their delegated seats from this province
-    for (const party of PARTIES) {
-      const partySeatsFromProvince = num(delegation[party])
-      for (let i = 0; i < partySeatsFromProvince; i++) {
-        seatAssignments.push({ provinceName, party })
-      }
-    }
-  }
-
-  // Now we need to reorder to match the party grouping in the visualization
-  // The seats are ordered by party (coalition first, then by seat count)
-  return reorderAssignmentsByPartyGrouping(seatAssignments, seats)
+  // Each national council seat represents a province, taken from that province's
+  // delegation to the national upper house (structure-aware: see buildProvinceResult).
+  return generateNationalDelegationLabels(provinces, seats, 'national_prelate_delegation')
 }
 
 /**

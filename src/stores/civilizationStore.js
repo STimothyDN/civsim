@@ -108,6 +108,7 @@ export const useCivilizationStore = defineStore('civilization', () => {
   const chambers = computed(() => config.value.chambers || {})
   const calculations = computed(() => config.value.calculations || {})
   const electionParams = computed(() => config.value.elections || {})
+  const structure = computed(() => config.value.structure || {})
   const voterBlocs = computed(() => config.value.voterBlocs || [])
   const naming = computed(() => config.value.naming || {})
 
@@ -152,6 +153,7 @@ export const useCivilizationStore = defineStore('civilization', () => {
     chambers,
     calculations,
     electionParams,
+    structure,
     voterBlocs,
     naming,
 

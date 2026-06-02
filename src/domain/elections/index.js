@@ -39,5 +39,16 @@ export {
   apportionModifiedSainteLague,
   apportionSainteLague,
 } from './apportionment/highestAverages'
+export { apportionLargestRemainder } from './apportionment/highestAverages'
 export { allocateCountyPopulations, countyAllowsAmbientPopulation, countyPopulationWeight } from './population/allocateCountyPopulations'
 export { scoresToVoteShares } from './scoring/normalizeScores'
+export {
+  DECENTRALIZED,
+  FEDERALIST,
+  POLITICAL_STRUCTURES,
+  POLITICAL_STRUCTURE_LIST,
+  DEFAULT_STRUCTURE,
+  DEFAULT_STRUCTURE_ID,
+  getStructure,
+  resolveStructure,
+} from './constants/politicalStructures'

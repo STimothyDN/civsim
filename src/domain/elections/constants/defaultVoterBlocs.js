@@ -31,6 +31,7 @@ export const DEFAULT_VOTER_BLOCS = [
     id: 'american_identity',
     label: 'American provincial identity',
     party: 'white',
+    cultureId: 'american',
     source: { selector: AMERICAN_SELECTOR },
     // Province/county strengths express the natural-vs-diaspora *delta* (the
     // boost rides on the diaspora base). National reproduces the old additive
@@ -41,6 +42,7 @@ export const DEFAULT_VOTER_BLOCS = [
     id: 'american_conquered',
     label: 'Conquered American provinces',
     party: 'white',
+    cultureId: 'american',
     source: { selector: { all: [AMERICAN_SELECTOR, { isConquered: true }] } },
     strength: { county: 0.056, province: 0.06, national: 0 },
   },
@@ -57,6 +59,7 @@ export const DEFAULT_VOTER_BLOCS = [
     id: 'roman_restoration',
     label: 'Roman royal restorationism',
     party: 'purple',
+    cultureId: 'roman',
     source: { selector: ROMAN_SELECTOR },
     strength: { county: 0.14, province: 0.13, national: 0.1 },
   },

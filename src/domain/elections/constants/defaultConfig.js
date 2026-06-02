@@ -1,5 +1,6 @@
 import { DEFAULT_PARTIES } from './defaultParties'
 import { DEFAULT_VOTER_BLOCS } from './defaultVoterBlocs'
+import { DEFAULT_STRUCTURE } from './politicalStructures'
 import { DEFAULT_NAMING } from '../representativeNames'
 import { deepClone } from '../../../utils/object'
 
@@ -76,8 +77,9 @@ export function createDefaultConfig() {
     chambers: deepClone(DEFAULT_CHAMBERS),
     calculations: deepClone(DEFAULT_CALCULATIONS),
     elections: deepClone(DEFAULT_ELECTION_RULES),
+    structure: deepClone(DEFAULT_STRUCTURE),
     naming: deepClone(DEFAULT_NAMING),
   }
 }
 
-export { DEFAULT_NAMING }
+export { DEFAULT_NAMING, DEFAULT_STRUCTURE }

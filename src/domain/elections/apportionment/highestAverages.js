@@ -66,3 +66,54 @@ export function apportionModifiedSainteLague(voteShares, seatCount, options = {}
   return apportionHighestAverages(voteShares, seatCount, modifiedSainteLagueDivisor, options)
 }
 
+/**
+ * Largest-remainder (Hamilton) apportionment of a fixed seat total across a set
+ * of keyed weights (e.g. distribute national lower-house seats across provinces
+ * by population). Each key is first floored to `minSeats`; the remaining seats
+ * are distributed by Hare quota with leftover seats going to the largest
+ * fractional remainders. Ties break deterministically by original key order.
+ *
+ * If the total can't satisfy the per-key minimum it is raised to the minimum
+ * feasible total (keys × minSeats) so the floor is always honored.
+ *
+ * @param {Object<string, number>} weights  key → weight (e.g. population)
+ * @param {number} totalSeats               seats to distribute
+ * @param {{ keys?: string[], minSeats?: number }} options
+ * @returns {Object<string, number>}        key → seat count
+ */
+export function apportionLargestRemainder(weights, totalSeats, options = {}) {
+  const keys = options.keys || Object.keys(weights || {})
+  const minSeats = Math.max(0, Math.round(num(options.minSeats)))
+  const seats = Object.fromEntries(keys.map((key) => [key, minSeats]))
+  if (!keys.length) return seats
+
+  let total = Math.max(0, Math.round(num(totalSeats)))
+  if (total < keys.length * minSeats) total = keys.length * minSeats
+
+  let remaining = total - keys.length * minSeats
+  if (remaining <= 0) return seats
+
+  const totalWeight = keys.reduce((sum, key) => sum + Math.max(0, num(weights[key])), 0)
+  if (totalWeight <= 0) {
+    for (let i = 0; remaining > 0; i += 1, remaining -= 1) seats[keys[i % keys.length]] += 1
+    return seats
+  }
+
+  const quotas = keys.map((key, index) => {
+    const exact = (Math.max(0, num(weights[key])) / totalWeight) * remaining
+    const floorVal = Math.floor(exact)
+    return { key, index, floorVal, remainder: exact - floorVal }
+  })
+  quotas.forEach((quota) => {
+    seats[quota.key] += quota.floorVal
+    remaining -= quota.floorVal
+  })
+
+  quotas.sort((a, b) => (b.remainder - a.remainder) || (a.index - b.index))
+  for (let i = 0; i < quotas.length && remaining > 0; i += 1, remaining -= 1) {
+    seats[quotas[i].key] += 1
+  }
+
+  return seats
+}
+

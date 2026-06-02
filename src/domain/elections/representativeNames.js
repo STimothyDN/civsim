@@ -7,7 +7,13 @@
 import { generateSeatDetails } from './chambers/jurisdictionLabels'
 import { SEAT_OFFSETS } from './constants/seatOffsets'
 import { matchesSelector } from './trends/matchTrend'
+import { blocMembership } from './features/voterBlocs'
 import { num } from './normalization/numbers'
+
+// Weight a direct culture→party tie (config.naming.cultures[].parties) adds,
+// and the weight a voter-bloc link contributes per unit of bloc membership.
+const PARTY_TIE_WEIGHT = 1.5
+const BLOC_NAMING_WEIGHT = 1.5
 
 // Traditional Khmer given names
 const KHMER_GIVEN_NAMES = {
@@ -351,7 +357,9 @@ export const DEFAULT_NAMING = {
       givenFemale: AMERICAN_GIVEN_NAMES.female,
       surnames: AMERICAN_SURNAMES,
       selector: { any: [{ groupIncludes: ['American'] }, { originalCountryIncludes: ['American', 'United States'] }] },
-      parties: ['white'],
+      // Party association is now driven by voter blocs (american_identity →
+      // white, cultureId: 'american'); see DEFAULT_VOTER_BLOCS.
+      parties: [],
       influence: 1,
       ambient: 0,
       surnameBlend: 0.5,
@@ -363,7 +371,9 @@ export const DEFAULT_NAMING = {
       givenFemale: ROMAN_GIVEN_NAMES.female,
       surnames: ROMAN_SURNAMES,
       selector: { any: [{ groupIncludes: ['Roman'] }, { originalCountryIncludes: ['Roman'] }] },
-      parties: ['purple'],
+      // Party association is now driven by voter blocs (roman_restoration →
+      // purple, cultureId: 'roman'); see DEFAULT_VOTER_BLOCS.
+      parties: [],
       influence: 1,
       ambient: 0,
       surnameBlend: 0.5,
@@ -393,26 +403,37 @@ export const DEFAULT_NAMING = {
   ],
 }
 
-function cultureWeightFor(culture, province, party) {
+function cultureWeightFor(culture, province, party, voterBlocs = []) {
   let w = num(culture.ambient)
   if (culture.selector && province && matchesSelector(province, culture.selector)) {
     w += culture.influence == null ? 1 : num(culture.influence)
   }
   if (party && Array.isArray(culture.parties) && culture.parties.includes(party)) {
-    w += 1.5
+    w += PARTY_TIE_WEIGHT
+  }
+  // Province-aware voter-bloc link: a bloc that backs this seat's party and
+  // names this culture lends its names where the bloc is actually present.
+  // Weight scales with the bloc's membership in this province (1 for a matched
+  // selector bloc, graded for religion/feature blocs).
+  if (party && province && voterBlocs.length) {
+    for (const bloc of voterBlocs) {
+      if (bloc.party !== party || bloc.cultureId !== culture.id) continue
+      const membership = blocMembership(province, bloc)
+      if (membership > 0) w += membership * BLOC_NAMING_WEIGHT
+    }
   }
   return w
 }
 
 // Weighted seeded pick of a culture for a seat. The home culture is always in
-// the running; matched/ambient/party-tied cultures compete against it.
-function pickCulture(naming, province, party, rng) {
+// the running; matched/ambient/party-tied and bloc-linked cultures compete.
+function pickCulture(naming, province, party, rng, voterBlocs = []) {
   const home = naming.homeCulture || DEFAULT_NAMING.homeCulture
   const cultures = Array.isArray(naming.cultures) ? naming.cultures : []
   const entries = [{ culture: home, w: 1 }]
   let total = 1
   for (const c of cultures) {
-    const w = cultureWeightFor(c, province, party)
+    const w = cultureWeightFor(c, province, party, voterBlocs)
     if (w > 0) {
       entries.push({ culture: c, w })
       total += w
@@ -447,7 +468,7 @@ function generateNameFromCulture(culture, home, gender, rng) {
 }
 
 // Main function to generate representative names
-export function generateRepresentativeNames(seatDetails, provinces, seed = 'default', naming = DEFAULT_NAMING) {
+export function generateRepresentativeNames(seatDetails, provinces, seed = 'default', naming = DEFAULT_NAMING, voterBlocs = []) {
   const names = {}
   const usedNames = new Set()
   const home = naming.homeCulture || DEFAULT_NAMING.homeCulture
@@ -469,7 +490,7 @@ export function generateRepresentativeNames(seatDetails, provinces, seed = 'defa
     let name
     let attempts = 0
     do {
-      const culture = pickCulture(naming, province, seat.party, rng)
+      const culture = pickCulture(naming, province, seat.party, rng, voterBlocs)
       name = generateNameFromCulture(culture, home, gender, rng)
       attempts++
     } while (usedNames.has(name) && attempts < 100)
@@ -489,7 +510,7 @@ function rosterKey(party, withinPartyIndex, scopeKey) {
 
 // Generate names for a scope+chamber block, applying incumbents where available,
 // and recording new roster entries. Returns { names, rosterEntries }.
-function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbentRoster, naming = DEFAULT_NAMING) {
+function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbentRoster, naming = DEFAULT_NAMING, voterBlocs = []) {
   const names = {}
   const rosterEntries = {}
   const incumbencies = {}
@@ -510,7 +531,7 @@ function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbe
       const gender = seat.seatIndex % 2 === 0 ? 'male' : 'female'
       let attempts = 0
       do {
-        const culture = pickCulture(naming, province, seat.party, rng)
+        const culture = pickCulture(naming, province, seat.party, rng, voterBlocs)
         name = generateNameFromCulture(culture, home, gender, rng)
         attempts++
       } while (usedNames.has(name) && attempts < 100)
@@ -532,6 +553,7 @@ export function generateAllScopeNames(results, store, electionStore) {
   const resultsValue = results
   const countryName = store?.currentData?.country?.basic_info?.name || 'civilization'
   const naming = store?.currentData?.config?.naming || DEFAULT_NAMING
+  const voterBlocs = Array.isArray(store?.currentData?.config?.voterBlocs) ? store.currentData.config.voterBlocs : []
   const seed = resultsValue.config?.seed || 'default'
   const incumbentRoster = electionStore.incumbentRoster || {}
   const newRoster = {}
@@ -540,7 +562,7 @@ export function generateAllScopeNames(results, store, electionStore) {
     const seatDetails = rawSeatDetails.map((s) => ({ ...s, chamberType, seatIndex: s.seatIndex + offset }))
     if (!seatDetails.length) return
     const nameSeed = `${countryName}_${seed}-${scopeKey}-${chamberType}`
-    const { names, rosterEntries, incumbencies } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, `${scopeKey}_${chamberType}`, incumbentRoster, naming)
+    const { names, rosterEntries, incumbencies } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, `${scopeKey}_${chamberType}`, incumbentRoster, naming, voterBlocs)
     electionStore.representativeNames = { ...electionStore.representativeNames, ...names }
     electionStore.representativeIncumbents = { ...electionStore.representativeIncumbents, ...incumbencies }
     Object.assign(newRoster, rosterEntries)

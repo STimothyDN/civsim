@@ -3,7 +3,7 @@
     :icon="LayoutDashboard"
     eyebrow="Election Overview"
     :title="`${countryName} Election Board`"
-    :subtitle="`${formatCompactNumber(results?.national?.population || 0)} subjects · ${results?.provinces?.length || 0} provinces · ${regionRows.length} regions`"
+    :subtitle="`${formatCompactNumber(results?.national?.population || 0)} subjects · ${results?.provinces?.length || 0} provinces${hasRegions ? ` · ${regionRows.length} regions` : ''}`"
     scope="overview"
     :hide-hero="true"
   >
@@ -145,7 +145,7 @@
         </div>
       </article>
 
-      <article class="overview-board-panel">
+      <article v-if="hasRegions" class="overview-board-panel">
         <div class="election-panel-heading">
           <div>
             <p class="eyebrow">Regional Calls</p>
@@ -167,7 +167,7 @@
       </article>
     </section>
 
-    <section class="overview-board-panel">
+    <section v-if="hasRegions" class="overview-board-panel">
       <div class="election-panel-heading">
         <div>
           <p class="eyebrow">Regional Seat Map</p>
@@ -331,6 +331,7 @@ export default {
     })
     const regionOrder = computed(() => store.currentData?.province_groups || [])
     const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value))
+    const hasRegions = computed(() => regionRows.value.length > 0)
 
     const overviewAssemblyJurisdictionLabels = computed(() => generateJurisdictionLabels({
       seats: results.value.national.assembly.seats,
@@ -356,7 +357,7 @@ export default {
       results.value.config.scenarioDescription || `${formatNumber(results.value.config.trends.length)} climate signals`
     ))
     const mergedControlBoards = computed(() => [
-      {
+      ...(hasRegions.value ? [{
         eyebrow: 'Regional Map',
         label: 'Regional Control',
         total: regionRows.value.length,
@@ -366,7 +367,7 @@ export default {
           { label: 'Assembly Calls', rows: countControlLeaders(regionRows.value, 'assembly', partyMeta.value) },
           { label: 'Council Calls', rows: countControlLeaders(regionRows.value, 'prelates', partyMeta.value) },
         ],
-      },
+      }] : []),
       {
         eyebrow: 'Provincial Map',
         label: 'Provincial Control',
@@ -413,6 +414,7 @@ export default {
       formatNumber,
       formatShare,
       hasData,
+      hasRegions,
       LayoutDashboard,
       lowerHouseNameFor,
       mergedControlBoards,

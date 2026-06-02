@@ -232,7 +232,7 @@ import { computed, watch } from 'vue'
 import { BrainCircuit, GitCompare, Info, Radio, RefreshCcw } from 'lucide-vue-next'
 import { usePolls } from '../../composables/usePolls'
 import { useElectionResults } from '../../composables/useElectionResults'
-import { PARTIES, formatShare, determineHouseControl, winnerControlStyle } from '../../domain/elections'
+import { PARTIES, formatShare, determineHouseControl, winnerControlStyle, getStructure } from '../../domain/elections'
 import { useChamberLabels } from '../../composables/useChamberLabels'
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
 import { formatNumber } from '../../domain/formatting'
@@ -253,11 +253,16 @@ export default {
     const electionStore = useElectionStore()
     const { currentScope, pollingStore, provincialScopes, regionalScopes } = usePolls()
     const { results } = useElectionResults()
-    const scopeOptions = [
+    const hasRegionTier = computed(() => getStructure(civStore.structure?.id).hasRegionTier)
+    const scopeOptions = computed(() => [
       { value: 'national', label: 'National' },
-      { value: 'regional', label: 'Regional' },
+      ...(hasRegionTier.value ? [{ value: 'regional', label: 'Regional' }] : []),
       { value: 'provincial', label: 'Provincial' },
-    ]
+    ])
+    // Structures without a region tier (federalist) can't show the regional view.
+    watch(hasRegionTier, (has) => {
+      if (!has && pollingStore.view === 'regional') pollingStore.setView('national')
+    }, { immediate: true })
 
     const selectedRegionName = computed({
       get: () => pollingStore.regionName || regionalScopes.value[0]?.scopeKey || '',

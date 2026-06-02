@@ -51,8 +51,17 @@
       </button>
     </div>
 
+    <!-- POLITICAL STRUCTURE: governing tiers & chamber composition -->
+    <section v-if="activeTab === 'structure'" class="setup-panel">
+      <header class="setup-panel__head">
+        <h3>Political Structure</h3>
+        <p>Choose how power is organized. The election engine rebuilds its chambers — and which government tiers exist — to match the structure you pick.</p>
+      </header>
+      <StructureSettings />
+    </section>
+
     <!-- POLITICAL MODEL: feature × party affinity matrix -->
-    <section v-if="activeTab === 'model'" class="setup-panel">
+    <section v-else-if="activeTab === 'model'" class="setup-panel">
       <header class="setup-panel__head">
         <h3>Political Model</h3>
         <p>Each party's score is its base support plus the weighted sum of these feature affinities. Positive pulls the party up; negative pushes it down. Defaults reproduce the bundled example.</p>
@@ -170,6 +179,12 @@
           <label>Party <InfoTip :text="TIPS.blocParty" />
             <select :value="bloc.party" @change="setText(`config.voterBlocs[${i}].party`, $event)">
               <option v-for="p in parties" :key="p.id" :value="p.id">{{ p.name }}</option>
+            </select>
+          </label>
+          <label>Naming culture <InfoTip :text="TIPS.blocCulture" />
+            <select :value="bloc.cultureId || ''" @change="setBlocCulture(i, $event.target.value)">
+              <option value="">— None —</option>
+              <option v-for="c in (naming.cultures || [])" :key="c.id" :value="c.id">{{ c.label }}</option>
             </select>
           </label>
           <button type="button" class="icon-danger" :aria-label="`Remove ${bloc.label}`" @click="store.removeVoterBloc(i)"><Trash2 :size="15" /></button>
@@ -403,6 +418,7 @@ import { FEATURE_GROUPS, featuresForScope } from '../../domain/elections/feature
 import { generatePoliticalModel } from '../../domain/elections/weightGenerators'
 import { requestCultureNames } from '../../domain/elections/narrativePlanner'
 import PowerBalanceStrip from '../elections/PowerBalanceStrip.vue'
+import StructureSettings from './StructureSettings.vue'
 import InfoTip from './InfoTip.vue'
 
 const SCOPES = ['county', 'province', 'national']
@@ -415,6 +431,7 @@ const BIAS_MAX = 1.5
 
 const TIPS = {
   blocLabel: 'A human-readable name for this voter bloc. Shown here only.',
+  blocCulture: 'Optional: tie this bloc to a representative-naming culture (from the Representative Naming tab). Representatives of this bloc\'s party will draw on that culture\'s names in provinces where the bloc is present.',
   blocParty: 'Which party these voters lean toward.',
   blocMatch: 'How a province qualifies: by its origin country, its region/group, or a religion present there.',
   blocContains: 'Comma-separated text matched (case-insensitive substring) against the province\'s origin country or group.',
@@ -454,7 +471,7 @@ const TIPS = {
 
 export default {
   name: 'AdvancedSetup',
-  components: { Plus, Sparkles, Trash2, PowerBalanceStrip, InfoTip },
+  components: { Plus, Sparkles, Trash2, PowerBalanceStrip, StructureSettings, InfoTip },
   setup() {
     const store = useFormStore()
     const civStore = useCivilizationStore()
@@ -511,6 +528,9 @@ export default {
     }
     function setText(path, event) {
       store.setValueAtPath(path, event.target ? event.target.value : event)
+    }
+    function setBlocCulture(i, value) {
+      store.setValueAtPath(`config.voterBlocs[${i}].cultureId`, value || null)
     }
     function affinity(party, key) {
       return party.affinities?.[activeScope.value]?.[key] ?? 0
@@ -625,6 +645,7 @@ export default {
       results, partyMeta, hasResults,
       assemblyShares, assemblySeats, councilShares, councilSeats, pct,
       tabs: [
+        { id: 'structure', label: 'Political Structure' },
         { id: 'model', label: 'Political Model' },
         { id: 'blocs', label: 'Voter Blocs' },
         { id: 'chambers', label: 'Chambers & Titles' },
@@ -636,7 +657,7 @@ export default {
       groups: FEATURE_GROUPS,
       apportionmentKeys: APPORTIONMENT_KEYS,
       activeTab, activeScope,
-      setNum, setText, affinity, featuresInGroup, scopeLabel, humanize,
+      setNum, setText, setBlocCulture, affinity, featuresInGroup, scopeLabel, humanize,
       sourceKind, sourceValue, setSourceKind, setSourceValue,
       nameListText, setNameList, cultureMatchKind, cultureMatchValue,
       setCultureMatchKind, setCultureMatchValue, toggleCultureParty,

@@ -137,12 +137,14 @@ function buildPipeline() {
         return out
       })
       const regions = computed(() =>
-        addRegionControls(
-          aggregateRegions(provinces.value, configRef.value.partyList),
-          configRef.value.trends,
-          configRef.value.partyNames,
-          configRef.value.coalitionPartners
-        )
+        configRef.value.structure?.hasRegionTier
+          ? addRegionControls(
+            aggregateRegions(provinces.value, configRef.value.partyList),
+            configRef.value.trends,
+            configRef.value.partyNames,
+            configRef.value.coalitionPartners
+          )
+          : {}
       )
       const national = computed(() => calculateNational(provinces.value, configRef.value))
       const diagnostics = computed(() => {
