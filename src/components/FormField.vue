@@ -41,7 +41,7 @@
       <template v-else>
         <input :id="path" type="text" :value="bufferDisplay" :placeholder="valueComputed === null ? 'null' : ''" :disabled="disabled" :list="datalistId" @input="onBufferInput" @change="onTextCommit" @focus="onFocus" @blur="onBlur" />
         <datalist v-if="datalistId" :id="datalistId">
-          <option v-for="opt in datalistOptions" :key="opt" :value="opt"></option>
+          <option v-for="opt in datalistOptions" :key="opt.value" :value="opt.value" :label="opt.label"></option>
         </datalist>
       </template>
     </template>
@@ -110,12 +110,14 @@ export default {
       return { provinceIndex: parseInt(match[1], 10), field: match[2] }
     })
 
+    // { value, label } suggestions; Civ 6 catalog fields carry a category label.
     const datalistOptions = computed(() => {
-      if (props.path.match(/^provinces\[\d+\]\.closest_provinces\[\d+\]\.province_name$/)) return closestProvinceOptions.value
-      if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.terrain$/)) return store.uniqueTerrains
-      if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.resource$/)) return store.uniqueResources
-      if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.river$/)) return store.uniqueRivers
-      if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.improvement\.name$/)) return store.uniqueImprovementNames
+      const plain = (values) => values.map((value) => ({ value }))
+      if (props.path.match(/^provinces\[\d+\]\.closest_provinces\[\d+\]\.province_name$/)) return plain(closestProvinceOptions.value)
+      if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.terrain$/)) return store.terrainOptions
+      if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.resource$/)) return store.resourceOptions
+      if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.river$/)) return plain(store.uniqueRivers)
+      if (props.path.match(/^provinces\[\d+\]\.counties\[\d+\]\.improvement\.name$/)) return store.improvementOptions
       return null
     })
 

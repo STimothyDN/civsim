@@ -7,6 +7,7 @@ import { makeSeed } from '../domain/elections/randomness/seededRandom'
 import { computeAllProvinceCalcs, computeRegionalTotals, resetJitterCache } from '../utils/calculatedFields'
 import { clearAutosavedTemplate, readAutosavedState, writeAutosavedState } from '../domain/autosave'
 import { partyMetaFromConfig, partyPaletteOption } from '../domain/elections/constants/parties'
+import { buildingsForImprovement, suggestionsFor } from '../domain/civ6'
 import { buildExportTemplate, buildFullExportEnvelope, normalizeTemplateInput } from '../domain/templateCodec'
 import {
   addNamedItem,
@@ -154,6 +155,26 @@ export const useFormStore = defineStore('form', {
     },
     uniqueGreatWorks(state) {
       return collectUniqueCountyKeys(state.currentData, 'improvement.great_works')
+    },
+
+    // County editor autocomplete: the full Civ 6 catalog, then whatever this
+    // world uses that the catalog doesn't know (named seas, custom parks, …).
+    terrainOptions() {
+      return suggestionsFor('terrain', this.uniqueTerrains)
+    },
+    resourceOptions() {
+      return suggestionsFor('resource', this.uniqueResources)
+    },
+    improvementOptions() {
+      return suggestionsFor('improvement', this.uniqueImprovementNames)
+    },
+    featureOptions() {
+      return suggestionsFor('features', this.uniqueFeatures)
+    },
+    /** Building suggestions with the improvement's own district buildings first. */
+    buildingOptionsFor() {
+      const worldBuildings = this.uniqueBuildings
+      return (improvementName) => suggestionsFor('buildings', worldBuildings, buildingsForImprovement(improvementName))
     },
     /** @deprecated Use civilizationStore.partyMeta instead. Kept for backward compatibility. */
     partyMeta(state) {

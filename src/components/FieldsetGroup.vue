@@ -43,7 +43,7 @@
           </div>
         </div>
         <datalist v-if="dynamicKeyDatalistId" :id="dynamicKeyDatalistId">
-          <option v-for="opt in dynamicKeyOptions" :key="opt" :value="opt"></option>
+          <option v-for="opt in dynamicKeyOptions" :key="opt.value" :value="opt.value" :label="opt.label"></option>
         </datalist>
       </div>
       <div v-else>
@@ -82,6 +82,7 @@ import { computed, defineAsyncComponent, ref, toRaw, nextTick } from 'vue'
 import { useFormStore } from '../stores/formStore'
 import { humanize } from '../utils/text'
 import { isObject } from '../utils/object'
+import { normalizeName } from '../domain/civ6'
 
 const SECTION_ICONS = {
   template: '📋',
@@ -197,15 +198,18 @@ export default {
       cancelAddKey()
     }
 
+    // { value, label } suggestions for a new key, skipping keys already present.
     const dynamicKeyOptions = computed(() => {
       if (!isDynamicKeys.value) return []
       const p = props.path || ''
       const clean = p.replace(/\[\d+\]/g, '').split('.').filter(Boolean)
       const last = clean[clean.length - 1]
-      if (last === 'features') return store.uniqueFeatures
-      if (last === 'buildings') return store.uniqueBuildings
-      if (last === 'great_works') return store.uniqueGreatWorks
-      return []
+      let options = []
+      if (last === 'features') options = store.featureOptions
+      else if (last === 'buildings') options = store.buildingOptionsFor(store.getValueAtPath(p.replace(/\.buildings$/, '.name')))
+      else if (last === 'great_works') options = store.uniqueGreatWorks.map((value) => ({ value }))
+      const present = new Set(keys.value.map(normalizeName))
+      return options.filter((option) => !present.has(normalizeName(option.value)))
     })
 
     const dynamicKeyDatalistId = computed(() => {

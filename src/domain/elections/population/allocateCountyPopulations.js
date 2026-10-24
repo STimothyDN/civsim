@@ -1,29 +1,16 @@
 import { num } from '../normalization/numbers'
+import {
+  DEFAULT_TERRAIN_POPULATION,
+  matchFeaturePatterns,
+  resolveBuilding,
+  resolveFeature,
+  resolveImprovement,
+  resolveTerrain,
+} from '../../civ6'
 
-export const IMPROVEMENT_POP_MULTIPLIERS = {
-  'City Center': 3,
-  Neighborhood: 2.4,
-  'Commercial Hub': 2.2,
-  'Industrial Zone': 2,
-  Campus: 1.9,
-  'Holy Site': 1.8,
-  'Theater Square': 1.8,
-  'Entertainment Complex': 1.7,
-  Encampment: 1.6,
-  Aqueduct: 1.4,
-  Farm: 1.25,
-  Plantation: 1.25,
-  Pasture: 1.25,
-  Mine: 1.25,
-  Corporation: 1.25,
-  'Wind Farm': 1.1,
-  'National Park': 0.85,
-  Preserve: 0.85,
-  Biosphere: 0.85,
-}
-
-const AMBIENT_POPULATION_BLOCKED_TERRAINS = ['Ocean', 'Coast', 'Mountain']
-const WATER_TERRAINS = ['Ocean', 'Coast', 'Lake']
+// Terrain, feature, improvement and housing multipliers come from the Civ 6
+// catalog (src/domain/civ6): each entry's `population`, and each building's
+// `housing`.
 const WATER_POPULATION_MULTIPLIER = 0.3
 
 const DISTANCE_DECAY_COEFFICIENT = 0.22
@@ -32,37 +19,6 @@ const CITIZEN_WEIGHT = 0.35
 const APPEAL_WEIGHT = 0.06
 const APPEAL_MIN = -3
 const APPEAL_MAX = 5
-
-const TERRAIN_BASE_MULTIPLIERS = [
-  { match: 'Snow', value: 0.2 },
-  { match: 'Desert', value: 0.4 },
-  { match: 'Tundra (Hills)', value: 0.45 },
-  { match: 'Tundra', value: 0.5 },
-  { match: 'Grassland (Hills)', value: 0.75 },
-  { match: 'Plains (Hills)', value: 0.75 },
-  { match: 'Grassland', value: 1 },
-  { match: 'Plains', value: 1 },
-  { match: 'Lake', value: 0.55 },
-]
-
-const FEATURE_MULTIPLIERS = [
-  { match: 'Floodplains', value: 1.4 },
-  { match: 'Volcanic Soil', value: 1.25 },
-  { match: 'Oasis', value: 1.3 },
-  { match: 'Marsh', value: 0.7 },
-  { match: 'Rainforest', value: 0.65 },
-  { match: 'Woods', value: 0.9 },
-  { match: 'Reef', value: 0.85 },
-]
-
-const HOUSING_BUILDING_BONUSES = {
-  Sewer: 0.25,
-  Aqueduct: 0.2,
-  Neighborhood: 0.3,
-  'Water Mill': 0.1,
-  Granary: 0.1,
-  'Flood Barrier': 0.15,
-}
 
 const YIELD_COEFFICIENTS = {
   food: 0.03,
@@ -74,16 +30,18 @@ const YIELD_COEFFICIENTS = {
 }
 
 function isWaterCounty(county) {
-  const terrain = terrainName(county)
-  return WATER_TERRAINS.some((waterTerrain) => terrain.includes(waterTerrain))
+  return Boolean(resolveTerrain(county?.terrain)?.water)
 }
 
 function terrainBaseMultiplier(county) {
-  const terrain = terrainName(county)
-  for (const entry of TERRAIN_BASE_MULTIPLIERS) {
-    if (terrain.includes(entry.match)) return entry.value
-  }
-  return 0.75
+  return resolveTerrain(county?.terrain)?.population ?? DEFAULT_TERRAIN_POPULATION
+}
+
+function featurePopulation(featureKey) {
+  const entry = resolveFeature(featureKey)
+  if (entry) return entry.population ?? 1
+  const pattern = matchFeaturePatterns(featureKey).find((match) => match.population !== undefined)
+  return pattern ? pattern.population : 1
 }
 
 function featureMultiplier(county) {
@@ -91,12 +49,7 @@ function featureMultiplier(county) {
   let multiplier = 1
   for (const featureKey of Object.keys(features)) {
     if (!features[featureKey]) continue
-    for (const entry of FEATURE_MULTIPLIERS) {
-      if (featureKey.includes(entry.match)) {
-        multiplier *= entry.value
-        break
-      }
-    }
+    multiplier *= featurePopulation(featureKey)
   }
   return multiplier
 }
@@ -104,8 +57,8 @@ function featureMultiplier(county) {
 function housingBuildingBonus(county) {
   const buildings = county?.improvement?.buildings || {}
   let bonus = 0
-  for (const [name, value] of Object.entries(HOUSING_BUILDING_BONUSES)) {
-    if (buildings[name]) bonus += value
+  for (const [name, built] of Object.entries(buildings)) {
+    if (built) bonus += resolveBuilding(name)?.housing || 0
   }
   return bonus
 }
@@ -125,10 +78,6 @@ function cloneCounty(county, index) {
   }
 }
 
-function terrainName(county) {
-  return String(county?.terrain || '')
-}
-
 function hasImprovement(county) {
   return String(county?.improvement?.name || '').trim().length > 0
 }
@@ -136,15 +85,11 @@ function hasImprovement(county) {
 export function countyAllowsAmbientPopulation(county) {
   if (Math.max(0, num(county?.citizens_working)) > 0) return true
   if (hasImprovement(county)) return true
-  const terrain = terrainName(county)
-  return !AMBIENT_POPULATION_BLOCKED_TERRAINS.some((blockedTerrain) => terrain.includes(blockedTerrain))
+  return !resolveTerrain(county?.terrain)?.blocksAmbientPopulation
 }
 
 function improvementMultiplier(county) {
-  const name = String(county?.improvement?.name || '').trim()
-  if (IMPROVEMENT_POP_MULTIPLIERS[name] !== undefined) return IMPROVEMENT_POP_MULTIPLIERS[name]
-  if (hasImprovement(county)) return 1
-  if (terrainName(county).includes('Mountain')) return 0.45
+  if (hasImprovement(county)) return resolveImprovement(county.improvement.name)?.population ?? 1
   return terrainBaseMultiplier(county)
 }
 

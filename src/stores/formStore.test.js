@@ -231,6 +231,33 @@ describe('formStore', () => {
     expect(store.uniqueTerrains).toEqual(['Tundra'])
   })
 
+  it('suggests the whole Civ 6 catalog plus the world\'s own county values', () => {
+    const store = useFormStore()
+    const template = sampleTemplate()
+    template.provinces[0].counties = [{
+      name: 'Old Quarter',
+      terrain: 'Volcanic Badlands',
+      features: { 'Gulf of Thailand': true, Cliff: true },
+      improvement: { name: 'Campus', buildings: { Library: true, 'Hall of Records': true }, great_works: {} },
+    }]
+    store.loadTemplate(template, { silent: true })
+
+    const terrains = store.terrainOptions.map((option) => option.value)
+    expect(terrains).toEqual(expect.arrayContaining(['Grassland', 'Tundra (Hills)', 'Snow (Mountain)', 'Lake']))
+    expect(terrains[terrains.length - 1]).toBe('Volcanic Badlands')
+
+    const features = store.featureOptions.map((option) => option.value)
+    expect(features).toEqual(expect.arrayContaining(['Woods (old-growth)', 'Mount Everest', 'Gulf of Thailand', 'Cliffs']))
+    expect(features).not.toContain('Cliff')
+
+    expect(store.improvementOptions.find((option) => option.value === 'Lavra').label).toBe('Unique district · Russia · replaces Holy Site')
+    expect(store.resourceOptions.map((option) => option.value)).toEqual(expect.arrayContaining(['Horses', 'Truffles', 'Whales']))
+
+    const campusBuildings = store.buildingOptionsFor('Seowon').map((option) => option.value)
+    expect(campusBuildings.slice(0, 6)).toEqual(expect.arrayContaining(['Library', 'Madrasa', 'University', 'Research Lab']))
+    expect(campusBuildings).toContain('Hall of Records')
+  })
+
   it('keeps provincial populations stable across world switches until re-surveyed', () => {
     const store = useFormStore()
     store.loadTemplate(sampleTemplate(), { silent: true })
