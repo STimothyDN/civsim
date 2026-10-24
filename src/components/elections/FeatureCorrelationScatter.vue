@@ -29,20 +29,16 @@
 <script>
 import { computed, ref } from 'vue'
 import ProvinceChart from '../ProvinceChart.vue'
+import { FEATURE_CATALOG, PROVINCE_IDENTITY_FEATURES, featureLabel } from '../../domain/elections/features/featureCatalog'
+
+const COUNTY_FEATURE_GROUPS = ['Economy', 'Society', 'Attitudes', 'Geography']
 import { formatShare, partyIdsOf } from '../../domain/elections'
 
-const FEATURE_KEYS = [
-  'urban_index', 'rural_index', 'industrial_index', 'agricultural_index',
-  'commercial_index', 'cultural_elite_index', 'intellectual_index', 'spiritual_index',
-  'military_index', 'worker_index', 'infrastructure_index', 'appeal_index',
-  'localist_index', 'traditionalist_index', 'restorationist_index',
-  'coastal_index', 'maritime_index', 'mountain_index', 'wilderness_index',
-  'residential_index', 'extractive_index',
-]
-
-function featureLabel(key) {
-  return key.replace(/_index$/, '').replace(/_/g, ' ')
-}
+// What a county is made of (identity features are its province's, so they
+// don't vary between counties).
+const FEATURE_KEYS = FEATURE_CATALOG
+  .filter((entry) => COUNTY_FEATURE_GROUPS.includes(entry.group) && !PROVINCE_IDENTITY_FEATURES.includes(entry.key))
+  .map((entry) => entry.key)
 
 export default {
   name: 'FeatureCorrelationScatter',

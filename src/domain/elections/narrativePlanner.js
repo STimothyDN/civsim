@@ -5,7 +5,8 @@ import { RANDOM_TREND_TEMPLATES, generateTrendPackageFromSelections } from './tr
 import { lowerHouseLeaderTitle, upperHouseLeaderTitle, lowerHouseName, upperHouseName } from './chambers/names'
 import { DEFAULT_CHAMBERS } from './constants/defaultConfig'
 import { resolveStructure } from './constants/politicalStructures'
-import { FEATURE_CATALOG, FEATURE_GROUPS } from './features/featureCatalog'
+import { FEATURE_CATALOG, FEATURE_GROUPS, FEATURE_KEYS, LEGACY_FEATURE_MAP, currentFeatureKey } from './features/featureCatalog'
+import { SELECTOR_FEATURE_CHECKS, SELECTOR_SHORTCUTS } from './trends/matchTrend'
 import { buildEmpireFeatureProfile, compileNarrativePoliticalModel } from './weightGenerators'
 
 export const DEFAULT_ENDPOINT = 'http://localhost:1234/api/v1/chat'
@@ -42,115 +43,8 @@ const CUSTOM_MAGNITUDE_LIMITS = {
   province: 0.22,
   county: 0.26,
 }
-const FEATURE_ALLOWLIST = [
-  'state_religion_share',
-  'minority_religion_share',
-  'taoist_share',
-  'american_identity_index',
-  'roman_identity_index',
-  'imperial_origin_index',
-  'foreign_origin_index',
-  'imperial_core_index',
-  'connectedness_index',
-  'frontier_index',
-  'adjacency_known_index',
-  'nearest_province_distance',
-  'average_closest_province_distance',
-  'urbanization_index',
-  'urban_index',
-  'rural_index',
-  'industrial_index',
-  'agrarian_index',
-  'military_index',
-  'intellectual_index',
-  'spiritual_index',
-  'commerce_index',
-  'commercial_index',
-  'commercial_middle_class_index',
-  'cultural_elite_index',
-  'worker_index',
-  'worker_grievance_index',
-  'infrastructure_index',
-  'appeal_index',
-  'localist_index',
-  'traditionalist_index',
-  'restorationist_index',
-  'coastal_index',
-  'maritime_index',
-  'mountain_index',
-  'wilderness_index',
-  'residential_index',
-  'extractive_index',
-  'leisure_tourism_index',
-  'civic_monument_index',
-  'terrain_habitation_index',
-  'loyalty_index',
-  'happiness_index',
-  'growth_index',
-  'amenity_index',
-  'food_index',
-  'production_index',
-  'gold_index',
-  'culture_index',
-  'science_index',
-  'faith_index',
-  'county_population_share',
-  'distance_index',
-  'citizens_working_index',
-  'mine_or_corporation_index',
-  'neighborhood_index',
-  'religious_minority_index',
-  // New features from normalization update
-  'economic_diversity_index',
-  'religious_homogeneity_index',
-  'development_index',
-  'provincial_power_index',
-  'isolation_index',
-  'yield_diversity_index',
-  'improved_status_index',
-  'resource_development_index',
-  'cultural_output_index',
-]
-const SELECTOR_SHORTCUTS = [
-  'minIndustrialIndex',
-  'minProductionIndex',
-  'minTaoistShare',
-  'minRomanIdentityIndex',
-  'minImperialCoreIndex',
-  'minAgrarianIndex',
-  'minLocalistIndex',
-  'minSpiritualIndex',
-  'minMilitaryIndex',
-  'minIntellectualIndex',
-  'minCommercialMiddleClassIndex',
-  'minCulturalEliteIndex',
-  'minInfrastructureIndex',
-  'minCoastalIndex',
-  'minMaritimeIndex',
-  // New feature shortcuts
-  'minEconomicDiversityIndex',
-  'minDevelopmentIndex',
-  'minImprovedStatusIndex',
-  'minCulturalOutputIndex',
-  'minMountainIndex',
-  'minWildernessIndex',
-  'minResidentialIndex',
-  'minExtractiveIndex',
-  'minLeisureTourismIndex',
-  'minCivicMonumentIndex',
-  'minWorkerGrievanceIndex',
-  'minLoyaltyIndex',
-  'maxLoyaltyIndex',
-  'maxUrbanIndex',
-  'minForeignOriginIndex',
-  'minFrontierIndex',
-  'minConnectednessIndex',
-  'maxConnectednessIndex',
-  'maxNearestProvinceDistance',
-  'minNearestProvinceDistance',
-  'maxAverageClosestProvinceDistance',
-  'minAverageClosestProvinceDistance',
-]
+// Feature names the model may use in trend selectors and weightBy rules.
+const FEATURE_ALLOWLIST = [...FEATURE_KEYS, 'county_population_share', 'distance_index']
 
 class ModelOutputError extends Error {
   constructor(message, code) {
@@ -1304,7 +1198,7 @@ function provinceResultContext(province = {}, baselineProvince = null, partyMeta
     prelates: integerOrNull(province.prelates?.seat_count),
     countyCount: integerOrNull(province.counties?.length),
     featureSignals: compactObject({
-      urbanization: roundNumber(province.political_features?.urbanization_index, 2),
+      urban: roundNumber(province.political_features?.urban_index, 2),
       industrial: roundNumber(province.political_features?.industrial_index, 2),
       localist: roundNumber(province.political_features?.localist_index, 2),
       workerGrievance: roundNumber(province.political_features?.worker_grievance_index, 2),
@@ -1312,7 +1206,6 @@ function provinceResultContext(province = {}, baselineProvince = null, partyMeta
       imperialCore: roundNumber(province.political_features?.imperial_core_index, 2),
       foreignOrigin: roundNumber(province.political_features?.foreign_origin_index, 2),
       frontier: roundNumber(province.political_features?.frontier_index, 2),
-      connectedness: roundNumber(province.political_features?.connectedness_index, 2),
     }),
     assembly: chamberContext(province.assembly, baselineProvince?.assembly, partyMeta),
     council: chamberContext(province.prelates, baselineProvince?.prelates, partyMeta),
@@ -2736,12 +2629,18 @@ function partyIdFromValue(value, partyMeta = PARTY_META) {
 
 function featureNameFromValue(value) {
   const normalized = normalizedKey(value)
-  return FEATURE_ALLOWLIST.find((feature) => normalizedKey(feature) === normalized) || null
+  const match = FEATURE_ALLOWLIST.find((feature) => normalizedKey(feature) === normalized)
+  if (match) return match
+  // A name from an earlier version of the model maps to what replaced it.
+  const legacy = Object.keys(LEGACY_FEATURE_MAP).find((key) => normalizedKey(key) === normalized)
+  return legacy ? currentFeatureKey(legacy) : null
 }
 
 function shortcutSelectorKey(value) {
   const normalized = normalizedKey(value)
-  return SELECTOR_SHORTCUTS.find((key) => normalizedKey(key) === normalized) || null
+  return SELECTOR_SHORTCUTS.find((key) => normalizedKey(key) === normalized) ||
+    SELECTOR_FEATURE_CHECKS.find(([key]) => normalizedKey(key) === normalized)?.[0] ||
+    null
 }
 
 function sanitizeTextList(value, max = 6) {
@@ -3729,40 +3628,17 @@ export async function requestElectionTicker({
 function calculateProvinceDemographics(province, allProvinces, countryData) {
   if (!province || !allProvinces?.length) return {}
 
-  // Calculate demographic percentages based on province features
-  const features = province.features || {}
-  const originIndex = features.imperial_origin_index || 0
-  const foreignIndex = features.foreign_origin_index || 0
-  const americanIdentity = features.american_identity_index || 0
-  const romanIdentity = features.roman_identity_index || 0
-  const connectedness = features.connectedness_index || 0.5
-  const urbanization = features.urbanization_index || 0.5
+  const features = province.political_features || province.features || {}
+  const foreign = features.foreign_origin_index || 0
   const frontier = features.frontier_index || 0
-
-  // Core Khmer population (native to province)
-  const coreKhmer = Math.max(0, 1 - originIndex - foreignIndex)
-
-  // Diaspora from other provinces (internal migration)
-  const internalDiaspora = originIndex * (1 - connectedness * 0.5)
-
-  // Foreign diaspora (globalization effect)
-  const foreignDiaspora = foreignIndex * connectedness
-
-  // Cultural influences
-  const americanInfluence = americanIdentity * 0.3
-  const romanInfluence = romanIdentity * 0.2
-  const frontierWilderness = frontier * 0.4
+  const urban = features.urban_index || 0.5
 
   return {
-    coreKhmerPercent: Math.round(coreKhmer * 100),
-    internalDiasporaPercent: Math.round(internalDiaspora * 100),
-    foreignDiasporaPercent: Math.round(foreignDiaspora * 100),
-    americanInfluence: Math.round(americanInfluence * 100),
-    romanInfluence: Math.round(romanInfluence * 100),
-    frontierCharacter: Math.round(frontierWilderness * 100),
-    urbanization: Math.round(urbanization * 100),
-    connectedness: Math.round(connectedness * 100),
-    originalCountry: countryData?.basic_info?.name || 'Khmer Empire',
+    corePercent: Math.round((1 - foreign) * 100),
+    foreignOriginPercent: Math.round(foreign * 100),
+    frontierCharacter: Math.round(frontier * 40),
+    urbanization: Math.round(urban * 100),
+    originalCountry: province.original_country || countryData?.basic_info?.name || '',
     provinceName: province.name,
     provincePopulation: province.provincial_population,
   }
@@ -3779,20 +3655,17 @@ function buildSeatNamingContext(seatDetails, provinces, countryData) {
       p.counties?.some((c) => c.name === seat.jurisdiction)
     )
 
-    const features = province?.features || {}
-    const originIndex = features.imperial_origin_index || 0
-    const foreignIndex = features.foreign_origin_index || 0
+    const features = province?.political_features || province?.features || {}
 
     seats.push({
       key: `${seat.party}_${seat.seatIndex}`,
       party: seat.party,
       idx: seat.seatIndex,
       place: seat.jurisdiction,
-      core: Math.round(Math.max(0, 1 - originIndex - foreignIndex) * 100),
-      am: Math.round((features.american_identity_index || 0) * 100),
-      ro: Math.round((features.roman_identity_index || 0) * 100),
+      core: Math.round((1 - (features.foreign_origin_index || 0)) * 100),
+      origin: province?.original_country || null,
       fr: Math.round((features.frontier_index || 0) * 100),
-      ur: Math.round((features.urbanization_index || 0) * 100),
+      ur: Math.round((features.urban_index || 0) * 100),
       sup: Math.round(seat.supportMetric || 0),
     })
   }
@@ -3816,11 +3689,10 @@ function representativeNamingUserPrompt({ seatDetails, provinces, countryData, s
     name: p.name,
     pop: p.provincial_population,
     region: p.group,
-    coreKhmer: Math.round((1 - (p.features?.imperial_origin_index || 0) - (p.features?.foreign_origin_index || 0)) * 100),
-    american: Math.round((p.features?.american_identity_index || 0) * 100),
-    roman: Math.round((p.features?.roman_identity_index || 0) * 100),
-    frontier: Math.round((p.features?.frontier_index || 0) * 100),
-    urban: Math.round((p.features?.urbanization_index || 0) * 100),
+    core: Math.round((1 - ((p.political_features || p.features)?.foreign_origin_index || 0)) * 100),
+    origin: p.original_country || null,
+    frontier: Math.round(((p.political_features || p.features)?.frontier_index || 0) * 100),
+    urban: Math.round(((p.political_features || p.features)?.urban_index || 0) * 100),
   })) || []
 
   return JSON.stringify({
@@ -4226,7 +4098,7 @@ function politicalWeightsUserPrompt(narrative, data, parties = []) {
           affinities: {
             industrial_index: 0.34,
             worker_index: 0.28,
-            urbanization_index: 0.2,
+            urban_index: 0.2,
             production_index: 0.18,
             worker_grievance_index: 0.15,
             agrarian_index: -0.08,

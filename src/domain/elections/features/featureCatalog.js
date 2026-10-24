@@ -1,125 +1,216 @@
 /**
- * Catalog of the feature indices the scoring engine can weight, per scope.
- * Drives the Advanced Setup political-model matrix editor and lets the engine
- * present a complete, labeled list of knobs. Values are 0..1 unless noted.
- *
- * Keys match what features/*.js emit, plus three derived at scoring time:
- *   cross_continental_index, conquered_index, inverse_science_culture_index.
+ * The political model's feature set: every index a party can weight. Values are
+ * 0..1. Every feature exists at every scope under the same key:
+ *   county   — computed from the county (src/domain/civ6 profiles + context);
+ *              identity features are inherited from its province
+ *   province — population-weighted county values, province-native identity,
+ *              and yield fallbacks where county detail is missing
+ *   national — population-weighted province values
+ * See src/domain/elections/MODEL.md for how each one is built.
  */
 
-// Shared economic / civic / geographic indices that exist at multiple scopes.
-const SHARED = [
-  ['urban_index', 'Urbanization', 'Economy'],
-  ['urbanization_index', 'Urbanization (province)', 'Economy'],
-  ['rural_index', 'Rural character', 'Economy'],
-  ['industrial_index', 'Industrial base', 'Economy'],
-  ['agrarian_index', 'Agrarian base', 'Economy'],
-  ['commercial_index', 'Commerce (county)', 'Economy'],
-  ['commerce_index', 'Commerce (province)', 'Economy'],
-  ['worker_index', 'Industrial workforce', 'Economy'],
-  ['worker_grievance_index', 'Worker grievance', 'Economy'],
-  ['extractive_index', 'Extractive industry', 'Economy'],
-  ['production_index', 'Production yield', 'Economy'],
-  ['gold_index', 'Gold yield', 'Economy'],
-  ['economic_diversity_index', 'Economic diversity', 'Economy'],
-  ['yield_diversity_index', 'Yield diversity', 'Economy'],
-  ['improved_status_index', 'Development / improvement', 'Economy'],
-  ['development_index', 'Development', 'Economy'],
-  ['provincial_power_index', 'Provincial power', 'Economy'],
-  ['mine_or_corporation_index', 'Mining / corporations', 'Economy'],
+const FEATURES = [
+  // What the economy runs on.
+  ['urban_index', 'Urban density', 'Economy', 'City centers, districts and built-up land near the core.'],
+  ['rural_index', 'Countryside', 'Economy', 'Farms, camps and open land far from the city.'],
+  ['agrarian_index', 'Farming & herding', 'Economy', 'Farms, plantations, pastures, fertile land and food yield.'],
+  ['industrial_index', 'Industry & energy', 'Economy', 'Industrial zones, factories, power plants and energy improvements.'],
+  ['extractive_index', 'Extraction', 'Economy', 'Mines, quarries, camps, lumber, oil and mineral resources.'],
+  ['commercial_index', 'Commerce & finance', 'Economy', 'Commercial hubs, markets, banks, luxury trade and gold yield.'],
+  ['maritime_index', 'Seafaring', 'Economy', 'Harbors, fishing, sea resources, shipyards and navies.'],
+  ['worker_index', 'Working class', 'Economy', 'Manual labor: factories, mines, docks, plantations and production yield.'],
+  ['development_index', 'Development', 'Economy', 'How built up and modernized: improvements, buildings, railroads, services.'],
+  ['economic_diversity_index', 'Economic diversity', 'Economy', 'How evenly yields are spread across food, production, gold, culture, science and faith.'],
 
-  ['military_index', 'Military presence', 'Society'],
-  ['intellectual_index', 'Intellectual / academic', 'Society'],
-  ['spiritual_index', 'Spiritual / religious sites', 'Society'],
-  ['cultural_elite_index', 'Cultural elite', 'Society'],
-  ['cultural_output_index', 'Cultural output', 'Society'],
-  ['culture_index', 'Culture yield', 'Society'],
-  ['science_index', 'Science yield', 'Society'],
-  ['faith_index', 'Faith yield', 'Society'],
-  ['traditionalist_index', 'Traditionalism', 'Society'],
-  ['localist_index', 'Localism / autonomy', 'Society'],
-  ['restorationist_index', 'Restorationism', 'Society'],
-  ['civic_monument_index', 'Civic monuments', 'Society'],
-  ['residential_index', 'Residential', 'Society'],
-  ['neighborhood_index', 'Neighborhoods', 'Society'],
-  ['commercial_middle_class_index', 'Commercial middle class', 'Society'],
-  ['food_index', 'Food yield', 'Society'],
+  // Raw game yields.
+  ['food_index', 'Food yield', 'Yields', 'Food per tile (county) or per citizen (province).'],
+  ['production_index', 'Production yield', 'Yields', 'Production per tile or per citizen.'],
+  ['gold_index', 'Gold yield', 'Yields', 'Gold per tile or per citizen.'],
+  ['culture_index', 'Culture yield', 'Yields', 'Culture per tile or per citizen.'],
+  ['science_index', 'Science yield', 'Yields', 'Science per tile or per citizen.'],
+  ['faith_index', 'Faith yield', 'Yields', 'Faith per tile or per citizen.'],
 
-  ['imperial_core_index', 'Imperial core', 'Identity & loyalty'],
-  ['loyalty_index', 'Loyalty', 'Identity & loyalty'],
-  ['happiness_index', 'Happiness', 'Identity & loyalty'],
-  ['amenity_index', 'Amenities', 'Identity & loyalty'],
-  ['growth_index', 'Growth', 'Identity & loyalty'],
-  ['state_religion_share', 'State religion share', 'Identity & loyalty'],
-  ['minority_religion_share', 'Minority religion share', 'Identity & loyalty'],
-  ['religious_minority_index', 'Religious minority (county)', 'Identity & loyalty'],
-  ['religious_homogeneity_index', 'Religious homogeneity', 'Identity & loyalty'],
-  ['foreign_origin_index', 'Foreign origin', 'Identity & loyalty'],
-  ['imperial_origin_index', 'Imperial origin', 'Identity & loyalty'],
-  ['same_continent_index', 'Same continent as capital', 'Identity & loyalty'],
-  ['cross_continental_index', 'Cross-continental', 'Identity & loyalty'],
-  ['conquered_index', 'Conquered province', 'Identity & loyalty'],
+  // Institutions and social make-up.
+  ['military_index', 'Military presence', 'Society', 'Encampments, walls, forts, military buildings and strategic resources.'],
+  ['intellectual_index', 'Academia & science', 'Society', 'Campuses, libraries, universities, science wonders and science yield.'],
+  ['spiritual_index', 'Religious life', 'Society', 'Holy sites, temples, worship buildings, sacred sites and faith yield.'],
+  ['cultural_elite_index', 'Arts & high culture', 'Society', 'Theater squares, museums, great works, cultural wonders and culture yield.'],
+  ['civic_monument_index', 'State institutions', 'Society', 'Palaces, government plazas, monuments and wonders of state.'],
+  ['middle_class_index', 'Middle class', 'Society', 'Neighborhoods, shops, markets, universities and pleasant urban living.'],
+  ['leisure_tourism_index', 'Leisure & tourism', 'Society', 'Entertainment, parks, resorts, wonders and scenic appeal.'],
+  ['heritage_index', 'Historic heritage', 'Society', 'Antiquity sites, ancient wonders, archaeology and historic monuments.'],
 
-  ['appeal_index', 'Tile appeal', 'Geography'],
-  ['coastal_index', 'Coastal', 'Geography'],
-  ['maritime_index', 'Maritime / naval', 'Geography'],
-  ['mountain_index', 'Mountainous', 'Geography'],
-  ['wilderness_index', 'Wilderness', 'Geography'],
-  ['rainforest_index', 'Rainforest', 'Geography'],
-  ['leisure_tourism_index', 'Leisure / tourism', 'Geography'],
-  ['protected_marine_index', 'Protected marine', 'Geography'],
-  ['offshore_development_index', 'Offshore development', 'Geography'],
-  ['infrastructure_index', 'Infrastructure', 'Geography'],
-  ['isolation_index', 'Isolation', 'Geography'],
-  ['connectedness_index', 'Connectedness', 'Geography'],
-  ['frontier_index', 'Frontier', 'Geography'],
-  ['terrain_habitation_index', 'Habitability', 'Geography'],
-  ['inverse_science_culture_index', 'Low science & culture', 'Geography'],
-  ['pollution_index', 'Pollution', 'Geography'],
+  // Political temperaments built from the above plus province identity.
+  ['traditionalist_index', 'Traditionalism', 'Attitudes', 'Rural, agrarian, military and state-religion conservatism.'],
+  ['localist_index', 'Localism / autonomy', 'Attitudes', 'Distance from the core, foreign origin, conquest and minority faith.'],
+  ['restorationist_index', 'Restorationism', 'Attitudes', 'Conquered or annexed lands with heritage and a faith of their own.'],
+  ['worker_grievance_index', 'Labor grievance', 'Attitudes', 'Working-class, urban and polluted areas weighed by unhappiness.'],
+
+  // Province identity; counties inherit their province's value.
+  ['imperial_core_index', 'Imperial core', 'Identity & loyalty', 'Capitals, founded cities, loyalty and ties to the state religion and home continent.'],
+  ['loyalty_index', 'Loyalty', 'Identity & loyalty', 'City loyalty.'],
+  ['happiness_index', 'Happiness', 'Identity & loyalty', 'Happiness and net amenities.'],
+  ['state_religion_share', 'State religion share', 'Identity & loyalty', 'Share following the state religion.'],
+  ['minority_religion_share', 'Minority religion share', 'Identity & loyalty', 'Share following other religions.'],
+  ['religious_homogeneity_index', 'Religious homogeneity', 'Identity & loyalty', 'How concentrated faith is in one religion.'],
+  ['foreign_origin_index', 'Foreign origin', 'Identity & loyalty', 'Joined or conquered from another civilization.'],
+  ['same_continent_index', 'Home continent', 'Identity & loyalty', 'On the same continent as the national capital.'],
+  ['conquered_index', 'Conquered', 'Identity & loyalty', 'Taken by conquest.'],
+
+  // The land itself.
+  ['coastal_index', 'Coastal', 'Geography', 'Coast, lake and ocean shores.'],
+  ['mountain_index', 'Highlands', 'Geography', 'Hills and mountains.'],
+  ['wilderness_index', 'Wilderness', 'Geography', 'Untamed, remote land: woods, rainforest, marsh, mountains.'],
+  ['ecology_index', 'Ecology', 'Geography', 'Sensitive habitats: rainforest, old-growth woods, reefs, marsh, natural wonders, preserves.'],
+  ['hardship_index', 'Harsh land', 'Geography', 'Desert, tundra, snow, ice and blighted land.'],
+  ['watershed_index', 'River valley', 'Geography', 'Rivers, lakes, oases and floodplains.'],
+  ['appeal_index', 'Tile appeal', 'Geography', 'Civ 6 tile appeal.'],
+  ['infrastructure_index', 'Infrastructure', 'Geography', 'Railroads, aqueducts, dams, canals, tunnels and bridges.'],
+  ['frontier_index', 'Frontier', 'Geography', 'Far from neighboring provinces.'],
+  ['pollution_index', 'Pollution', 'Geography', 'Factories, power plants, mines, oil and fallout, less clean energy and preserves.'],
 ]
 
-const SHARED_KEYS = new Set(SHARED.map(([key]) => key))
+const SCOPES = ['county', 'province', 'national']
 
-// Scope membership: which shared keys are meaningful where.
-const COUNTY_ONLY = new Set([
-  'urban_index', 'commercial_index', 'worker_index', 'religious_minority_index',
-  'neighborhood_index', 'commercial_middle_class_index', 'mine_or_corporation_index',
-  'improved_status_index', 'cultural_output_index', 'inverse_science_culture_index',
-])
-const PROVINCE_NATIONAL_ONLY = new Set([
-  'urbanization_index', 'commerce_index', 'worker_grievance_index', 'minority_religion_share',
-  'economic_diversity_index', 'development_index', 'provincial_power_index',
-  'religious_homogeneity_index', 'isolation_index',
-])
-
-function scopesForKey(key) {
-  if (COUNTY_ONLY.has(key)) return ['county']
-  if (PROVINCE_NATIONAL_ONLY.has(key)) return ['province', 'national']
-  // Identity/geography province-level signals not present at county scope.
-  if (['foreign_origin_index', 'imperial_origin_index', 'same_continent_index', 'cross_continental_index',
-       'connectedness_index', 'frontier_index', 'happiness_index', 'amenity_index', 'growth_index'].includes(key)) {
-    return ['province', 'national']
-  }
-  return ['county', 'province', 'national']
-}
-
-export const FEATURE_CATALOG = SHARED.map(([key, label, group]) => ({
+export const FEATURE_CATALOG = FEATURES.map(([key, label, group, description]) => ({
   key,
   label,
   group,
-  scopes: scopesForKey(key),
+  description,
+  scopes: SCOPES,
 }))
 
-export const FEATURE_GROUPS = ['Economy', 'Society', 'Identity & loyalty', 'Geography']
+export const FEATURE_KEYS = FEATURE_CATALOG.map((entry) => entry.key)
+
+export const FEATURE_GROUPS = ['Economy', 'Yields', 'Society', 'Attitudes', 'Identity & loyalty', 'Geography']
+
+// Identity features a county inherits from its province when scored.
+export const PROVINCE_IDENTITY_FEATURES = [
+  'imperial_core_index',
+  'loyalty_index',
+  'happiness_index',
+  'state_religion_share',
+  'minority_religion_share',
+  'religious_homogeneity_index',
+  'foreign_origin_index',
+  'same_continent_index',
+  'conquered_index',
+  'frontier_index',
+]
+
+const CATALOG_BY_KEY = new Map(FEATURE_CATALOG.map((entry) => [entry.key, entry]))
 
 /** Features available at a given scope, in catalog order. */
 export function featuresForScope(scope) {
   return FEATURE_CATALOG.filter((entry) => entry.scopes.includes(scope))
 }
 
+/**
+ * Keys from earlier versions of the model and what they became. A weight w on
+ * an old key becomes Σ w·factor on the listed keys, plus w·offset on the
+ * party's bias — exact for complements (imperial_origin = 1 − foreign_origin).
+ * Keys with no `to` are dropped (their job moved to voter blocs).
+ */
+export const LEGACY_FEATURE_MAP = {
+  urbanization_index: { to: [['urban_index', 1]] },
+  commerce_index: { to: [['commercial_index', 1]] },
+  religious_minority_index: { to: [['minority_religion_share', 1]] },
+  imperial_origin_index: { to: [['foreign_origin_index', -1]], offset: 1 },
+  cross_continental_index: { to: [['same_continent_index', -1]], offset: 1 },
+  connectedness_index: { to: [['frontier_index', -1]], offset: 1 },
+  isolation_index: { to: [['frontier_index', 1]] },
+  amenity_index: { to: [['happiness_index', 1]] },
+  growth_index: { to: [['food_index', 0.5], ['happiness_index', 0.5]] },
+  provincial_power_index: { to: [['production_index', 0.5], ['gold_index', 0.5]] },
+  improved_status_index: { to: [['development_index', 1]] },
+  yield_diversity_index: { to: [['economic_diversity_index', 1]] },
+  mine_or_corporation_index: { to: [['extractive_index', 0.6], ['commercial_index', 0.4]] },
+  neighborhood_index: { to: [['middle_class_index', 1]] },
+  residential_index: { to: [['middle_class_index', 1]] },
+  commercial_middle_class_index: { to: [['middle_class_index', 1]] },
+  cultural_output_index: { to: [['cultural_elite_index', 1]] },
+  rainforest_index: { to: [['ecology_index', 1]] },
+  protected_marine_index: { to: [['ecology_index', 1]] },
+  offshore_development_index: { to: [['maritime_index', 1]] },
+  terrain_habitation_index: { to: [['hardship_index', -1]], offset: 1 },
+  inverse_science_culture_index: { to: [['science_index', -0.5], ['culture_index', -0.5]], offset: 1 },
+  desert_region_index: { to: [['hardship_index', 1]] },
+  floodplain_index: { to: [['watershed_index', 1]] },
+  maritime_basin_index: { to: [['coastal_index', 1]] },
+  luxury_resource_index: { to: [['commercial_index', 1]] },
+  energy_resource_index: { to: [['industrial_index', 1]] },
+  resource_cluster_index: { to: [['extractive_index', 1]] },
+  resource_development_index: { to: [['extractive_index', 1]] },
+  taoist_share: {},
+  american_identity_index: {},
+  roman_identity_index: {},
+}
+
+// Migrated weights stay inside the range the editor and generators allow.
+const MIGRATED_WEIGHT_LIMIT = 0.45
+
+/**
+ * Rewrite one scope's affinity map onto current keys.
+ * @returns {{ affinities: Record<string, number>, biasDelta: number }}
+ */
+export function migrateAffinityMap(affinities = {}) {
+  const out = {}
+  let biasDelta = 0
+  for (const [key, rawWeight] of Object.entries(affinities || {})) {
+    const weight = Number(rawWeight)
+    if (!Number.isFinite(weight) || weight === 0) continue
+    if (CATALOG_BY_KEY.has(key)) {
+      out[key] = (out[key] || 0) + weight
+      continue
+    }
+    const legacy = LEGACY_FEATURE_MAP[key]
+    if (!legacy) continue
+    for (const [target, factor] of legacy.to || []) out[target] = (out[target] || 0) + weight * factor
+    if (legacy.offset) biasDelta += weight * legacy.offset
+  }
+  for (const key of Object.keys(out)) {
+    out[key] = Math.round(Math.max(-MIGRATED_WEIGHT_LIMIT, Math.min(MIGRATED_WEIGHT_LIMIT, out[key])) * 1e4) / 1e4
+    if (!out[key]) delete out[key]
+  }
+  return { affinities: out, biasDelta: Math.round(biasDelta * 1e4) / 1e4 }
+}
+
+/** Whether a map uses any key the current model no longer has. */
+export function hasLegacyFeatureKeys(affinities = {}) {
+  return Object.keys(affinities || {}).some((key) => !CATALOG_BY_KEY.has(key) && key in LEGACY_FEATURE_MAP)
+}
+
+/**
+ * Read a feature from a feature vector, translating old keys (saved trends,
+ * voter blocs, LLM output) into today's features. Returns undefined when the
+ * key is unknown either way.
+ */
+export function readFeature(features, key) {
+  if (!features) return undefined
+  if (features[key] !== undefined) return Number(features[key]) || 0
+  const legacy = LEGACY_FEATURE_MAP[key]
+  if (!legacy || !legacy.to) return undefined
+  let value = legacy.offset || 0
+  let found = false
+  for (const [target, factor] of legacy.to) {
+    if (features[target] === undefined) continue
+    found = true
+    value += (Number(features[target]) || 0) * factor
+  }
+  if (!found) return undefined
+  return Math.max(0, Math.min(1, value))
+}
+
+/** Current key for a possibly-legacy key (the first target of a rename). */
+export function currentFeatureKey(key) {
+  if (CATALOG_BY_KEY.has(key)) return key
+  const target = LEGACY_FEATURE_MAP[key]?.to?.[0]
+  return target && target[1] > 0 ? target[0] : null
+}
+
 /** Human label for any feature key (falls back to a title-cased key). */
 export function featureLabel(key) {
-  const entry = FEATURE_CATALOG.find((e) => e.key === key)
+  const entry = CATALOG_BY_KEY.get(key) || CATALOG_BY_KEY.get(currentFeatureKey(key))
   if (entry) return entry.label
   return String(key || '')
     .replace(/_index$/, '')
@@ -127,5 +218,3 @@ export function featureLabel(key) {
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim()
 }
-
-export { SHARED_KEYS }

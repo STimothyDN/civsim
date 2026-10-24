@@ -15,20 +15,15 @@
 <script>
 import { computed } from 'vue'
 import ProvinceChart from '../ProvinceChart.vue'
+import { FEATURE_CATALOG, PROVINCE_IDENTITY_FEATURES, featureLabel } from '../../domain/elections/features/featureCatalog'
 
-const FEATURE_KEYS = [
-  'urban_index', 'rural_index', 'industrial_index', 'agricultural_index',
-  'commercial_index', 'cultural_elite_index', 'intellectual_index', 'spiritual_index',
-  'military_index', 'worker_index', 'infrastructure_index', 'appeal_index',
-  'localist_index', 'traditionalist_index', 'restorationist_index',
-  'coastal_index', 'maritime_index', 'mountain_index', 'wilderness_index',
-  'residential_index', 'extractive_index', 'leisure_tourism_index', 'civic_monument_index',
-  'yield_diversity_index', 'resource_development_index',
-]
+const COUNTY_FEATURE_GROUPS = ['Economy', 'Society', 'Attitudes', 'Geography']
 
-function featureLabel(key) {
-  return key.replace(/_index$/, '').replace(/_/g, ' ')
-}
+// What a county is made of (identity features are its province's, so they
+// don't vary between counties).
+const FEATURE_KEYS = FEATURE_CATALOG
+  .filter((entry) => COUNTY_FEATURE_GROUPS.includes(entry.group) && !PROVINCE_IDENTITY_FEATURES.includes(entry.key))
+  .map((entry) => entry.key)
 
 export default {
   name: 'CountyFeatureHeatmap',
@@ -37,7 +32,7 @@ export default {
     counties: { type: Array, required: true },
   },
   setup(props) {
-    const chartHeight = computed(() => Math.max(320, props.counties.length * 22 + 120))
+    const chartHeight = computed(() => Math.max(360, props.counties.length * 22 + 180))
 
     const heatmapOption = computed(() => {
       const sorted = [...props.counties].sort(
@@ -62,7 +57,7 @@ export default {
             return `<strong>${yLabels[yi]}</strong><br/>${xLabels[xi]}: ${val}`
           },
         },
-        grid: { left: 120, right: 20, top: 80, bottom: 20 },
+        grid: { left: 120, right: 20, top: 110, bottom: 50 },
         xAxis: {
           type: 'category',
           data: xLabels,
@@ -86,7 +81,7 @@ export default {
           calculable: true,
           orient: 'horizontal',
           left: 'center',
-          top: 0,
+          bottom: 0,
           itemWidth: 12,
           itemHeight: 120,
           textStyle: { color: '#a0a0b0', fontSize: 10 },

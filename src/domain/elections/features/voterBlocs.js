@@ -1,5 +1,6 @@
 import { matchesSelector } from '../trends/matchTrend'
 import { num } from '../normalization/numbers'
+import { readFeature } from './featureCatalog'
 
 /**
  * Generic voter-bloc engine. Replaces the hardcoded american/roman/taoist
@@ -35,10 +36,7 @@ function featuresFor(unit) {
 function religionShare(unit, religion) {
   if (!religion) return 0
   const shares = unit?.religion_shares || unit?.political_features?.religion_shares
-  if (shares && shares[religion] != null) return num(shares[religion])
-  // Back-compat fallback for the legacy taoist_share feature.
-  if (religion === 'Taoism') return num(unit?.political_features?.taoist_share)
-  return 0
+  return shares && shares[religion] != null ? num(shares[religion]) : 0
 }
 
 /**
@@ -57,7 +55,7 @@ export function blocMembership(unit, bloc) {
 
   let graded = null
   if (source.religion) graded = religionShare(unit, source.religion)
-  else if (source.feature) graded = num(featuresFor(unit)[source.feature])
+  else if (source.feature) graded = num(readFeature(featuresFor(unit), source.feature))
 
   if (graded !== null) {
     if (source.threshold != null && graded < num(source.threshold)) return 0

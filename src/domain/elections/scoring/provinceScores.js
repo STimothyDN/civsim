@@ -2,19 +2,12 @@ import { DEFAULT_PARTIES } from '../constants/defaultParties'
 import { DEFAULT_VOTER_BLOCS } from '../constants/defaultVoterBlocs'
 import { scoreUnit } from './scoreUnit'
 import { applyVoterBlocs } from '../features/voterBlocs'
-import { num } from '../normalization/numbers'
 
-/**
- * Build the province scoring vector: the province's political features plus two
- * derived indices the original formulas computed inline.
- */
+/** The province scoring vector: its political features. */
 export function buildProvinceFeatureVector(province) {
-  const pf = province?.political_features || {}
-  return {
-    ...pf,
-    cross_continental_index: 1 - num(pf.same_continent_index),
-    conquered_index: province?.is_conquered ? 1 : 0,
-  }
+  const vector = { ...(province?.political_features || {}) }
+  if (province?.is_conquered !== undefined) vector.conquered_index = province.is_conquered ? 1 : 0
+  return vector
 }
 
 export function calculateProvincePartyScores(province, options = {}) {

@@ -1,4 +1,5 @@
 import { DEFAULT_PARTIES } from './defaultParties'
+import { hasLegacyFeatureKeys, migrateAffinityMap } from '../features/featureCatalog'
 
 export { DEFAULT_PARTIES }
 
@@ -118,13 +119,29 @@ function normalizeOneParty(source, index, usedIds) {
     coalitionPartners: Array.isArray(source?.coalitionPartners)
       ? source.coalitionPartners.slice()
       : (defaults.coalitionPartners ? defaults.coalitionPartners.slice() : []),
-    bias: normalizeBias(source?.bias, defaults.bias || EMPTY_BIAS()),
-    affinities: {
-      county: normalizeScopeMap({ county: source?.affinities?.county }, { county: defaults.affinities?.county }).county || {},
-      province: normalizeScopeMap({ province: source?.affinities?.province }, { province: defaults.affinities?.province }).province || {},
-      national: normalizeScopeMap({ national: source?.affinities?.national }, { national: defaults.affinities?.national }).national || {},
-    },
+    ...migratedWeights(
+      normalizeBias(source?.bias, defaults.bias || EMPTY_BIAS()),
+      {
+        county: normalizeScopeMap({ county: source?.affinities?.county }, { county: defaults.affinities?.county }).county || {},
+        province: normalizeScopeMap({ province: source?.affinities?.province }, { province: defaults.affinities?.province }).province || {},
+        national: normalizeScopeMap({ national: source?.affinities?.national }, { national: defaults.affinities?.national }).national || {},
+      },
+    ),
   }
+}
+
+/**
+ * Carry weights saved against an earlier version of the political model onto
+ * today's features (see LEGACY_FEATURE_MAP). Current maps pass through as is.
+ */
+function migratedWeights(bias, affinities) {
+  for (const scope of ['county', 'province', 'national']) {
+    if (!hasLegacyFeatureKeys(affinities[scope])) continue
+    const migrated = migrateAffinityMap(affinities[scope])
+    affinities[scope] = migrated.affinities
+    bias[scope] = Math.round((bias[scope] + migrated.biasDelta) * 1e4) / 1e4
+  }
+  return { bias, affinities }
 }
 
 /**

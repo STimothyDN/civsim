@@ -4,19 +4,19 @@ import { RESOURCES } from './resources'
 import { TILE_IMPROVEMENTS } from './improvements'
 import { DISTRICTS } from './districts'
 import { WONDERS } from './wonders'
-import { BUILDINGS, BUILDING_TIERS } from './buildings'
+import { BUILDINGS } from './buildings'
 
 /**
  * Civ 6 reference catalog: every terrain, feature, resource, improvement,
  * district, wonder and building the county editor suggests, each carrying the
- * weights the election engine reads (see terrains.js for the entry fields).
+ * profile the election engine reads (see terrains.js for the entry fields).
  *
  * Lookups are case-, accent- and punctuation-insensitive and accept aliases,
  * so "Estádio do Maracanã", "estadio do maracana" and a save's old typo all
  * resolve to the same entry.
  */
 
-export { BUILDING_TIERS, DEFAULT_TERRAIN_POPULATION, FEATURE_PATTERNS, MARITIME_BASIN_KEYWORDS }
+export { DEFAULT_TERRAIN_POPULATION, FEATURE_PATTERNS, MARITIME_BASIN_KEYWORDS }
 
 const normalizedCache = new Map()
 
@@ -36,14 +36,17 @@ export function normalizeName(value) {
   return key
 }
 
-/** Fold a unique entry onto the entry it replaces; its own fields win. */
+/**
+ * Fold a unique entry onto the entry it replaces: it keeps the base's profile
+ * and population/housing, with its own profile values taking precedence.
+ */
 function inherit(entries, baseIndex) {
   return entries.map((entry) => {
     if (!entry.replaces) return entry
     const base = baseIndex.get(normalizeName(entry.replaces))
     if (!base) return entry
     const { name, kind, aliases, hidden, civ, ...baseFields } = base
-    return { ...baseFields, ...entry, signals: { ...base.signals, ...entry.signals } }
+    return { ...baseFields, ...entry, profile: { ...base.profile, ...entry.profile } }
   })
 }
 

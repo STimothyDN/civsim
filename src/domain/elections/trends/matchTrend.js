@@ -1,14 +1,17 @@
 import { clamp01, num } from '../normalization/numbers'
+import { readFeature } from '../features/featureCatalog'
 
 function featuresFor(unit) {
   return unit?.political_features || unit?.features || unit || {}
 }
 
+// Reads current features, and translates keys from earlier versions of the
+// model (saved trends, LLM-written selectors) onto today's.
 function featureValue(unit, key, fallbackKeys = []) {
   const features = featuresFor(unit)
-  const keys = [key, ...fallbackKeys]
-  for (const candidate of keys) {
-    if (features[candidate] !== undefined) return num(features[candidate])
+  for (const candidate of [key, ...fallbackKeys]) {
+    const value = readFeature(features, candidate)
+    if (value !== undefined) return num(value)
   }
   return 0
 }
@@ -52,6 +55,51 @@ function matchesFeatureRules(unit, rules = [], type = 'min') {
   })
 }
 
+/**
+ * Shorthand selector keys: `minIndustrialIndex: 0.4` ≡ industrial_index ≥ 0.4.
+ * Entries are [selectorKey, featureKey, 'min'|'max'].
+ */
+const CURRENT_SELECTOR_CHECKS = [
+  ...[
+    'urban', 'rural', 'agrarian', 'industrial', 'extractive', 'commercial', 'maritime', 'worker',
+    'development', 'economic_diversity', 'military', 'intellectual', 'spiritual', 'cultural_elite',
+    'civic_monument', 'middle_class', 'leisure_tourism', 'heritage', 'traditionalist', 'localist',
+    'restorationist', 'worker_grievance', 'imperial_core', 'loyalty', 'happiness', 'foreign_origin',
+    'coastal', 'mountain', 'wilderness', 'ecology', 'hardship', 'watershed', 'infrastructure',
+    'frontier', 'pollution', 'production',
+  ].flatMap((name) => {
+    const camel = name.replace(/_(\w)/g, (_, c) => c.toUpperCase())
+    const suffix = camel.charAt(0).toUpperCase() + camel.slice(1)
+    return [[`min${suffix}Index`, `${name}_index`, 'min'], [`max${suffix}Index`, `${name}_index`, 'max']]
+  }),
+  ['minStateReligionShare', 'state_religion_share', 'min'],
+  ['maxStateReligionShare', 'state_religion_share', 'max'],
+  ['minMinorityReligionShare', 'minority_religion_share', 'min'],
+  ['maxMinorityReligionShare', 'minority_religion_share', 'max'],
+  // Raw distances (not model features).
+  ['maxNearestProvinceDistance', 'nearest_province_distance', 'max'],
+  ['minNearestProvinceDistance', 'nearest_province_distance', 'min'],
+  ['maxAverageClosestProvinceDistance', 'average_closest_province_distance', 'max'],
+  ['minAverageClosestProvinceDistance', 'average_closest_province_distance', 'min'],
+]
+
+// Shorthands from earlier versions of the model, still honored.
+const LEGACY_SELECTOR_CHECKS = [
+  ['minCommercialMiddleClassIndex', 'middle_class_index', 'min'],
+  ['minResidentialIndex', 'middle_class_index', 'min'],
+  ['minCulturalOutputIndex', 'cultural_elite_index', 'min'],
+  ['minImprovedStatusIndex', 'development_index', 'min'],
+  ['minConnectednessIndex', 'connectedness_index', 'min'],
+  ['maxConnectednessIndex', 'connectedness_index', 'max'],
+  ['minTaoistShare', 'minority_religion_share', 'min'],
+  ['minRomanIdentityIndex', 'restorationist_index', 'min'],
+]
+
+export const SELECTOR_FEATURE_CHECKS = [...CURRENT_SELECTOR_CHECKS, ...LEGACY_SELECTOR_CHECKS]
+
+/** Shorthand selector keys to offer (current model only). */
+export const SELECTOR_SHORTCUTS = CURRENT_SELECTOR_CHECKS.map(([key]) => key)
+
 export function matchesSelector(unit, selector = {}) {
   if (!selector || Object.keys(selector).length === 0) return true
 
@@ -63,7 +111,7 @@ export function matchesSelector(unit, selector = {}) {
   if (selector.groupEquals && !includesAny(unit?.group, selector.groupEquals)) return false
   if (selector.originalCountryIncludes && !stringIncludesAny(originalCountry(unit), selector.originalCountryIncludes)) return false
   if (selector.originalCountryEquals && !includesAny(originalCountry(unit), selector.originalCountryEquals)) return false
-  if (selector.isImperialOrigin !== undefined && Boolean(featureValue(unit, 'imperial_origin_index')) !== Boolean(selector.isImperialOrigin)) return false
+  if (selector.isImperialOrigin !== undefined && (featureValue(unit, 'foreign_origin_index') < 0.5) !== Boolean(selector.isImperialOrigin)) return false
   if (selector.nameIncludes && !stringIncludesAny(unit?.name, selector.nameIncludes)) return false
   if (selector.provinceIndexIn && !normalizedList(selector.provinceIndexIn).includes(unit?.provinceIndex)) return false
   if (selector.improvementNames && !selector.improvementNames.includes(improvementName(unit))) return false
@@ -78,41 +126,7 @@ export function matchesSelector(unit, selector = {}) {
   if (selector.minFeatures && !matchesFeatureRules(unit, selector.minFeatures, 'min')) return false
   if (selector.maxFeatures && !matchesFeatureRules(unit, selector.maxFeatures, 'max')) return false
 
-  const checks = [
-    ['minIndustrialIndex', 'industrial_index'],
-    ['minProductionIndex', 'production_index'],
-    ['minTaoistShare', 'taoist_share'],
-    ['minRomanIdentityIndex', 'roman_identity_index'],
-    ['minImperialCoreIndex', 'imperial_core_index'],
-    ['minAgrarianIndex', 'agrarian_index'],
-    ['minLocalistIndex', 'localist_index'],
-    ['minSpiritualIndex', 'spiritual_index'],
-    ['minMilitaryIndex', 'military_index'],
-    ['minIntellectualIndex', 'intellectual_index'],
-    ['minCommercialMiddleClassIndex', 'commercial_middle_class_index'],
-    ['minCulturalEliteIndex', 'cultural_elite_index'],
-    ['minInfrastructureIndex', 'infrastructure_index'],
-    ['minCoastalIndex', 'coastal_index'],
-    ['minMaritimeIndex', 'maritime_index'],
-    ['minMountainIndex', 'mountain_index'],
-    ['minWildernessIndex', 'wilderness_index'],
-    ['minResidentialIndex', 'residential_index'],
-    ['minExtractiveIndex', 'extractive_index'],
-    ['minLeisureTourismIndex', 'leisure_tourism_index'],
-    ['minCivicMonumentIndex', 'civic_monument_index'],
-    ['minWorkerGrievanceIndex', 'worker_grievance_index', 'min', ['worker_index']],
-    ['minLoyaltyIndex', 'loyalty_index'],
-    ['minForeignOriginIndex', 'foreign_origin_index'],
-    ['minFrontierIndex', 'frontier_index'],
-    ['minConnectednessIndex', 'connectedness_index'],
-    ['maxConnectednessIndex', 'connectedness_index', 'max'],
-    ['maxNearestProvinceDistance', 'nearest_province_distance', 'max'],
-    ['minNearestProvinceDistance', 'nearest_province_distance'],
-    ['maxAverageClosestProvinceDistance', 'average_closest_province_distance', 'max'],
-    ['minAverageClosestProvinceDistance', 'average_closest_province_distance'],
-    ['maxLoyaltyIndex', 'loyalty_index', 'max'],
-    ['maxUrbanIndex', 'urban_index', 'max', ['urbanization_index']],
-  ]
+  const checks = SELECTOR_FEATURE_CHECKS
 
   for (const [selectorKey, featureKey, type = 'min', fallbackKeys = []] of checks) {
     if (selector[selectorKey] === undefined) continue

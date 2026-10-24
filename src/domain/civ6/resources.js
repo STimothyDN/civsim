@@ -1,71 +1,73 @@
 /**
  * Civ 6 resources — the county `resource` field. Entry fields are described in
- * terrains.js. Any resource at all also counts toward extraction and resource
- * development in countyFeatures.js; the entries add what's specific to each.
+ * terrains.js. A resource on an unimproved tile counts at half strength (see
+ * elections/features/countyProfile.js): an untapped deposit shapes local life
+ * less than a worked one.
  */
 
-const bonus = (name, props) => ({ name, kind: 'Bonus resource', ...props })
-const luxury = (name, lean, props = {}) => ({ name, kind: 'Luxury resource', signals: { luxury_resource: 1 }, lean, ...props })
-const strategic = (name, props) => ({ name, kind: 'Strategic resource', ...props })
+const bonus = (name, profile, props = {}) => ({ name, kind: 'Bonus resource', profile, ...props })
+const luxury = (name, profile, props = {}) => ({ name, kind: 'Luxury resource', profile, ...props })
+const strategic = (name, profile, props = {}) => ({ name, kind: 'Strategic resource', profile, ...props })
 
 export const RESOURCES = [
-  bonus('Bananas', { signals: { food_resource: 1 } }),
-  bonus('Cattle', { signals: { food_resource: 0.6 } }),
-  bonus('Copper', { lean: { extractive_index: 0.05, commercial_index: 0.02 } }),
-  bonus('Crabs', { lean: { maritime_index: 0.04, commercial_index: 0.02 } }),
-  bonus('Deer', { lean: { wilderness_index: 0.04, rural_index: 0.03 } }),
-  bonus('Fish', { signals: { food_resource: 0.4 }, lean: { maritime_index: 0.04 } }),
-  bonus('Maize', { signals: { food_resource: 1 } }),
-  bonus('Rice', { signals: { food_resource: 1 } }),
-  bonus('Sheep', { signals: { food_resource: 0.6 } }),
-  bonus('Stone', { lean: { extractive_index: 0.05, civic_monument_index: 0.02 } }),
-  bonus('Wheat', { signals: { food_resource: 1 } }),
+  // Staples: what a farm, pasture, camp, quarry or boat works.
+  bonus('Bananas', { agrarian: 0.4, ecology: 0.1 }),
+  bonus('Cattle', { agrarian: 0.45, rural: 0.3 }),
+  bonus('Copper', { extractive: 0.5, worker: 0.25, commercial: 0.15 }),
+  bonus('Crabs', { maritime: 0.5, commercial: 0.2 }),
+  bonus('Deer', { rural: 0.3, wilderness: 0.3, extractive: 0.2 }),
+  bonus('Fish', { maritime: 0.55, agrarian: 0.1 }),
+  bonus('Maize', { agrarian: 0.5, commercial: 0.1 }),
+  bonus('Rice', { agrarian: 0.55, watershed: 0.2 }),
+  bonus('Sheep', { agrarian: 0.4, rural: 0.35 }),
+  bonus('Stone', { extractive: 0.45, worker: 0.2, civic: 0.1 }),
+  bonus('Wheat', { agrarian: 0.55 }),
 
-  luxury('Amber', { cultural_elite_index: 0.03, extractive_index: 0.02 }),
-  luxury('Cinnamon', { commercial_index: 0.05 }),
-  luxury('Citrus', { agrarian_index: 0.04 }),
-  luxury('Cloves', { commercial_index: 0.05 }),
-  luxury('Cocoa', { commercial_index: 0.04, agrarian_index: 0.02 }),
-  luxury('Coffee', { cultural_elite_index: 0.03, commercial_index: 0.02 }),
-  luxury('Cosmetics', { commercial_index: 0.04, urban_index: 0.02 }),
-  luxury('Cotton', { commercial_index: 0.03, agrarian_index: 0.02, worker_index: 0.02 }),
-  luxury('Diamonds', { extractive_index: 0.04, commercial_index: 0.04 }),
-  luxury('Dyes', { spiritual_index: 0.03, commercial_index: 0.02 }),
-  luxury('Furs', { wilderness_index: 0.04, commercial_index: 0.02 }),
-  luxury('Gypsum', { extractive_index: 0.04, commercial_index: 0.02 }),
-  luxury('Honey', { agrarian_index: 0.03, rural_index: 0.02 }),
-  luxury('Incense', { spiritual_index: 0.05 }),
-  luxury('Ivory', { wilderness_index: 0.03, commercial_index: 0.03 }),
-  luxury('Jade', { cultural_elite_index: 0.04, extractive_index: 0.02 }),
-  luxury('Jeans', { commercial_index: 0.04, urban_index: 0.02 }),
-  luxury('Marble', { civic_monument_index: 0.04, cultural_elite_index: 0.02 }),
-  luxury('Mercury', { intellectual_index: 0.04, extractive_index: 0.02 }),
-  luxury('Olives', { agrarian_index: 0.03, commercial_index: 0.02 }),
-  luxury('Pearls', { spiritual_index: 0.03, maritime_index: 0.03 }),
-  luxury('Perfume', { commercial_index: 0.04, urban_index: 0.02 }),
-  luxury('Salt', { extractive_index: 0.03, commercial_index: 0.03 }),
-  luxury('Silk', { cultural_elite_index: 0.03, commercial_index: 0.03 }),
-  luxury('Silver', { commercial_index: 0.05, extractive_index: 0.02 }),
-  luxury('Spices', { commercial_index: 0.04, agrarian_index: 0.02 }),
-  luxury('Sugar', { agrarian_index: 0.04, commercial_index: 0.02 }),
-  luxury('Tea', { intellectual_index: 0.03, agrarian_index: 0.02 }),
-  luxury('Tobacco', { spiritual_index: 0.03, agrarian_index: 0.02 }),
-  luxury('Toys', { commercial_index: 0.04, urban_index: 0.02 }),
-  luxury('Truffles', { wilderness_index: 0.03, commercial_index: 0.03 }),
-  luxury('Turtles', { intellectual_index: 0.03, maritime_index: 0.02 }),
-  luxury('Whales', { maritime_index: 0.05, extractive_index: 0.03 }),
-  luxury('Wine', { leisure_tourism_index: 0.03, agrarian_index: 0.02, commercial_index: 0.02 }),
+  // Luxuries: all are trade goods; each also reads as where it comes from.
+  luxury('Amber', { commercial: 0.3, extractive: 0.3, cultural: 0.2 }),
+  luxury('Cinnamon', { commercial: 0.5, agrarian: 0.2 }),
+  luxury('Citrus', { agrarian: 0.4, commercial: 0.3 }),
+  luxury('Cloves', { commercial: 0.5, agrarian: 0.2 }),
+  luxury('Cocoa', { commercial: 0.4, agrarian: 0.35, worker: 0.1 }),
+  luxury('Coffee', { commercial: 0.35, agrarian: 0.35, cultural: 0.2 }),
+  luxury('Cosmetics', { commercial: 0.6, urban: 0.2, middle_class: 0.2 }),
+  luxury('Cotton', { agrarian: 0.35, commercial: 0.3, worker: 0.25, industrial: 0.1 }),
+  luxury('Diamonds', { extractive: 0.5, commercial: 0.5, worker: 0.2 }),
+  luxury('Dyes', { commercial: 0.3, agrarian: 0.3, spiritual: 0.25 }),
+  luxury('Furs', { commercial: 0.35, wilderness: 0.35, rural: 0.2 }),
+  luxury('Gypsum', { extractive: 0.45, commercial: 0.3, worker: 0.2 }),
+  luxury('Honey', { agrarian: 0.4, rural: 0.2, commercial: 0.2 }),
+  luxury('Incense', { spiritual: 0.45, commercial: 0.3, agrarian: 0.2 }),
+  luxury('Ivory', { commercial: 0.4, wilderness: 0.3, extractive: 0.2 }),
+  luxury('Jade', { extractive: 0.35, cultural: 0.35, commercial: 0.3 }),
+  luxury('Jeans', { commercial: 0.5, industrial: 0.3, worker: 0.2 }),
+  luxury('Marble', { extractive: 0.4, civic: 0.3, cultural: 0.2, commercial: 0.2 }),
+  luxury('Mercury', { extractive: 0.4, intellectual: 0.35, pollution: 0.2 }),
+  luxury('Olives', { agrarian: 0.4, commercial: 0.3 }),
+  luxury('Pearls', { maritime: 0.4, spiritual: 0.3, commercial: 0.3 }),
+  luxury('Perfume', { commercial: 0.55, middle_class: 0.25, cultural: 0.2 }),
+  luxury('Salt', { extractive: 0.4, commercial: 0.35, agrarian: 0.1 }),
+  luxury('Silk', { commercial: 0.4, agrarian: 0.3, cultural: 0.3 }),
+  luxury('Silver', { commercial: 0.5, extractive: 0.45 }),
+  luxury('Spices', { commercial: 0.45, agrarian: 0.35 }),
+  luxury('Sugar', { agrarian: 0.45, commercial: 0.3, worker: 0.2 }),
+  luxury('Tea', { agrarian: 0.35, commercial: 0.3, intellectual: 0.2 }),
+  luxury('Tobacco', { agrarian: 0.35, commercial: 0.3, spiritual: 0.2 }),
+  luxury('Toys', { commercial: 0.5, industrial: 0.25, middle_class: 0.2 }),
+  luxury('Truffles', { commercial: 0.45, wilderness: 0.3, rural: 0.2 }),
+  luxury('Turtles', { ecology: 0.5, maritime: 0.35, intellectual: 0.2 }),
+  luxury('Whales', { maritime: 0.6, extractive: 0.3, commercial: 0.2 }),
+  luxury('Wine', { agrarian: 0.4, commercial: 0.4, leisure: 0.25 }),
   // Civ 5 names some older saves use; still scored, never suggested.
-  luxury('Gems', { extractive_index: 0.04, commercial_index: 0.04 }, { hidden: true }),
-  luxury('Gold', { commercial_index: 0.05, extractive_index: 0.02 }, { hidden: true }),
+  luxury('Gems', { extractive: 0.5, commercial: 0.5, worker: 0.2 }, { hidden: true }),
+  luxury('Gold', { commercial: 0.55, extractive: 0.45 }, { hidden: true }),
 
-  // Horses are pastured, not mined, so they lean military/rural instead of
-  // counting as a strategic mineral.
-  strategic('Horses', { lean: { military_index: 0.08, rural_index: 0.03, agrarian_index: 0.02 } }),
-  strategic('Iron', { signals: { strategic_resource: 1 } }),
-  strategic('Niter', { signals: { strategic_resource: 1, energy_resource: 1 } }),
-  strategic('Coal', { signals: { strategic_resource: 1, energy_resource: 1 } }),
-  strategic('Oil', { signals: { strategic_resource: 1, energy_resource: 1 } }),
-  strategic('Aluminum', { aliases: ['Aluminium'], signals: { strategic_resource: 1, energy_resource: 1 } }),
-  strategic('Uranium', { signals: { strategic_resource: 1, energy_resource: 1 } }),
+  // Strategic: what armies and industry are built from.
+  strategic('Horses', { military: 0.45, rural: 0.3, agrarian: 0.2 }),
+  strategic('Iron', { extractive: 0.55, military: 0.35, worker: 0.25, industrial: 0.2 }),
+  strategic('Niter', { extractive: 0.45, military: 0.4, industrial: 0.2 }),
+  strategic('Coal', { extractive: 0.6, industrial: 0.45, worker: 0.35, pollution: 0.4 }),
+  strategic('Oil', { extractive: 0.6, industrial: 0.4, worker: 0.3, pollution: 0.45 }),
+  strategic('Aluminum', { extractive: 0.5, industrial: 0.45, intellectual: 0.15 }, { aliases: ['Aluminium'] }),
+  strategic('Uranium', { extractive: 0.5, industrial: 0.35, military: 0.35, pollution: 0.3, intellectual: 0.15 }),
 ]

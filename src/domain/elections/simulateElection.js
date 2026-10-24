@@ -110,44 +110,10 @@ function createProvinceInput(raw, row) {
   }
 }
 
-// Pass-through keys that must NOT be magnified (population, names, ids, raw diagnostic).
-const MAGNIFIER_PASSTHROUGH_KEYS = new Set([
-  'county_population',
-  'county_population_share',
-  'improvement_name',
-  'maritime_basin_name',
-  'river_name',
-  'citizens_working_index',
-])
-
-function citizenMagnifier(rawCitizens) {
-  if (rawCitizens === null || rawCitizens === undefined || rawCitizens === '') return 0.70
-  const c = Number(rawCitizens)
-  if (!Number.isFinite(c)) return 0.70
-  if (c <= 0) return 0.80
-  if (c <= 1) return 0.95
-  if (c <= 2) return 1.10
-  return 1.25
-}
-
-function applyCitizenMagnifier(features, rawCitizens) {
-  const M = citizenMagnifier(rawCitizens)
-  const result = {}
-  for (const [key, value] of Object.entries(features)) {
-    if (MAGNIFIER_PASSTHROUGH_KEYS.has(key) || typeof value !== 'number') {
-      result[key] = value
-      continue
-    }
-    const scaled = value * M
-    result[key] = scaled < 0 ? 0 : scaled > 1 ? 1 : scaled
-  }
-  result.citizen_magnifier = M
-  return result
-}
-
 function makeCountyUnit(county, index, province) {
   return {
     ...county,
+    has_details: countyHasComposition(county),
     countyIndex: index,
     id: `${province.provinceIndex}:${county.tile_id || index}`,
     name: county.name || `County ${index + 1}`,
@@ -155,6 +121,20 @@ function makeCountyUnit(county, index, province) {
     is_conquered: province.is_conquered,
     improvement_name: county.improvement?.name || '',
   }
+}
+
+// Whether the player described what the county is made of (a name alone
+// doesn't count). Blank counties let province yields stand in for them.
+function countyHasComposition(county = {}) {
+  const hasEnabled = (value) => value && typeof value === 'object' && Object.values(value).some(Boolean)
+  return Boolean(
+    String(county?.terrain || '').trim() ||
+    String(county?.resource || '').trim() ||
+    String(county?.improvement?.name || '').trim() ||
+    hasEnabled(county?.features) ||
+    hasEnabled(county?.improvement?.buildings) ||
+    sumObjectValues(county?.yields || {}) > 0
+  )
 }
 
 function countyHasMeaningfulDetails(county = {}) {
@@ -311,13 +291,10 @@ function buildProvinceFeatureUnitFor(raw, row, context) {
     const countyUnit = makeCountyUnit(county, index, provinceInput)
     return {
       ...countyUnit,
-      political_features: applyCitizenMagnifier(
-        calculateCountyFeatures(county, {
-          ...baseFeatures,
-          is_conquered: provinceInput.is_conquered,
-        }),
-        county.citizens_working,
-      ),
+      political_features: calculateCountyFeatures(county, {
+        ...baseFeatures,
+        is_conquered: provinceInput.is_conquered,
+      }),
     }
   })
   const provinceFeatures = calculateProvinceFeatures(
@@ -325,7 +302,7 @@ function buildProvinceFeatureUnitFor(raw, row, context) {
     country,
     preliminaryCountyUnits,
     provinceInput.provincial_population,
-    featureOptions
+    { ...featureOptions, baseFeatures }
   )
   const province = {
     ...provinceInput,
@@ -414,13 +391,10 @@ function buildProvinceResultFor(raw, row, config, featureUnitsByName, context) {
     volatility: { ...config.volatility, province: (config.volatility?.province ?? 0.12) * 1.3 },
   } : config
   const counties = preliminaryCountyUnits.map((county) => {
-    const features = applyCitizenMagnifier(
-      calculateCountyFeatures(county, {
-        ...province.political_features,
-        is_conquered: province.is_conquered,
-      }),
-      county.citizens_working,
-    )
+    const features = calculateCountyFeatures(county, {
+      ...province.political_features,
+      is_conquered: province.is_conquered,
+    })
     return calculateCountyVote({ ...county, political_features: features }, province, provinceConfig)
   })
   const assembly = calculateProvinceAssembly(province, counties, provinceConfig)

@@ -125,3 +125,22 @@ export function hhiIndex(shares) {
   const normalized = shares.map(s => s / total)
   return normalized.reduce((sum, s) => sum + s * s, 0)
 }
+
+/**
+ * How evenly a set of yields is spread: normalized Shannon entropy over the
+ * positive values (0 = everything in one yield, 1 = all equal). Fewer than two
+ * positive yields reads as fully specialized.
+ * @param {number[]} values
+ * @returns {number} 0..1
+ */
+export function yieldEvenness(values) {
+  const positive = (values || []).map(Number).filter((v) => Number.isFinite(v) && v > 0)
+  if (positive.length < 2) return 0
+  const total = positive.reduce((a, b) => a + b, 0)
+  let entropy = 0
+  for (const v of positive) {
+    const p = v / total
+    entropy -= p * Math.log(p)
+  }
+  return entropy / Math.log(values.length)
+}

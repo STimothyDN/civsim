@@ -1,55 +1,11 @@
 import { clamp01, num } from '../normalization/numbers'
+import { FEATURE_KEYS } from './featureCatalog'
 
+/** National features: every model feature, weighted by provincial population. */
 export function calculateNationalFeatures(provinces = []) {
   const nationalPopulation = provinces.reduce((sum, province) => sum + num(province.provincial_population), 0)
-  const featureNames = [
-    'state_religion_share',
-    'minority_religion_share',
-    'taoist_share',
-    'american_identity_index',
-    'roman_identity_index',
-    'imperial_core_index',
-    'urbanization_index',
-    'rural_index',
-    'industrial_index',
-    'agrarian_index',
-    'military_index',
-    'intellectual_index',
-    'spiritual_index',
-    'commerce_index',
-    'cultural_elite_index',
-    'worker_grievance_index',
-    'localist_index',
-    'traditionalist_index',
-    'restorationist_index',
-    'coastal_index',
-    'maritime_index',
-    'mountain_index',
-    'wilderness_index',
-    'residential_index',
-    'extractive_index',
-    'leisure_tourism_index',
-    'civic_monument_index',
-    'terrain_habitation_index',
-    'loyalty_index',
-    'happiness_index',
-    'growth_index',
-    'amenity_index',
-    'food_index',
-    'production_index',
-    'gold_index',
-    'culture_index',
-    'science_index',
-    'faith_index',
-    // New features
-    'economic_diversity_index',
-    'religious_homogeneity_index',
-    'development_index',
-    'provincial_power_index',
-    'isolation_index',
-  ]
 
-  const features = featureNames.reduce((result, featureName) => {
+  const features = FEATURE_KEYS.reduce((result, featureName) => {
     if (nationalPopulation <= 0) {
       result[featureName] = provinces.length
         ? clamp01(provinces.reduce((sum, province) => sum + num(province.political_features?.[featureName]), 0) / provinces.length)

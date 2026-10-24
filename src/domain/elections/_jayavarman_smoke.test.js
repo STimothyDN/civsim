@@ -40,7 +40,7 @@ describe('jayavarman smoke', () => {
     const stubOnly = result.provinces.find((p) => p.county_data_quality === 'stub')
     const richProv = result.provinces.find((p) => p.county_data_quality === 'rich')
     if (stubOnly) {
-      console.log('stub sample:', stubOnly.name, 'shares:', Object.fromEntries(Object.entries(stubOnly.assembly.vote_shares).map(([k,v])=>[k,Number(v.toFixed(3))])), 'urban:', stubOnly.political_features.urbanization_index.toFixed(3), 'industrial:', stubOnly.political_features.industrial_index.toFixed(3))
+      console.log('stub sample:', stubOnly.name, 'shares:', Object.fromEntries(Object.entries(stubOnly.assembly.vote_shares).map(([k,v])=>[k,Number(v.toFixed(3))])), 'urban:', stubOnly.political_features.urban_index.toFixed(3), 'industrial:', stubOnly.political_features.industrial_index.toFixed(3))
     }
     if (richProv) {
       console.log('rich sample:', richProv.name, 'shares:', Object.fromEntries(Object.entries(richProv.assembly.vote_shares).map(([k,v])=>[k,Number(v.toFixed(3))])))

@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import {
-  BUILDING_TIERS,
   CIV6_BUILDINGS,
   CIV6_FEATURES,
   CIV6_IMPROVEMENTS,
@@ -20,7 +19,7 @@ import {
   suggestionsFor,
 } from './index'
 import { calculateCountyFeatures } from '../elections/features/countyFeatures'
-import { LEAN_KEYS, SIGNAL_KEYS } from '../elections/features/countySignals'
+import { PROFILE_KEYS } from '../elections/features/countyProfile'
 import { featuresForScope } from '../elections/features/featureCatalog'
 
 const CATALOGS = {
@@ -49,7 +48,7 @@ function blankCounty(overrides = {}) {
   }
 }
 
-const CONTEXT = { imperial_core_index: 0.5, minority_religion_share: 0.2, state_religion_share: 0.6, roman_identity_index: 0 }
+const CONTEXT = { imperial_core_index: 0.5, minority_religion_share: 0.2, state_religion_share: 0.6, happiness_index: 0.5 }
 
 function largestWeightedShift(withEntry, without) {
   const a = calculateCountyFeatures(withEntry, CONTEXT)
@@ -106,20 +105,48 @@ describe('Civ 6 catalog', () => {
     }
   })
 
-  it('gives every entry political weights in the vocabulary the county formulas read', () => {
-    const leanKeys = new Set(LEAN_KEYS)
-    const signalKeys = new Set(SIGNAL_KEYS)
-    for (const [field, entries] of Object.entries(CATALOGS)) {
-      for (const entry of [...entries, ...(field === 'features' ? FEATURE_PATTERNS.map((p) => ({ ...p, name: p.id })) : [])]) {
-        const signals = Object.entries(entry.signals || {}).filter(([, value]) => value > 0)
-        const lean = Object.entries(entry.lean || {})
-        const declares = signals.length > 0 || lean.length > 0 || Boolean(entry.tier) || entry.population !== undefined
-        expect(declares, `${field}: ${entry.name} declares no weights`).toBe(true)
-        for (const [key] of signals) expect(signalKeys.has(key), `${field}: ${entry.name} signal ${key}`).toBe(true)
-        for (const [key] of lean) expect(leanKeys.has(key), `${field}: ${entry.name} lean ${key}`).toBe(true)
-        if (entry.tier) expect(BUILDING_TIERS[entry.tier], `${entry.name} tier ${entry.tier}`).toBeGreaterThan(0)
+  it('gives every entry a profile in the vocabulary the county formulas read', () => {
+    const known = new Set(PROFILE_KEYS)
+    const problems = []
+    const patterns = FEATURE_PATTERNS.map((pattern) => ({ ...pattern, name: `pattern:${pattern.id}` }))
+    for (const [field, entries] of Object.entries({ ...CATALOGS, patterns })) {
+      for (const entry of entries) {
+        const profile = Object.entries(entry.profile || {})
+        if (!profile.length && !entry.population) problems.push(`${field}: ${entry.name} has no profile`)
+        for (const [key, value] of profile) {
+          if (!known.has(key)) problems.push(`${field}: ${entry.name} profile key ${key}`)
+          if (!(value >= -1 && value <= 1)) problems.push(`${field}: ${entry.name} ${key}=${value}`)
+        }
       }
     }
+    expect(problems).toEqual([])
+  })
+
+  it('reads entries as what they are', () => {
+    const features = (county) => calculateCountyFeatures(blankCounty(county), CONTEXT)
+    const with_ = (name) => features({ improvement: { name, buildings: {}, great_works: {} } })
+    expect(with_('Campus').intellectual_index).toBeGreaterThan(0.8)
+    expect(with_('Farm').agrarian_index).toBeGreaterThan(0.75)
+    expect(with_('Mine').extractive_index).toBeGreaterThan(0.8)
+    expect(with_('Mine').worker_index).toBeGreaterThan(0.4)
+    expect(with_('Industrial Zone').pollution_index).toBeGreaterThan(0.5)
+    expect(with_('Neighborhood').middle_class_index).toBeGreaterThan(0.8)
+    expect(with_('Hagia Sophia').spiritual_index).toBeGreaterThan(0.85)
+    expect(with_('Government Plaza').localist_index).toBeLessThan(with_('Placeholder Works').localist_index)
+
+    // Buildings stack with diminishing returns, never past 1.
+    const campus = (buildings) => features({ improvement: { name: 'Campus', buildings, great_works: {} } }).intellectual_index
+    const full = campus({ Library: true, University: true, 'Research Lab': true })
+    expect(full).toBeGreaterThan(campus({ Library: true }))
+    expect(full).toBeLessThanOrEqual(1)
+
+    // Clean energy and preserves cut pollution; an untapped deposit counts half.
+    const mine = features({ improvement: { name: 'Mine', buildings: {}, great_works: {} }, resource: 'Coal' })
+    const deposit = features({ resource: 'Coal' })
+    expect(deposit.extractive_index).toBeLessThan(mine.extractive_index)
+    expect(features({ terrain: 'Snow' }).hardship_index).toBeGreaterThan(0.85)
+    expect(features({ terrain: 'Grassland (Hills)' }).mountain_index).toBeGreaterThan(0.35)
+    expect(features({ features: { 'Sonoran Desert': true } }).hardship_index).toBeGreaterThan(0.4)
   })
 
   it('moves at least one weighted county feature for every entry players can pick', () => {
@@ -133,16 +160,6 @@ describe('Civ 6 catalog', () => {
       }
     }
     expect(weak).toEqual([])
-  })
-
-  it('applies lean to every LEAN_KEYS feature', () => {
-    // The Lake terrain leans coastal; check each key moves when leaned.
-    const lake = calculateCountyFeatures(blankCounty({ terrain: 'Lake' }), CONTEXT)
-    const plain = calculateCountyFeatures(blankCounty(), CONTEXT)
-    expect(lake.coastal_index - plain.coastal_index).toBeCloseTo(0.12, 6)
-    const leaned = new Set(CIV6_BUILDINGS.concat(CIV6_FEATURES, CIV6_RESOURCES, CIV6_IMPROVEMENTS, CIV6_TERRAINS)
-      .flatMap((entry) => Object.keys(entry.lean || {})))
-    expect(LEAN_KEYS.filter((key) => !leaned.has(key) && key !== 'cultural_output_index')).toEqual([])
   })
 
   it('resolves names case-, accent- and punctuation-insensitively, with aliases', () => {
@@ -164,12 +181,13 @@ describe('Civ 6 catalog', () => {
 
   it('lets unique districts and buildings inherit from what they replace', () => {
     const lavra = resolveImprovement('Lavra')
-    expect(lavra.signals.holy_site).toBe(1)
+    expect(lavra.profile.spiritual).toBe(resolveImprovement('Holy Site').profile.spiritual)
+    expect(lavra.profile.cultural).toBeGreaterThan(0)
     expect(lavra.population).toBe(1.8)
-    expect(resolveImprovement('Mbanza').signals).toMatchObject({ residential: 1, neighborhood: 1 })
-    expect(resolveBuilding('Madrasa')).toMatchObject({ tier: 'science', district: 'Campus' })
-    expect(resolveBuilding('Palgum')).toMatchObject({ tier: 'housing', housing: 0.1 })
-    expect(resolveBuilding('Film Studio').lean).toEqual(resolveBuilding('Broadcast Center').lean)
+    expect(resolveImprovement('Mbanza').profile).toMatchObject({ middle_class: 0.85, commercial: 0.2 })
+    expect(resolveBuilding('Madrasa')).toMatchObject({ district: 'Campus', profile: { intellectual: 0.5, spiritual: 0.3 } })
+    expect(resolveBuilding('Palgum')).toMatchObject({ housing: 0.1, profile: { agrarian: 0.35 } })
+    expect(resolveBuilding('Gilded Vault').profile.commercial).toBeGreaterThan(0.5)
 
     const lavraBuildings = buildingsForImprovement('Lavra')
     expect(lavraBuildings).toEqual(expect.arrayContaining(['Shrine', 'Temple', 'Prasat', 'Cathedral', 'Wat']))

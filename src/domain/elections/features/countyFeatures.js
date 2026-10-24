@@ -1,22 +1,29 @@
 import { clamp01, norm, num } from '../normalization/numbers'
-import { NORMALIZATION_MAX, coefficientOfVariation } from '../normalization/dataStats'
-import { MARITIME_BASIN_KEYWORDS, normalizeName } from '../../civ6'
-import { collectCountySignals, tierShare } from './countySignals'
+import { NORMALIZATION_MAX, yieldEvenness } from '../normalization/dataStats'
+import { MARITIME_BASIN_KEYWORDS, normalizeName, resolveTerrain } from '../../civ6'
+import { collectCountyProfile, softOr } from './countyProfile'
+import { attitudeFeatures } from './attitudes'
+import { PROVINCE_IDENTITY_FEATURES } from './featureCatalog'
 
-// Distance scaling constants - creates drastic effect where remote areas have fundamentally different character
+// Tiles from the city center at which a county counts as fully remote.
 const MAX_COUNTY_DISTANCE = 5
-const COUNTY_DISTANCE_EXPONENT = 2.5
+const REMOTE_EXPONENT = 1.5
+// Appeal when the county doesn't record it.
+const DEFAULT_APPEAL_INDEX = 0.35
+
+const BASIN_KEYWORDS = MARITIME_BASIN_KEYWORDS.map((basin) => [basin, normalizeName(basin)])
 
 function improvementName(county) {
   return String(county?.improvement?.name || '').trim()
 }
 
-const BASIN_KEYWORDS = MARITIME_BASIN_KEYWORDS.map((basin) => [basin, normalizeName(basin)])
+function enabledKeys(map) {
+  if (!map || typeof map !== 'object') return []
+  return Object.keys(map).filter((key) => map[key])
+}
 
 function detectMaritimeBasin(county) {
-  const features = county?.features
-  if (!features) return null
-  const featureKeys = Object.keys(features).filter((key) => features[key]).map(normalizeName)
+  const featureKeys = enabledKeys(county?.features).map(normalizeName)
   if (!featureKeys.length) return null
   const match = BASIN_KEYWORDS.find(([, keyword]) => featureKeys.some((key) => key.includes(keyword)))
   return match ? match[0] : null
@@ -38,360 +45,91 @@ function countyYieldIndices(county) {
   }
 }
 
+function provinceIdentity(provinceContext = {}) {
+  const identity = {}
+  for (const key of PROVINCE_IDENTITY_FEATURES) identity[key] = clamp01(provinceContext[key])
+  if (provinceContext.is_conquered !== undefined) identity.conquered_index = provinceContext.is_conquered ? 1 : 0
+  return identity
+}
+
 /**
- * County political features. What a county *is* — terrain, features, resource,
- * improvement, buildings — comes from the Civ 6 catalog (src/domain/civ6) as
- * signals, building-ladder shares and lean; these formulas combine that with
- * yields, distance and province context.
+ * County political features (see MODEL.md).
+ *
+ * What the county *is* comes from the Civ 6 catalog: every entry it holds —
+ * terrain, features, resource, improvement, buildings — contributes its profile,
+ * combined with diminishing returns. The formulas below add the context the
+ * catalog can't know (distance from the center, yields, railroad, river, great
+ * works, appeal) and the province's identity, which the county inherits.
  */
 export function calculateCountyFeatures(county, provinceContext = {}) {
-  const name = improvementName(county)
-  const buildings = county?.improvement?.buildings || {}
-  const greatWorks = county?.improvement?.great_works || {}
-  const resource = String(county?.resource || '')
-  const { signals, tiers, lean } = collectCountySignals(county)
-  const signal = (key) => signals[key] || 0
-  const withLean = (key, value) => clamp01(value + (lean[key] || 0))
-  const distanceFromCenter = Math.max(0, num(county?.distance_from_center))
-  const citizensWorking = Math.max(0, num(county?.citizens_working))
+  const { remain, damp } = collectCountyProfile(county)
+  const lift = (dim, ...context) => clamp01(softOr(1 - remain[dim], ...context) * damp[dim])
+
+  const developed = improvementName(county) ? 1 : 0
+  const distance = Math.max(0, num(county?.distance_from_center))
+  const proximity = 1 / (1 + distance)
+  const remote = clamp01(Math.pow(distance / MAX_COUNTY_DISTANCE, REMOTE_EXPONENT))
+  const rail = county?.has_railroad ? 1 : 0
+  const river = detectRiver(county)
+  const land = resolveTerrain(county?.terrain)?.water ? 0 : 1
   const yields = countyYieldIndices(county)
-  const residentialImprovementIndex = signal('residential')
-  const neighborhoodIndex = signal('neighborhood')
-  const commercialOrDistrict = name ? 1 : 0
-  const citizensWorkingIndex = norm(citizensWorking, 3)
-  const housingBuildingIndex = tierShare(tiers, 'housing')
-  // Power plants and renewable improvements (wind, solar, geothermal) alike.
-  const energyIndex = Math.max(tierShare(tiers, 'energy'), signal('energy'))
-  const industryBuildingIndex = tierShare(tiers, 'industry')
-  const greatWorkDensityIndex = norm(Object.keys(greatWorks).length, 4)
-  const infrastructureSeed = clamp01((county?.has_railroad ? 0.6 : 0) + (county?.river ? 0.4 : 0))
-  const proximityIndex = 1 / (1 + distanceFromCenter)
-  const distanceIndex = clamp01(Math.pow(distanceFromCenter / MAX_COUNTY_DISTANCE, COUNTY_DISTANCE_EXPONENT))
-  const radiatingDecayMultiplier = clamp01(Math.pow(1 - distanceFromCenter / MAX_COUNTY_DISTANCE, COUNTY_DISTANCE_EXPONENT))
-  const farmOrPlantation = signal('agrarian')
-  const foodResourceIndex = signal('food_resource')
-  const undevelopedIndex = name ? 0 : 1
-  const mineOrCorporationIndex = signal('mine_or_corporation')
-  const infrastructureImprovementIndex = signal('infrastructure')
-  const industryIndex = signal('industry')
-  const diplomaticIndex = signal('diplomatic')
-  const railroadIndex = county?.has_railroad ? 1 : 0
-  const riverIndex = county?.river ? 1 : 0
-  const strategicResourceIndex = signal('strategic_resource')
-  const appealIndex = county?.appeal === null || county?.appeal === undefined || county?.appeal === ''
-    ? 0.35
+  const appeal = county?.appeal === null || county?.appeal === undefined || county?.appeal === ''
+    ? DEFAULT_APPEAL_INDEX
     : norm(county.appeal, NORMALIZATION_MAX.appeal)
-  const preserveOrParkIndex = signal('preserve')
-  const coastTerrainIndex = signal('coast_terrain')
-  const oceanTerrainIndex = signal('ocean_terrain')
-  const waterTerrainIndex = Math.max(coastTerrainIndex, oceanTerrainIndex)
-  const mountainTerrainIndex = signal('mountain_terrain')
-  const maritimeImprovementIndex = signal('maritime')
-  const harborBuildingIndex = tierShare(tiers, 'harbor')
-  const leisureTourismImprovementIndex = signal('leisure')
-  const civicMonumentImprovementIndex = signal('civic_monument')
-  const extractiveImprovementIndex = signal('extractive')
-  const naturalFeatureIndex = signal('natural')
-  const monumentIndex = tierShare(tiers, 'monument')
-  const resourceIndex = resource ? 1 : 0
-  const developedOrNaturalGate = name || naturalFeatureIndex ? 1 : 0
-  const workedDifficultTerrainIndex = (waterTerrainIndex || mountainTerrainIndex) && developedOrNaturalGate ? 1 : 0
-  const terrainHabitationIndex = withLean('terrain_habitation_index', (waterTerrainIndex || mountainTerrainIndex) && !developedOrNaturalGate ? 0 : 1)
+  const greatWorks = norm(enabledKeys(county?.improvement?.great_works).length, 4)
+  const builtBuildings = norm(enabledKeys(county?.improvement?.buildings).length, 6)
 
-  const yieldDensityIndex = clamp01(
-    0.25 * yields.food_index +
-    0.25 * yields.production_index +
-    0.2 * yields.gold_index +
-    0.15 * yields.culture_index +
-    0.15 * yields.science_index
-  )
+  const urban = lift('urban', 0.3 * proximity * developed, 0.12 * rail)
+  const pollution = lift('pollution', 0.12 * urban)
+  const heritage = lift('heritage', 0.15 * greatWorks)
 
-  const coastalIndex = withLean('coastal_index',
-    0.5 * coastTerrainIndex +
-    0.2 * maritimeImprovementIndex +
-    0.15 * workedDifficultTerrainIndex +
-    0.15 * yieldDensityIndex
-  )
-  const maritimeIndex = withLean('maritime_index',
-    0.3 * waterTerrainIndex +
-    0.25 * maritimeImprovementIndex +
-    0.25 * harborBuildingIndex +
-    0.15 * yields.gold_index +
-    0.05 * yields.food_index
-  )
-  const mountainIndex = withLean('mountain_index',
-    0.55 * mountainTerrainIndex +
-    0.15 * preserveOrParkIndex +
-    0.1 * appealIndex +
-    0.1 * distanceIndex +
-    0.1 * yields.faith_index
-  )
-  const wildernessIndex = withLean('wilderness_index',
-    0.25 * preserveOrParkIndex +
-    0.22 * naturalFeatureIndex +
-    0.15 * mountainTerrainIndex +
-    0.15 * appealIndex +
-    0.1 * distanceIndex +
-    0.13 * undevelopedIndex
-  )
-  const residentialIndex = withLean('residential_index',
-    0.45 * residentialImprovementIndex +
-    0.25 * proximityIndex +
-    0.15 * infrastructureSeed +
-    0.05 * housingBuildingIndex +
-    0.1 * yieldDensityIndex
-  )
-  const extractiveIndex = withLean('extractive_index',
-    0.4 * extractiveImprovementIndex +
-    0.26 * yields.production_index +
-    0.19 * strategicResourceIndex +
-    0.1 * resourceIndex +
-    0.05 * railroadIndex
-  )
-  const leisureTourismIndex = withLean('leisure_tourism_index',
-    0.35 * leisureTourismImprovementIndex +
-    0.2 * appealIndex +
-    0.15 * yields.culture_index +
-    0.1 * yields.faith_index +
-    0.1 * naturalFeatureIndex +
-    0.1 * greatWorkDensityIndex
-  )
-  const civicMonumentIndex = withLean('civic_monument_index',
-    0.35 * civicMonumentImprovementIndex +
-    0.2 * residentialImprovementIndex +
-    0.15 * monumentIndex +
-    0.15 * yields.culture_index +
-    0.15 * greatWorkDensityIndex
-  )
+  const composition = {
+    urban_index: urban,
+    rural_index: clamp01(lift('rural', 0.45 * remote, land && !developed ? 0.3 : 0) * (1 - 0.7 * urban)),
+    agrarian_index: lift('agrarian', 0.35 * yields.food_index),
+    industrial_index: lift('industrial', 0.12 * rail * developed),
+    extractive_index: lift('extractive'),
+    commercial_index: lift('commercial', 0.35 * yields.gold_index, river && developed ? 0.1 : 0),
+    maritime_index: lift('maritime'),
+    worker_index: lift('worker', 0.3 * yields.production_index),
+    development_index: lift('development', 0.3 * developed, 0.4 * builtBuildings, 0.3 * rail),
+    economic_diversity_index: yieldEvenness(Object.values(yields)),
+    military_index: lift('military', 0.12 * remote),
+    intellectual_index: lift('intellectual', 0.4 * yields.science_index),
+    spiritual_index: lift('spiritual', 0.4 * yields.faith_index),
+    cultural_elite_index: lift('cultural', 0.35 * yields.culture_index, 0.5 * greatWorks, 0.25 * heritage),
+    civic_monument_index: lift('civic'),
+    middle_class_index: lift('middle_class', 0.3 * urban * appeal),
+    leisure_tourism_index: lift('leisure', 0.3 * appeal, 0.2 * greatWorks, 0.25 * heritage),
+    heritage_index: heritage,
+    coastal_index: lift('coastal'),
+    mountain_index: lift('mountain'),
+    wilderness_index: clamp01(lift('wilderness', developed ? 0 : 0.3 * remote) * (1 - 0.7 * urban)),
+    ecology_index: clamp01(lift('ecology') * (1 - 0.5 * pollution)),
+    hardship_index: lift('hardship'),
+    watershed_index: lift('watershed', river ? 0.9 : 0),
+    appeal_index: appeal,
+    infrastructure_index: lift('infrastructure', 0.45 * rail, river ? 0.15 : 0, 0.15 * developed),
+    pollution_index: pollution,
+    ...yields,
+  }
 
-  const urbanIndex = withLean('urban_index',
-    0.25 * residentialImprovementIndex +
-    0.19 * commercialOrDistrict +
-    0.20 * infrastructureSeed +
-    0.1 * proximityIndex +
-    0.08 * yieldDensityIndex +
-    0.08 * residentialIndex +
-    0.10 * civicMonumentIndex
-  )
-  const ruralIndex = withLean('rural_index',
-    0.25 * distanceIndex +
-    0.22 * farmOrPlantation +
-    0.18 * foodResourceIndex +
-    0.12 * undevelopedIndex +
-    0.1 * (1 - urbanIndex) +
-    0.08 * wildernessIndex +
-    0.05 * mountainIndex
-  )
-  const industrialIndex = withLean('industrial_index',
-    0.30 * signal('industrial_zone') +
-    0.12 * industryIndex +
-    0.24 * yields.production_index +
-    0.18 * extractiveIndex +
-    0.04 * energyIndex +
-    0.07 * railroadIndex +
-    0.05 * strategicResourceIndex
-  )
-  const agrarianIndex = withLean('agrarian_index',
-    0.33 * farmOrPlantation +
-    0.23 * foodResourceIndex +
-    0.18 * yields.food_index +
-    0.10 * ruralIndex +
-    0.09 * (county?.river ? farmOrPlantation : 0) +
-    0.07 * infrastructureImprovementIndex
-  )
-  const militaryIndex = withLean('military_index',
-    0.45 * signal('encampment') +
-    0.25 * tierShare(tiers, 'military') +
-    0.15 * signal('aerodrome') +
-    0.1 * strategicResourceIndex +
-    0.05 * distanceIndex
-  )
-  const intellectualIndex = withLean('intellectual_index',
-    0.40 * signal('campus') +
-    0.24 * yields.science_index +
-    0.19 * tierShare(tiers, 'science') +
-    0.09 * yields.culture_index +
-    0.05 * diplomaticIndex +
-    0.03 * appealIndex
-  )
-  const spiritualIndex = withLean('spiritual_index',
-    0.32 * signal('holy_site') +
-    0.18 * yields.faith_index +
-    0.18 * tierShare(tiers, 'faith') +
-    0.1 * preserveOrParkIndex +
-    0.08 * appealIndex +
-    0.07 * naturalFeatureIndex +
-    0.07 * wildernessIndex
-  )
-  const commercialIndex = withLean('commercial_index',
-    0.32 * signal('commercial_hub') +
-    0.18 * tierShare(tiers, 'commerce') +
-    0.17 * yields.gold_index +
-    0.09 * signal('corporation') +
-    0.07 * industryIndex +
-    0.05 * diplomaticIndex +
-    0.06 * infrastructureSeed +
-    0.04 * maritimeIndex +
-    0.02 * urbanIndex
-  )
-  const culturalEliteIndex = withLean('cultural_elite_index',
-    0.35 * signal('theater') +
-    0.25 * greatWorkDensityIndex +
-    0.2 * yields.culture_index +
-    0.1 * monumentIndex +
-    0.1 * appealIndex
-  )
-  const workerIndex = withLean('worker_index',
-    0.32 * industrialIndex +
-    0.31 * yields.production_index +
-    0.13 * extractiveIndex +
-    0.16 * industryBuildingIndex +
-    0.08 * maritimeIndex
-  )
-  const infrastructureIndex = withLean('infrastructure_index',
-    0.37 * railroadIndex +
-    0.20 * riverIndex +
-    0.16 * (name ? 1 : 0) +
-    0.10 * proximityIndex +
-    0.10 * maritimeIndex +
-    0.07 * infrastructureImprovementIndex
-  )
-  const localistIndex = withLean('localist_index',
-    0.22 * distanceIndex +
-    0.18 * num(provinceContext.minority_religion_share) * radiatingDecayMultiplier +
-    0.17 * preserveOrParkIndex +
-    0.13 * neighborhoodIndex +
-    0.1 * (provinceContext.is_conquered ? 1 : 0) +
-    0.1 * (1 - num(provinceContext.imperial_core_index)) +
-    0.1 * wildernessIndex
-  )
-  const traditionalistIndex = withLean('traditionalist_index',
-    0.27 * ruralIndex +
-    0.18 * agrarianIndex +
-    0.18 * militaryIndex +
-    0.14 * num(provinceContext.state_religion_share) * radiatingDecayMultiplier +
-    0.13 * (1 - urbanIndex) +
-    0.1 * wildernessIndex
-  )
-  const restorationistIndex = withLean('restorationist_index',
-    0.32 * num(provinceContext.roman_identity_index) +
-    0.23 * (provinceContext.is_conquered ? 1 : 0) +
-    0.18 * spiritualIndex +
-    0.1 * num(provinceContext.minority_religion_share) * radiatingDecayMultiplier +
-    0.09 * localistIndex +
-    0.08 * wildernessIndex
-  )
-
-  // Calculate yield diversity index
-  const yieldValues = [
-    num(yields.food_index),
-    num(yields.production_index),
-    num(yields.gold_index),
-    num(yields.culture_index),
-    num(yields.science_index),
-    num(yields.faith_index),
-  ]
-  const yieldDiversityIndex = clamp01(coefficientOfVariation(yieldValues.filter(v => v > 0)))
-
-  // Calculate improved status index based on buildings and improvements
-  const buildingCount = Object.keys(buildings).length
-  const hasImprovement = name ? 1 : 0
-  const improvedStatusIndex = clamp01(
-    0.5 * hasImprovement +
-    0.3 * norm(buildingCount, 6) +
-    0.2 * (county?.has_railroad ? 1 : 0)
-  )
-
-  // Calculate resource development index
-  const resourceDevelopmentIndex = clamp01(
-    (strategicResourceIndex ? 1 : 0) +
-    (resource ? 0.5 : 0)
-  )
-
-  // Calculate cultural output index
-  const greatWorkCount = Object.keys(greatWorks).length
-  const culturalOutputIndex = withLean('cultural_output_index',
-    0.4 * yields.culture_index +
-    0.3 * signal('theater') +
-    0.2 * norm(greatWorkCount, 6) +
-    0.1 * (civicMonumentIndex > 0.5 ? 1 : 0)
-  )
-
-  // Calculate new shared feature indices
-  const maritimeBasinName = detectMaritimeBasin(county)
-  const maritimeBasinIndex = maritimeBasinName ? 1 : 0
-  const riverName = detectRiver(county)
-  const watershedIndex = riverName ? 1 : 0
-  const rainforestIndex = signal('rainforest')
-  const desertRegionIndex = signal('desert')
-  const floodplainIndex = signal('floodplain')
-  const protectedMarineIndex = signal('protected_marine')
-  const energyResourceIndex = signal('energy_resource')
-  const luxuryResourceIndex = signal('luxury_resource')
-  const offshoreDevelopmentIndex = clamp01(
-    0.4 * signal('offshore') +
-    0.3 * waterTerrainIndex +
-    0.24 * maritimeImprovementIndex +
-    0.06 * harborBuildingIndex
-  )
-  const resourceClusterIndex = clamp01(
-    0.5 * Math.max(energyResourceIndex, luxuryResourceIndex) +
-    0.3 * resourceIndex +
-    0.2 * strategicResourceIndex
-  )
+  const identity = provinceIdentity(provinceContext)
+  const attitudes = attitudeFeatures({ ...composition, ...identity }, remote)
 
   return {
     county_population: Math.max(0, Math.round(num(county?.county_population))),
     county_population_share: clamp01(county?.county_population_share),
-    urban_index: urbanIndex,
-    rural_index: ruralIndex,
-    industrial_index: industrialIndex,
-    agrarian_index: agrarianIndex,
-    military_index: militaryIndex,
-    intellectual_index: intellectualIndex,
-    spiritual_index: spiritualIndex,
-    commercial_index: commercialIndex,
-    cultural_elite_index: culturalEliteIndex,
-    worker_index: workerIndex,
-    infrastructure_index: infrastructureIndex,
-    appeal_index: appealIndex,
-    localist_index: localistIndex,
-    traditionalist_index: traditionalistIndex,
-    restorationist_index: restorationistIndex,
-    coastal_index: coastalIndex,
-    maritime_index: maritimeIndex,
-    mountain_index: mountainIndex,
-    wilderness_index: wildernessIndex,
-    residential_index: residentialIndex,
-    extractive_index: extractiveIndex,
-    leisure_tourism_index: leisureTourismIndex,
-    civic_monument_index: civicMonumentIndex,
-    terrain_habitation_index: terrainHabitationIndex,
-    // New features
-    yield_diversity_index: yieldDiversityIndex,
-    improved_status_index: improvedStatusIndex,
-    resource_development_index: resourceDevelopmentIndex,
-    cultural_output_index: culturalOutputIndex,
-    ...yields,
-    distance_index: distanceIndex,
-    citizens_working_index: citizensWorkingIndex,
-    mine_or_corporation_index: mineOrCorporationIndex,
-    neighborhood_index: neighborhoodIndex,
-    commercial_middle_class_index: clamp01((commercialIndex + urbanIndex + appealIndex) / 3),
-    religious_minority_index: num(provinceContext.minority_religion_share),
-    improvement_name: name,
-    // Shared geographic feature indices
-    maritime_basin_index: maritimeBasinIndex,
-    maritime_basin_name: maritimeBasinName,
-    watershed_index: watershedIndex,
-    river_name: riverName,
-    rainforest_index: rainforestIndex,
-    desert_region_index: desertRegionIndex,
-    floodplain_index: floodplainIndex,
-    protected_marine_index: protectedMarineIndex,
-    energy_resource_index: energyResourceIndex,
-    luxury_resource_index: luxuryResourceIndex,
-    offshore_development_index: offshoreDevelopmentIndex,
-    resource_cluster_index: resourceClusterIndex,
+    ...composition,
+    traditionalist_index: lift('traditionalist', attitudes.traditionalist_index),
+    localist_index: lift('localist', attitudes.localist_index),
+    restorationist_index: lift('restorationist', attitudes.restorationist_index),
+    worker_grievance_index: attitudes.worker_grievance_index,
+    ...identity,
+    // Not weighted; kept for trends, charts and the narrative planner.
+    distance_index: remote,
+    improvement_name: improvementName(county),
+    maritime_basin_name: detectMaritimeBasin(county),
+    river_name: river,
   }
 }

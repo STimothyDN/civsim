@@ -69,7 +69,7 @@ describe('weight generators', () => {
     })
   })
 
-  it('compiles narrative political model weights across scopes, maps sibling keys, and calibrates biases', () => {
+  it('compiles narrative political model weights across scopes, maps legacy keys, and calibrates biases', () => {
     const plan = {
       title: 'Workers vs Temple Core',
       summary: 'Industrial river corridors rally behind Orange while Yellow holds the sacred core.',
@@ -83,7 +83,7 @@ describe('weight generators', () => {
             conquered_index: -0.22,
           },
         },
-        // Matched by party name alias and tests cross-scope sibling projection (urbanization_index -> urban_index at county)
+        // Matched by party name alias; old feature keys map onto today's (urbanization_index -> urban_index)
         'United Workers Congress': {
           rationale: 'Sweeps urban industrial counties.',
           bias: { county: 0.11, province: 0.12, national: 0.12 },
@@ -108,12 +108,12 @@ describe('weight generators', () => {
     expect(yellow.affinities.county.imperial_core_index).toBe(0.28)
     expect(yellow.affinities.province.conquered_index).toBe(-0.22)
 
-    // Sibling mapping: urbanization_index (province/national) -> urban_index (county)
-    expect(orange.affinities.province.urbanization_index).toBe(0.24)
-    expect(orange.affinities.county.urban_index).toBe(0.24)
-    // Sibling mapping: commerce_index (province/national) -> commercial_index (county)
-    expect(orange.affinities.province.commerce_index).toBe(0.15)
-    expect(orange.affinities.county.commercial_index).toBe(0.15)
+    // Legacy keys land on the features that replaced them, at every scope.
+    for (const scope of ['county', 'province', 'national']) {
+      expect(orange.affinities[scope].urban_index).toBe(0.24)
+      expect(orange.affinities[scope].commercial_index).toBe(0.15)
+      expect(orange.affinities[scope]).not.toHaveProperty('urbanization_index')
+    }
     expect(orange.affinities.province).not.toHaveProperty('unknown_feature_key')
   })
 })

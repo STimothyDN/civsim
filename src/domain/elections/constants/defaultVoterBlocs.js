@@ -1,15 +1,11 @@
 /**
- * DEFAULT voter blocs — the data form of the original white/purple "natural"
- * identity branches. Each adds its target party support proportional to bloc
- * membership, per scope.
- *
- * These reproduce the old isAmericanBase / isLotusBase boosts:
+ * DEFAULT voter blocs: identity groups that lean toward a party regardless of
+ * the economic and social make-up of where they live. Each adds its party
+ * support proportional to bloc membership, per scope:
  *   - American provincial identity  → white (Solidarity Americana)
  *   - Roman royal restorationism    → purple (Lotus Restorationists)
- *   - Taoist religious minority     → purple
- *
- * Strengths are tuned so the bundled jayavarman example reproduces the original
- * engine within tolerance (see scoringEquivalence.test.js).
+ *   - Taoist religious minority     → purple, graded by the province's Taoist
+ *     share (province political_features.religion_shares)
  */
 
 const AMERICAN_SELECTOR = {
@@ -33,9 +29,6 @@ export const DEFAULT_VOTER_BLOCS = [
     party: 'white',
     cultureId: 'american',
     source: { selector: AMERICAN_SELECTOR },
-    // Province/county strengths express the natural-vs-diaspora *delta* (the
-    // boost rides on the diaspora base). National reproduces the old additive
-    // national term exactly (0.28).
     strength: { county: 0.22, province: 0.20, national: 0.28 },
   },
   {
@@ -51,8 +44,6 @@ export const DEFAULT_VOTER_BLOCS = [
     label: 'Taoist religious minority',
     party: 'purple',
     source: { religion: 'Taoism' },
-    // Province/county strengths absorb the restorationist amplification the old
-    // "natural" branch applied; national reproduces the old additive term (0.22).
     strength: { county: 0.55, province: 0.70, national: 0.22 },
   },
   {

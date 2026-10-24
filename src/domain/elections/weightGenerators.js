@@ -2,7 +2,7 @@ import { buildProvinceComparisonRows } from '../provinceVisualizations'
 import { buildFeatureUnitsByName } from './simulateElection'
 import { buildProvinceFeatureVector } from './scoring/provinceScores'
 import { buildCountyFeatureVector } from './scoring/countyScores'
-import { FEATURE_CATALOG, featuresForScope } from './features/featureCatalog'
+import { FEATURE_CATALOG, currentFeatureKey, featuresForScope } from './features/featureCatalog'
 
 /**
  * Deterministic generators that pre-populate the political-model weight matrix
@@ -195,23 +195,6 @@ export const WEIGHT_BOUNDS = {
   narrativeBiasMax: 0.35,
 }
 
-const SCOPE_FEATURE_SIBLINGS = {
-  urban_index: ['urbanization_index'],
-  urbanization_index: ['urban_index'],
-  commercial_index: ['commerce_index'],
-  commerce_index: ['commercial_index'],
-  religious_minority_index: ['minority_religion_share'],
-  minority_religion_share: ['religious_minority_index'],
-  improved_status_index: ['development_index'],
-  development_index: ['improved_status_index'],
-  economic_diversity_index: ['yield_diversity_index'],
-  yield_diversity_index: ['economic_diversity_index'],
-  worker_grievance_index: ['worker_index'],
-  worker_index: ['worker_grievance_index'],
-  mine_or_corporation_index: ['extractive_index'],
-  cultural_output_index: ['culture_index'],
-}
-
 function normalizeToken(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '')
 }
@@ -222,6 +205,9 @@ function resolveFeatureKey(rawKey) {
 
   const exact = FEATURE_CATALOG.find((entry) => entry.key === trimmed)
   if (exact) return exact.key
+  // A key from an earlier version of the model maps to what replaced it.
+  const current = currentFeatureKey(trimmed)
+  if (current) return current
 
   const norm = normalizeToken(trimmed)
   const byNormalized = FEATURE_CATALOG.find((entry) => (
@@ -331,20 +317,8 @@ function assignFeatureAcrossScopes(scopedAffinities, allowedByScope, rawKey, raw
   if (!weight) return
 
   for (const scope of targetScopes) {
-    const allowed = allowedByScope[scope]
-    if (allowed.has(key)) {
-      if (scopedAffinities[scope][key] === undefined) {
-        scopedAffinities[scope][key] = weight
-      }
-      continue
-    }
-
-    const siblings = SCOPE_FEATURE_SIBLINGS[key] || []
-    for (const sibling of siblings) {
-      if (allowed.has(sibling) && scopedAffinities[scope][sibling] === undefined) {
-        scopedAffinities[scope][sibling] = weight
-        break
-      }
+    if (allowedByScope[scope].has(key) && scopedAffinities[scope][key] === undefined) {
+      scopedAffinities[scope][key] = weight
     }
   }
 }
@@ -369,7 +343,7 @@ function extractScopedAffinities(spec, allowedByScope) {
         assignFeatureAcrossScopes(scopedAffinities, allowedByScope, featKey, weight, [scope])
       }
     }
-    // 2. Project any populated scope keys onto missing scopes via shared/sibling rules.
+    // 2. Project any populated scope keys onto the scopes that didn't set them.
     for (const sourceScope of ['province', 'county', 'national']) {
       for (const [featKey, weight] of Object.entries(scopedAffinities[sourceScope])) {
         assignFeatureAcrossScopes(scopedAffinities, allowedByScope, featKey, weight, SCOPES)

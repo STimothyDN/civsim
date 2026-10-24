@@ -218,7 +218,7 @@ describe('election domain', () => {
       imperial_core_index: 0.5,
       minority_religion_share: 0.2,
       state_religion_share: 0.7,
-      roman_identity_index: 0,
+      happiness_index: 0.5,
     }
     const harbor = calculateCountyFeatures({
       terrain: 'Coast',
@@ -252,11 +252,17 @@ describe('election domain', () => {
 
     expect(harbor.maritime_index).toBeGreaterThan(0.6)
     expect(harbor.coastal_index).toBeGreaterThan(0.5)
-    expect(harbor.terrain_habitation_index).toBe(1)
+    expect(harbor.worker_index).toBeGreaterThan(0.3)
     expect(mountainPark.mountain_index).toBeGreaterThan(0.6)
     expect(mountainPark.wilderness_index).toBeGreaterThan(0.5)
-    expect(mountainPark.terrain_habitation_index).toBe(1)
+    expect(mountainPark.ecology_index).toBeGreaterThan(0.6)
+    expect(mountainPark.hardship_index).toBeGreaterThan(0.3)
+    expect(mountainPark.pollution_index).toBeLessThan(0.01)
     expect(quarry.extractive_index).toBeGreaterThan(0.5)
+    expect(quarry.civic_monument_index).toBeGreaterThan(0)
+    // Counties carry their province's identity.
+    expect(quarry.imperial_core_index).toBe(0.5)
+    expect(quarry.state_religion_share).toBe(0.7)
   })
 
   it('counts listed zero-follower religions as tiny provincial presences', () => {
@@ -285,15 +291,15 @@ describe('election domain', () => {
     // Zero-follower listings still register a tiny share (not zero, not clamped at 1).
     expect(features.state_religion_share).toBeGreaterThan(0)
     expect(features.state_religion_share).toBeLessThan(0.05)
-    expect(features.taoist_share).toBeGreaterThan(0)
-    expect(features.taoist_share).toBeLessThan(0.05)
+    expect(features.religion_shares.Taoism).toBeGreaterThan(0)
+    expect(features.religion_shares.Taoism).toBeLessThan(0.05)
     // The 2-follower Protestant population dominates: minority share clearly larger
     // than the floor-only state_religion_share.
     expect(features.minority_religion_share).toBeGreaterThan(features.state_religion_share)
     expect(features.minority_religion_share).toBeLessThan(1)
     // Without globalization (no empireReligionTotals) and no listed Taoism,
-    // taoist_share is exactly zero.
-    expect(withoutTaoism.taoist_share).toBe(0)
+    // there is no Taoist share at all.
+    expect(withoutTaoism.religion_shares.Taoism ?? 0).toBe(0)
     expect(withoutTaoism.minority_religion_share).toBeGreaterThan(0)
   })
 
@@ -314,7 +320,7 @@ describe('election domain', () => {
 
   it('spreads religions empire-wide via globalization affinity', () => {
     // Province A has 50 Taoists; Province B has none listed. With empire totals
-    // passed in, B picks up a small ambient taoist_share via globalization.
+    // passed in, B picks up a small ambient Taoist share via globalization.
     const country = { state_religion: 'Zoroastrianism' }
     const empireReligionTotals = { Taoism: 50_000_000 }
     const noEmpire = calculateProvinceBaseFeatures({
@@ -332,8 +338,8 @@ describe('election domain', () => {
       closest_provinces: [{ province_name: 'A', distance: 4 }],
     }, country, { provinceIndex: 3001, empireReligionTotals })
 
-    expect(noEmpire.taoist_share).toBe(0)
-    expect(withEmpire.taoist_share).toBeGreaterThan(0)
+    expect(noEmpire.religion_shares.Taoism ?? 0).toBe(0)
+    expect(withEmpire.religion_shares.Taoism).toBeGreaterThan(0)
   })
 
   it('derives origin and adjacency features from province metadata', () => {
@@ -354,9 +360,8 @@ describe('election domain', () => {
     }, { basic_info: { name: 'Khmer Empire' }, state_religion: 'Zoroastrianism' })
 
     expect(features.foreign_origin_index).toBe(1)
-    expect(features.imperial_origin_index).toBe(0)
-    expect(features.american_identity_index).toBe(1)
-    expect(features.connectedness_index).toBeGreaterThan(features.frontier_index)
+    expect(features.conquered_index).toBe(1)
+    expect(features.frontier_index).toBeLessThan(0.5)
     expect(features.nearest_province_distance).toBe(4)
   })
 
