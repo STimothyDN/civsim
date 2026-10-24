@@ -70,17 +70,89 @@
       <!-- WEIGHT GENERATORS -->
       <div class="generators">
         <div class="generators__buttons">
-          <button type="button" class="btn-generate" @click="applyWeights('balanced')">
+          <button type="button" class="btn-generate" :disabled="Boolean(generatingKey)" @click="applyWeights('balanced')">
             Balanced Weights <InfoTip :text="TIPS.genBalanced" />
           </button>
-          <button type="button" class="btn-generate" @click="applyWeights('data-driven')">
+          <button type="button" class="btn-generate" :disabled="Boolean(generatingKey)" @click="applyWeights('data-driven')">
             Data Driven Weights <InfoTip :text="TIPS.genDataDriven" />
           </button>
-          <button type="button" class="btn-generate" @click="applyWeights('random')">
+          <button type="button" class="btn-generate" :disabled="Boolean(generatingKey)" @click="applyWeights('random')">
             Randomize Weights <InfoTip :text="TIPS.genRandom" />
+          </button>
+          <button
+            type="button"
+            class="btn-generate btn-generate--llm"
+            :class="{ 'btn-generate--active': narrativeWeightsOpen }"
+            :disabled="Boolean(generatingKey)"
+            @click="handleNarrativeWeightsButtonClick"
+          >
+            <Sparkles :size="14" />
+            {{ generatingKey === 'narrative-weights' ? 'Generating Weights…' : 'AI Narrative Driven Weights' }}
+            <InfoTip :text="TIPS.genNarrative" />
           </button>
         </div>
         <p class="generators__note">These overwrite all matrix weights below from your input data. Balanced respects each party's Major / Minor tier.</p>
+
+        <div v-if="narrativeWeightsOpen" class="narrative-weights-panel">
+          <label class="narrative-weights-field">
+            <span class="narrative-weights-field__label">
+              Describe your empire's political narrative, party coalitions, and cleavages
+            </span>
+            <textarea
+              ref="narrativeInputRef"
+              v-model="narrativePrompt"
+              rows="3"
+              :disabled="generatingKey === 'narrative-weights'"
+              placeholder="Example: Divinus Sol dominates the sacred imperial core and temple cities, while the United Workers Congress rallies industrial rail and river counties, and the National Drumbeat carries rural garrisons and frontier provinces."
+              @keydown.enter.exact.prevent="generateNarrativeWeights"
+            ></textarea>
+          </label>
+          <div class="narrative-weights-actions">
+            <LlmStatusIndicator
+              v-if="generatingKey === 'narrative-weights' && llmStatus"
+              :status="llmStatus"
+              title="AI Narrative Driven Weights"
+              variant="compact"
+            />
+            <div class="narrative-weights-buttons">
+              <button
+                type="button"
+                class="btn-generate"
+                :disabled="Boolean(generatingKey) || !narrativePrompt.trim()"
+                @click="generateNarrativeWeights"
+              >
+                <Sparkles :size="14" />
+                {{ generatingKey === 'narrative-weights' ? 'Calibrating…' : 'Apply Narrative Weights' }}
+              </button>
+              <button
+                type="button"
+                class="btn-secondary-quiet"
+                :disabled="generatingKey === 'narrative-weights'"
+                @click="narrativeWeightsOpen = false"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+          <div v-if="appliedNarrativeModel" class="narrative-weights-summary">
+            <div class="narrative-weights-summary__head">
+              <strong>{{ appliedNarrativeModel.title }}</strong>
+              <p>{{ appliedNarrativeModel.summary }}</p>
+            </div>
+            <div v-if="appliedNarrativeModel.rationales.length" class="narrative-weights-rationales">
+              <div
+                v-for="item in appliedNarrativeModel.rationales"
+                :key="item.id"
+                class="narrative-rationale-chip"
+                :style="{ '--party-color': item.color }"
+              >
+                <span class="narrative-rationale-chip__swatch" :style="{ background: item.color }"></span>
+                <strong>{{ item.abbreviation }}:</strong>
+                <span>{{ item.rationale }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="tier-row">
           <span class="tier-row__label">Party tiers <InfoTip :text="TIPS.tier" /></span>
@@ -267,10 +339,16 @@
           </label>
         </div>
         <div class="naming-actions">
+          <LlmStatusIndicator
+            v-if="generatingKey === 'home' && llmStatus"
+            :status="llmStatus"
+            title="Representative Naming"
+            variant="compact"
+          />
           <button
             type="button"
             class="btn-generate btn-generate--llm"
-            :disabled="generatingKey === 'home'"
+            :disabled="Boolean(generatingKey)"
             @click="generateNames('home', 'config.naming.homeCulture', naming.homeCulture)"
           >
             <Sparkles :size="14" />
@@ -326,10 +404,16 @@
           </label>
         </div>
         <div class="naming-actions">
+          <LlmStatusIndicator
+            v-if="generatingKey === `culture-${i}` && llmStatus"
+            :status="llmStatus"
+            title="Representative Naming"
+            variant="compact"
+          />
           <button
             type="button"
             class="btn-generate btn-generate--llm"
-            :disabled="generatingKey === `culture-${i}`"
+            :disabled="Boolean(generatingKey)"
             @click="generateNames(`culture-${i}`, `config.naming.cultures[${i}]`, culture)"
           >
             <Sparkles :size="14" />
@@ -409,14 +493,16 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { Plus, Sparkles, Trash2 } from 'lucide-vue-next'
 import { useFormStore } from '../../stores/formStore'
 import { useCivilizationStore } from '../../stores/civilizationStore'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { FEATURE_GROUPS, featuresForScope } from '../../domain/elections/features/featureCatalog'
 import { generatePoliticalModel } from '../../domain/elections/weightGenerators'
-import { requestCultureNames } from '../../domain/elections/narrativePlanner'
+import { requestCultureNames, requestPoliticalModelWeights } from '../../domain/elections/narrativePlanner'
+import LlmStatusIndicator from '../elections/LlmStatusIndicator.vue'
+import { namingLlmStatus, weightsLlmStatus } from '../elections/llmStatusCopy'
 import PowerBalanceStrip from '../elections/PowerBalanceStrip.vue'
 import StructureSettings from './StructureSettings.vue'
 import InfoTip from './InfoTip.vue'
@@ -456,6 +542,7 @@ const TIPS = {
   genBalanced: 'Pre-fills the matrix so parties come out as evenly matched as the data allows — without exaggerated weights. Major-tier parties target wide, equal support; Minor-tier parties stay focused and smaller.',
   genDataDriven: 'Pre-fills the matrix from the data\'s real cleavages: features that vary most across your provinces get the most weight, so the election mirrors the underlying data distribution.',
   genRandom: 'Pre-fills the matrix with sparse random weights within sane bounds — a quick way to get an unpredictable but playable starting point.',
+  genNarrative: 'Uses your local LM Studio model to calibrate party base support and feature affinities across County, Province, and National scopes from a written narrative combined with your empire\'s data.',
   tier: 'Major parties are meant for wide appeal; Minor parties are focused niche parties. The Balanced generator keeps minors smaller than majors.',
   homeCulture: 'The default culture your representatives are named from. Most reps use these names unless a minority/foreign culture applies.',
   givenNames: 'One given name per line. Male/female pools alternate by seat so chambers are mixed.',
@@ -471,7 +558,7 @@ const TIPS = {
 
 export default {
   name: 'AdvancedSetup',
-  components: { Plus, Sparkles, Trash2, PowerBalanceStrip, StructureSettings, InfoTip },
+  components: { Plus, Sparkles, Trash2, LlmStatusIndicator, PowerBalanceStrip, StructureSettings, InfoTip },
   setup() {
     const store = useFormStore()
     const civStore = useCivilizationStore()
@@ -479,6 +566,11 @@ export default {
     const activeTab = ref('model')
     const activeScope = ref('province')
     const generatingKey = ref(null)
+    const llmStatus = ref(null)
+    const narrativeWeightsOpen = ref(false)
+    const narrativePrompt = ref('')
+    const narrativeInputRef = ref(null)
+    const appliedNarrativeModel = ref(null)
 
     const parties = computed(() => civStore.parties)
     const voterBlocs = computed(() => civStore.voterBlocs)
@@ -512,6 +604,74 @@ export default {
       const withIds = model.map((m, i) => ({ id: partyList[i].id, ...m }))
       store.applyPoliticalModel(withIds)
       store.showToast(`${GENERATOR_LABELS[mode] || 'Weights'} applied`, 'success')
+    }
+
+    async function handleNarrativeWeightsButtonClick() {
+      if (generatingKey.value) return
+      if (!narrativeWeightsOpen.value) {
+        narrativeWeightsOpen.value = true
+        await nextTick()
+        narrativeInputRef.value?.focus()
+        return
+      }
+      if (narrativePrompt.value.trim()) {
+        await generateNarrativeWeights()
+      } else {
+        await nextTick()
+        narrativeInputRef.value?.focus()
+      }
+    }
+
+    async function generateNarrativeWeights() {
+      if (generatingKey.value) return
+      const prompt = narrativePrompt.value.trim()
+      if (!prompt) {
+        store.showToast('Enter a political narrative to calibrate party weights.', 'error')
+        return
+      }
+      const partyList = parties.value
+      if (!store.currentData || !partyList.length) return
+      if (!Array.isArray(store.currentData.provinces) || !store.currentData.provinces.length) {
+        store.showToast('Add province data first to generate weights from it.', 'error')
+        return
+      }
+
+      generatingKey.value = 'narrative-weights'
+      llmStatus.value = null
+      store.showToast('Calibrating narrative-driven weights with LM Studio…', 'info')
+      try {
+        const result = await requestPoliticalModelWeights({
+          narrative: prompt,
+          data: store.currentData,
+          parties: partyList,
+          onStatus: (status) => {
+            llmStatus.value = weightsLlmStatus(status)
+          },
+        })
+        store.applyPoliticalModel(result.model)
+        const byId = new Map(partyList.map((p) => [p.id, p]))
+        appliedNarrativeModel.value = {
+          title: result.title,
+          summary: result.summary,
+          rationales: result.model
+            .filter((entry) => entry.rationale)
+            .map((entry) => {
+              const p = byId.get(entry.id) || {}
+              return {
+                id: entry.id,
+                abbreviation: p.abbreviation || entry.id.toUpperCase(),
+                color: p.color || '#818cf8',
+                rationale: entry.rationale,
+              }
+            }),
+        }
+        store.showToast(`AI narrative weights applied: ${result.title}`, 'success')
+      } catch (err) {
+        store.showToast(`LM Studio weight generation failed: ${err?.message || err}`, 'error')
+      } finally {
+        generatingKey.value = null
+        llmStatus.value = null
+      }
     }
 
     function clampBias(value) {
@@ -618,12 +778,19 @@ export default {
       let targets = ['givenMale', 'givenFemale', 'surnames'].filter(
         (c) => Array.isArray(culture?.[c]) && culture[c].length > 0
       )
-      if (!targets.length) targets = ['givenMale', 'givenFemale']
+      if (!targets.length) targets = key === 'home' ? ['givenMale', 'givenFemale', 'surnames'] : ['givenMale', 'givenFemale']
 
       generatingKey.value = key
+      llmStatus.value = null
       store.showToast(`Generating names for "${label || 'culture'}" with LM Studio…`, 'info')
       try {
-        const result = await requestCultureNames({ label, categories: targets })
+        const result = await requestCultureNames({
+          label,
+          categories: targets,
+          onStatus: (status) => {
+            llmStatus.value = namingLlmStatus(status)
+          },
+        })
         let applied = 0
         for (const category of targets) {
           if (Array.isArray(result[category]) && result[category].length) {
@@ -637,6 +804,7 @@ export default {
         store.showToast(`LM Studio name generation failed: ${err?.message || err}`, 'error')
       } finally {
         generatingKey.value = null
+        llmStatus.value = null
       }
     }
 
@@ -661,7 +829,9 @@ export default {
       sourceKind, sourceValue, setSourceKind, setSourceValue,
       nameListText, setNameList, cultureMatchKind, cultureMatchValue,
       setCultureMatchKind, setCultureMatchValue, toggleCultureParty,
-      generateNames, generatingKey,
+      generateNames, generatingKey, llmStatus,
+      narrativeWeightsOpen, narrativePrompt, narrativeInputRef, appliedNarrativeModel,
+      handleNarrativeWeightsButtonClick, generateNarrativeWeights,
       featureTip, clampBias, applyWeights,
       TIPS, BIAS_MIN, BIAS_MAX, BIAS_TIP: 'The party\'s starting score before any feature weighting. Raise it to strengthen the party everywhere; lower it to weaken it. Slider covers the usual range; type any value in the box.',
     }
@@ -719,8 +889,51 @@ export default {
   border: 1px solid var(--accent, #6366f1); background: var(--accent, #6366f1); color: #fff;
   font-size: 0.85rem; font-weight: 600;
 }
-.btn-generate:hover { filter: brightness(1.08); }
+.btn-generate:hover:not(:disabled) { filter: brightness(1.08); }
+.btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-generate--active { background: var(--accent, #6366f1); color: #fff; }
 .generators__note { margin: 0; color: var(--muted, #94a3b8); font-size: 0.78rem; }
+.narrative-weights-panel {
+  display: flex; flex-direction: column; gap: 0.65rem;
+  padding: 0.75rem; border-radius: 8px;
+  border: 1px solid var(--accent, #6366f1);
+  background: rgba(99, 102, 241, 0.06);
+}
+.narrative-weights-field { display: flex; flex-direction: column; gap: 0.35rem; }
+.narrative-weights-field__label { font-size: 0.78rem; font-weight: 600; color: var(--text, #e2e8f0); }
+.narrative-weights-field textarea {
+  min-height: 76px; max-height: 180px; resize: vertical;
+  padding: 0.5rem 0.6rem; border-radius: 6px;
+  border: 1px solid var(--border, #2a3344);
+  background: var(--panel, #0f172a); color: var(--text, #e2e8f0);
+  font-family: inherit; font-size: 0.82rem; line-height: 1.4;
+}
+.narrative-weights-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.6rem; flex-wrap: wrap;
+}
+.narrative-weights-buttons { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
+.btn-secondary-quiet {
+  padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--border, #2a3344); background: transparent;
+  color: var(--muted, #94a3b8); font-size: 0.82rem; font-weight: 600;
+}
+.btn-secondary-quiet:hover:not(:disabled) { color: var(--text, #e2e8f0); border-color: var(--text, #cbd5e1); }
+.narrative-weights-summary {
+  display: flex; flex-direction: column; gap: 0.45rem;
+  padding-top: 0.55rem; border-top: 1px solid var(--border, #1e2735);
+}
+.narrative-weights-summary__head strong { font-size: 0.84rem; color: var(--text, #e2e8f0); }
+.narrative-weights-summary__head p { margin: 0.15rem 0 0; font-size: 0.78rem; color: var(--muted, #94a3b8); }
+.narrative-weights-rationales { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.narrative-rationale-chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.25rem 0.5rem; border-radius: 6px;
+  border: 1px solid var(--border, #2a3344);
+  border-left: 3px solid var(--party-color, #6366f1);
+  background: var(--panel, #0f172a); font-size: 0.74rem; color: var(--text, #cbd5e1);
+}
+.narrative-rationale-chip__swatch { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .tier-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; padding-top: 0.5rem; border-top: 1px solid var(--border, #1e2735); }
 .tier-row__label { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted, #94a3b8); font-weight: 700; }
 .tier-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.4rem; border: 1px solid var(--border, #2a3344); border-radius: 8px; }

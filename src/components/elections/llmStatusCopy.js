@@ -386,6 +386,217 @@ const POLL_BREAKDOWN_COPY = {
   },
 }
 
+const NAMING_COPY = {
+  'app.preparing': {
+    label: 'Archive',
+    message: 'Preparing culture naming brief.',
+    detail: (status) => status.detail || 'Packaging culture label and requested name banks.',
+  },
+  'app.connecting': {
+    label: 'Archive',
+    message: 'Opening the naming archive.',
+    detail: (status) => status.detail || 'Linking the culture naming brief to LM Studio.',
+  },
+  'chat.start': {
+    label: 'Archive',
+    message: 'Naming historian is live.',
+    detail: 'The local model has accepted the culture naming brief.',
+  },
+  'model_load.start': {
+    label: 'Model Load',
+    message: 'Loading the local model.',
+    detail: 'LM Studio is loading the requested model.',
+  },
+  'model_load.progress': {
+    label: 'Model Load',
+    message: 'Loading the local model.',
+    detail: (status) => progressDetail(status, 'Model load progress'),
+  },
+  'model_load.end': {
+    label: 'Model Load',
+    message: 'Local model is ready.',
+    detail: 'The model is loaded for representative naming.',
+  },
+  'prompt_processing.start': {
+    label: 'Prompt',
+    message: 'Reading cultural context.',
+    detail: 'Processing culture label and name bank rules.',
+  },
+  'prompt_processing.progress': {
+    label: 'Prompt',
+    message: 'Reading cultural context.',
+    detail: (status) => progressDetail(status, 'Prompt processing progress'),
+  },
+  'prompt_processing.end': {
+    label: 'Prompt',
+    message: 'Cultural context locked.',
+    detail: 'Ready to draft personal name banks.',
+  },
+  'reasoning.start': {
+    label: 'Onomastics',
+    message: 'Shaping cultural naming patterns.',
+    detail: 'The model is selecting phonetic and linguistic patterns.',
+  },
+  'reasoning.delta': {
+    label: 'Onomastics',
+    message: 'Shaping cultural naming patterns.',
+    detail: (status) => status.detail || 'Phonetic patterns are still being checked.',
+  },
+  'reasoning.end': {
+    label: 'Onomastics',
+    message: 'Naming patterns selected.',
+    detail: 'Moving to name bank generation.',
+  },
+  'message.start': {
+    label: 'Names',
+    message: 'Drafting personal name banks.',
+    detail: 'Name arrays are streaming from LM Studio.',
+  },
+  'message.delta': {
+    label: 'Names',
+    message: 'Drafting personal name banks.',
+    detail: (status) => status.detail || 'Name banks are streaming from LM Studio.',
+  },
+  'message.end': {
+    label: 'Names',
+    message: 'Name banks received.',
+    detail: 'Validating and deduplicating generated names.',
+  },
+  'chat.end': {
+    label: 'Packet',
+    message: 'Naming packet received.',
+    detail: (status) => status.detail || 'Final LM Studio result received.',
+  },
+  'app.parsing': {
+    label: 'Parsing',
+    message: 'Reading generated name banks.',
+    detail: (status) => status.detail || 'Extracting and sanitizing names from the response.',
+  },
+  'app.complete': {
+    label: 'Complete',
+    message: 'Representative names generated.',
+    detail: (status) => status.detail || 'Name banks applied.',
+  },
+  error: {
+    label: 'Fault',
+    message: 'Representative naming failed.',
+    detail: (status) => status.detail || 'LM Studio returned an error.',
+  },
+  default: {
+    label: 'Archive',
+    message: 'Working with the naming historian.',
+    detail: 'Waiting for the local model.',
+  },
+}
+
+const WEIGHTS_COPY = {
+  'app.preparing': {
+    label: 'Survey',
+    message: 'Profiling empire data and party cleavages.',
+    detail: (status) => status.detail || 'Packing province features, county signals, voter blocs, and party tiers.',
+  },
+  'app.connecting': {
+    label: 'Signal',
+    message: 'Opening the political model channel.',
+    detail: (status) => status.detail || 'Linking the political weight matrix to LM Studio.',
+  },
+  'chat.start': {
+    label: 'Architect',
+    message: 'Political model architect is live.',
+    detail: 'The local model has accepted the narrative weight brief.',
+  },
+  'model_load.start': {
+    label: 'Model Load',
+    message: 'Loading the local model.',
+    detail: 'LM Studio is loading the requested model.',
+  },
+  'model_load.progress': {
+    label: 'Model Load',
+    message: 'Loading the local model.',
+    detail: (status) => progressDetail(status, 'Model load progress'),
+  },
+  'model_load.end': {
+    label: 'Model Load',
+    message: 'Local model is ready.',
+    detail: 'The model is loaded for narrative weight calibration.',
+  },
+  'prompt_processing.start': {
+    label: 'Prompt',
+    message: 'Reading empire feature distributions.',
+    detail: 'Processing narrative, party tiers, and province/county cleavages.',
+  },
+  'prompt_processing.progress': {
+    label: 'Prompt',
+    message: 'Reading empire feature distributions.',
+    detail: (status) => progressDetail(status, 'Prompt processing progress'),
+  },
+  'prompt_processing.end': {
+    label: 'Prompt',
+    message: 'Empire context locked.',
+    detail: 'Ready to calibrate party biases and feature affinities.',
+  },
+  'reasoning.start': {
+    label: 'Calibration',
+    message: 'Matching narrative to empire features.',
+    detail: 'The model is weighing party coalitions against province and county data.',
+  },
+  'reasoning.delta': {
+    label: 'Calibration',
+    message: 'Matching narrative to empire features.',
+    detail: (status) => status.detail || 'Calibrating party affinities and base support.',
+  },
+  'reasoning.end': {
+    label: 'Calibration',
+    message: 'Coalition structure selected.',
+    detail: 'Moving to weight matrix output.',
+  },
+  'message.start': {
+    label: 'Weights',
+    message: 'Streaming party weights.',
+    detail: 'Base support and feature affinities are streaming from LM Studio.',
+  },
+  'message.delta': {
+    label: 'Weights',
+    message: 'Streaming party weights.',
+    detail: (status) => status.detail || 'Weight matrix JSON is streaming from LM Studio.',
+  },
+  'message.end': {
+    label: 'Weights',
+    message: 'Weight matrix received.',
+    detail: 'Validating and mapping weights across scopes.',
+  },
+  'chat.end': {
+    label: 'Packet',
+    message: 'Weight packet received.',
+    detail: (status) => status.detail || 'Final LM Studio result received.',
+  },
+  'app.parsing': {
+    label: 'Parsing',
+    message: 'Reading generated party weights.',
+    detail: (status) => status.detail || 'Extracting party biases, feature affinities, and rationales.',
+  },
+  'app.compiling': {
+    label: 'Compiling',
+    message: 'Calibrating weights to empire data.',
+    detail: (status) => status.detail || 'Mapping feature affinities across county, province, and national scopes.',
+  },
+  'app.complete': {
+    label: 'Complete',
+    message: 'Narrative weights applied.',
+    detail: (status) => status.detail || 'Party biases and feature affinities updated.',
+  },
+  error: {
+    label: 'Fault',
+    message: 'Narrative weight generation failed.',
+    detail: (status) => status.detail || 'LM Studio returned an error.',
+  },
+  default: {
+    label: 'Architect',
+    message: 'Calibrating narrative weights.',
+    detail: 'Waiting for the local model.',
+  },
+}
+
 export function broadcastLlmStatus(status) {
   return mapStatus(status, BROADCAST_COPY)
 }
@@ -400,4 +611,12 @@ export function pollBreakdownLlmStatus(status) {
 
 export function tickerLlmStatus(status) {
   return mapStatus(status, TICKER_COPY)
+}
+
+export function namingLlmStatus(status) {
+  return mapStatus(status, NAMING_COPY)
+}
+
+export function weightsLlmStatus(status) {
+  return mapStatus(status, WEIGHTS_COPY)
 }

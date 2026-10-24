@@ -40,9 +40,10 @@
           type="button"
           class="election-action-btn"
           title="Election Ticker"
-          @click="$emit('show-ticker')"
+          :disabled="uiStore.electionTicker.loading"
+          @click="uiStore.triggerElectionTicker(uiStore.currentPageScope, uiStore.currentPageTargetName)"
         >
-          <Activity :size="16" />
+          <Activity :size="16" :class="{ 'broadcast-blink': uiStore.electionTicker.loading }" />
         </button>
       </div>
     </nav>

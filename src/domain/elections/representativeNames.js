@@ -15,6 +15,24 @@ import { num } from './normalization/numbers'
 const PARTY_TIE_WEIGHT = 1.5
 const BLOC_NAMING_WEIGHT = 1.5
 
+// Incumbent survival: when a party retains a seat, the sitting member does not
+// automatically return. Their odds of winning re-election scale with how safe
+// the seat is (supportMetric, 0-100). Safe seats almost always keep their
+// member; marginal seats frequently fall to a challenger, producing a fresh
+// face even though the party held the seat. These are the tunable knobs.
+const INCUMBENT_SURVIVAL_FLOOR = 0.55 // re-election odds on a knife-edge seat
+const INCUMBENT_SURVIVAL_CEIL = 0.95 // re-election odds on a rock-solid seat
+const INCUMBENT_SURVIVAL_CURVE = 0.7 // <1 lifts survival for mid-margin seats
+
+// Probability (0-1) that an incumbent on a seat of the given safety survives.
+export function incumbentSurvivalChance(supportMetric) {
+  const safety = Math.min(100, Math.max(0, num(supportMetric))) / 100
+  return (
+    INCUMBENT_SURVIVAL_FLOOR +
+    (INCUMBENT_SURVIVAL_CEIL - INCUMBENT_SURVIVAL_FLOOR) * Math.pow(safety, INCUMBENT_SURVIVAL_CURVE)
+  )
+}
+
 // Traditional Khmer given names
 const KHMER_GIVEN_NAMES = {
   male: [
@@ -510,7 +528,7 @@ function rosterKey(party, withinPartyIndex, scopeKey) {
 
 // Generate names for a scope+chamber block, applying incumbents where available,
 // and recording new roster entries. Returns { names, rosterEntries }.
-function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbentRoster, naming = DEFAULT_NAMING, voterBlocs = []) {
+export function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbentRoster, naming = DEFAULT_NAMING, voterBlocs = [], isBaseline = false) {
   const names = {}
   const rosterEntries = {}
   const incumbencies = {}
@@ -520,8 +538,26 @@ function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbe
 
   for (const seat of seatDetails || []) {
     const key = rosterKey(seat.party, seat.withinPartyIndex ?? 0, scopeKey)
-    const wasIncumbent = Boolean(incumbentRoster[key])
-    let name = incumbentRoster[key]
+    const priorName = incumbentRoster[key]
+
+    // Decide whether a sitting representative carries into this election:
+    // - Baseline is the starting legislature, so every member is the sitting
+    //   incumbent (no prior roster exists to survive from).
+    // - Otherwise a prior member returns only if they win re-election, with odds
+    //   set by their seat safety. A defeated incumbent, a seat the party newly
+    //   gained, or a flipped seat all yield a fresh face tagged NEW.
+    let isIncumbent
+    let name
+    if (isBaseline) {
+      isIncumbent = true
+      name = null
+    } else if (priorName && rng() < incumbentSurvivalChance(seat.supportMetric)) {
+      isIncumbent = true
+      name = priorName
+    } else {
+      isIncumbent = false
+      name = null
+    }
 
     if (!name) {
       const province = provinces?.find((p) =>
@@ -540,10 +576,37 @@ function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, incumbe
     usedNames.add(name)
     names[`${seat.party}_${seat.seatIndex}`] = name
     rosterEntries[key] = name
-    incumbencies[`${seat.party}_${seat.seatIndex}`] = wasIncumbent
+    incumbencies[`${seat.party}_${seat.seatIndex}`] = isIncumbent
   }
 
   return { names, rosterEntries, incumbencies }
+}
+
+// Classify a chamber leader against the previous election's leader for the same
+// scope+chamber, for the three-state leader badge:
+//   'incumbent'      — same party in power AND same person still leading
+//   'new-leader'     — same party in power but a different person leads
+//   'new-government'  — a different party now controls the chamber
+// Baseline is the sitting government at game start, so its leaders read incumbent.
+export function computeLeaderStatus(isBaseline, prevLeader, currentParty, currentName) {
+  if (isBaseline) return 'incumbent'
+  if (!prevLeader || !prevLeader.party || !currentParty) return null
+  if (prevLeader.party !== currentParty) return 'new-government'
+  if (prevLeader.name && currentName && prevLeader.name !== currentName) return 'new-leader'
+  return 'incumbent'
+}
+
+// Find the leading party's figurehead (top seat by support) within a block.
+function findBlockLeader(seatDetails, names, control) {
+  const leaderParty = control?.leaderParty
+  if (!leaderParty) return null
+  let topSeat = null
+  for (const seat of seatDetails) {
+    if (seat.party !== leaderParty) continue
+    if (!topSeat || seat.supportMetric > topSeat.supportMetric) topSeat = seat
+  }
+  if (!topSeat) return null
+  return { party: leaderParty, name: names[`${leaderParty}_${topSeat.seatIndex}`] || null }
 }
 
 // Generate all representative names for all scopes at once
@@ -556,26 +619,40 @@ export function generateAllScopeNames(results, store, electionStore) {
   const voterBlocs = Array.isArray(store?.currentData?.config?.voterBlocs) ? store.currentData.config.voterBlocs : []
   const seed = resultsValue.config?.seed || 'default'
   const incumbentRoster = electionStore.incumbentRoster || {}
+  // The baseline legislature is the sitting government at game start: tag every
+  // member incumbent. Real elections recompute survival against the prior roster.
+  const isBaseline = Boolean(electionStore.isBaseline)
+  const previousLeaders = electionStore.previousLeaders || {}
   const newRoster = {}
+  const newLeaders = {}
+  const newLeaderStatuses = {}
 
-  function processBlock(rawSeatDetails, chamberType, offset, scopeKey) {
+  function processBlock(rawSeatDetails, chamberType, offset, scopeKey, control) {
     const seatDetails = rawSeatDetails.map((s) => ({ ...s, chamberType, seatIndex: s.seatIndex + offset }))
     if (!seatDetails.length) return
+    const blockKey = `${scopeKey}_${chamberType}`
     const nameSeed = `${countryName}_${seed}-${scopeKey}-${chamberType}`
-    const { names, rosterEntries, incumbencies } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, `${scopeKey}_${chamberType}`, incumbentRoster, naming, voterBlocs)
+    const { names, rosterEntries, incumbencies } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, blockKey, incumbentRoster, naming, voterBlocs, isBaseline)
     electionStore.representativeNames = { ...electionStore.representativeNames, ...names }
     electionStore.representativeIncumbents = { ...electionStore.representativeIncumbents, ...incumbencies }
     Object.assign(newRoster, rosterEntries)
+
+    // Track the chamber leader and how it changed from the previous election.
+    const leader = findBlockLeader(seatDetails, names, control)
+    if (leader) {
+      newLeaders[blockKey] = leader
+      newLeaderStatuses[blockKey] = computeLeaderStatus(isBaseline, previousLeaders[blockKey], leader.party, leader.name)
+    }
   }
 
   // National
   processBlock(
     generateSeatDetails({ seats: resultsValue.national?.assembly?.seats || {}, chamberType: 'assembly', scope: 'national', provinces: resultsValue.provinces }),
-    'assembly', SEAT_OFFSETS.national.assembly, 'national'
+    'assembly', SEAT_OFFSETS.national.assembly, 'national', resultsValue.national?.assembly?.control
   )
   processBlock(
     generateSeatDetails({ seats: resultsValue.national?.prelates?.seats || {}, chamberType: 'prelates', scope: 'national', provinces: resultsValue.provinces }),
-    'prelates', SEAT_OFFSETS.national.prelates, 'national'
+    'prelates', SEAT_OFFSETS.national.prelates, 'national', resultsValue.national?.prelates?.control
   )
 
   // Regional
@@ -583,11 +660,11 @@ export function generateAllScopeNames(results, store, electionStore) {
     const scopeKey = `region_${region.name}`
     processBlock(
       generateSeatDetails({ seats: region?.assembly?.seats || {}, chamberType: 'assembly', scope: 'regional', provinces: resultsValue.provinces, selectedRegionName: region.name }),
-      'assembly', SEAT_OFFSETS.regional.assembly, scopeKey
+      'assembly', SEAT_OFFSETS.regional.assembly, scopeKey, region?.assembly?.control
     )
     processBlock(
       generateSeatDetails({ seats: region?.prelates?.seats || {}, chamberType: 'prelates', scope: 'regional', provinces: resultsValue.provinces, selectedRegionName: region.name }),
-      'prelates', SEAT_OFFSETS.regional.prelates, scopeKey
+      'prelates', SEAT_OFFSETS.regional.prelates, scopeKey, region?.prelates?.control
     )
   })
 
@@ -596,13 +673,14 @@ export function generateAllScopeNames(results, store, electionStore) {
     const scopeKey = `province_${province.name}`
     processBlock(
       generateSeatDetails({ seats: province?.assembly?.seats || {}, chamberType: 'assembly', scope: 'provincial', provinces: resultsValue.provinces, selectedProvince: province }),
-      'assembly', SEAT_OFFSETS.provincial.assembly, scopeKey
+      'assembly', SEAT_OFFSETS.provincial.assembly, scopeKey, province?.assembly?.control
     )
     processBlock(
       generateSeatDetails({ seats: province?.prelates?.seats || {}, chamberType: 'prelates', scope: 'provincial', provinces: resultsValue.provinces, selectedProvince: province }),
-      'prelates', SEAT_OFFSETS.provincial.prelates, scopeKey
+      'prelates', SEAT_OFFSETS.provincial.prelates, scopeKey, province?.prelates?.control
     )
   })
 
   electionStore.saveCurrentRoster(newRoster)
+  electionStore.saveCurrentLeaders(newLeaders, newLeaderStatuses)
 }

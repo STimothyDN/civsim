@@ -201,7 +201,6 @@ export default {
           polling: pollingPayloadFor(uiStore.broadcastScope, uiStore.broadcastTargetName),
           seatDetails,
           representativeNames: electionStore.representativeNames,
-          incumbentRoster: electionStore.incumbentRoster,
           electionNumber: electionStore.electionNumber,
           onStatus: (status) => {
             llmStatus.value = broadcastLlmStatus(status)

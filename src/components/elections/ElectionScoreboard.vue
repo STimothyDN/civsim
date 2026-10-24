@@ -14,7 +14,7 @@
         <span class="scoreboard-leader-title">Prime Minister</span>
         <span class="scoreboard-leader-name">
           {{ assemblyLeaderName }}
-          <IncumbencyBadge :is-incumbent="assemblyLeaderIncumbent" />
+          <LeaderStatusBadge :status="assemblyLeaderStatus" />
         </span>
       </div>
     </div>
@@ -39,7 +39,7 @@
         <span class="scoreboard-leader-title">Principal Chancellor</span>
         <span class="scoreboard-leader-name">
           {{ councilLeaderName }}
-          <IncumbencyBadge :is-incumbent="councilLeaderIncumbent" />
+          <LeaderStatusBadge :status="councilLeaderStatus" />
         </span>
       </div>
     </div>
@@ -49,12 +49,12 @@
 <script>
 import { computed } from 'vue'
 import PartyBadge from './PartyBadge.vue'
-import IncumbencyBadge from './IncumbencyBadge.vue'
+import LeaderStatusBadge from './LeaderStatusBadge.vue'
 import { formatCompactNumber } from '../../domain/formatting'
 
 export default {
   name: 'ElectionScoreboard',
-  components: { PartyBadge, IncumbencyBadge },
+  components: { PartyBadge, LeaderStatusBadge },
   props: {
     results: { type: Object, required: true },
     partyMeta: { type: Object, required: true },
@@ -62,8 +62,8 @@ export default {
     electionYear: { type: [Number, String], default: '' },
     assemblyLeaderName: { type: String, default: '' },
     councilLeaderName: { type: String, default: '' },
-    assemblyLeaderIncumbent: { type: Boolean, default: null },
-    councilLeaderIncumbent: { type: Boolean, default: null },
+    assemblyLeaderStatus: { type: String, default: null },
+    councilLeaderStatus: { type: String, default: null },
   },
   setup(props) {
     const assemblyControl = computed(() => props.results.national.assembly.control)

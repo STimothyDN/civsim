@@ -28,7 +28,7 @@
         <span>Assembly Leader</span>
         <strong>
           {{ lowerHouseLeaderTitle('provincial') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex + SEAT_OFFSETS.provincial.assembly) || '' }}
-          <IncumbencyBadge :party="assemblyLeader.party" :seat-index="assemblyLeader.seatIndex + SEAT_OFFSETS.provincial.assembly" />
+          <LeaderStatusBadge :status="electionStore.getLeaderStatus(`province_${selectedProvince.name}_assembly`)" />
         </strong>
         <small class="leader-line">from {{ assemblyLeader.jurisdiction }} ({{ partyMeta[assemblyLeader.party]?.abbreviation || assemblyLeader.party }})</small>
         <small v-if="assemblySupportLeaders?.length" class="leader-support-line">
@@ -39,7 +39,7 @@
         <span>Council Leader</span>
         <strong>
           {{ upperHouseLeaderTitle('provincial') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + SEAT_OFFSETS.provincial.prelates) || '' }}
-          <IncumbencyBadge :party="councilLeader.party" :seat-index="councilLeader.seatIndex + SEAT_OFFSETS.provincial.prelates" />
+          <LeaderStatusBadge :status="electionStore.getLeaderStatus(`province_${selectedProvince.name}_prelates`)" />
         </strong>
         <small class="leader-line">from {{ councilLeader.jurisdiction }} ({{ partyMeta[councilLeader.party]?.abbreviation || councilLeader.party }})</small>
         <small v-if="councilSupportLeaders?.length" class="leader-support-line">
@@ -54,12 +54,6 @@
       :party-meta="partyMeta"
     />
 
-    <ElectionTickerCard
-      :request-id="tickerRequestId"
-      :scope="tickerScope"
-      :target-name="tickerTargetName"
-      :ticker-key="tickerKey"
-    />
 
     <section v-if="selectedProvince" class="election-panel">
       <div class="election-panel-heading">
@@ -257,9 +251,8 @@ import ProvinceChart from '../components/ProvinceChart.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import CaucusListCard from '../components/elections/CaucusListCard.vue'
 import ElectionPageShell from '../components/elections/ElectionPageShell.vue'
-import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
-import IncumbencyBadge from '../components/elections/IncumbencyBadge.vue'
+import LeaderStatusBadge from '../components/elections/LeaderStatusBadge.vue'
 import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import ProvinceSelectorGrid from '../components/elections/ProvinceSelectorGrid.vue'
@@ -271,7 +264,6 @@ import AdjacentProvinceCompare from '../components/elections/AdjacentProvinceCom
 import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionFormatters } from '../composables/useElectionFormatters'
-import { useElectionTicker } from '../composables/useElectionTicker'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
 import { PARTIES, formatShare, trendHasMatchingEffect } from '../domain/elections'
 import { useChamberLabels } from '../composables/useChamberLabels'
@@ -285,8 +277,8 @@ export default {
   components: {
     AdjacentProvinceCompare, Building2, ChamberComposition, CaucusListCard,
     CountyFeatureHeatmap, CountyGeographyStrip, CountyVoteGrid,
-    ElectionPageShell, ElectionTickerCard, FeatureCorrelationScatter,
-    PartyBadge, IncumbencyBadge, PartySwingCards, PopularVoteBoard, ProvinceChart,
+    ElectionPageShell, FeatureCorrelationScatter,
+    PartyBadge, LeaderStatusBadge, PartySwingCards, PopularVoteBoard, ProvinceChart,
     ProvinceSelectorGrid,
   },
   setup() {
@@ -366,9 +358,6 @@ export default {
       seatCount: computed(() => selectedProvince.value?.prelates?.seat_count || 0),
     })
 
-    const selectedProvinceIndexRef = computed(() => selectedProvince.value?.provinceIndex ?? '')
-    const { showElectionTicker, tickerKey, tickerRequestId, tickerScope, tickerTargetName } =
-      useElectionTicker({ results, defaultScope: 'provincial', extraKeyParts: [selectedProvinceIndexRef] })
 
     const featureRadarOption = computed(() => provinceFeatureRadarOption(selectedProvince.value))
     const selectedProvinceSeatColumns = [
@@ -443,10 +432,6 @@ export default {
       selectedProvinceSeatColumns,
       selectedUpperHouseName,
       store,
-      tickerKey,
-      tickerRequestId,
-      tickerScope,
-      tickerTargetName,
       topParty,
       upperHouseLeaderTitle,
     }

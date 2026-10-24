@@ -28,6 +28,11 @@ function cloneBaseline() {
     // Incumbent tracking: stable keys "{party}_{withinPartyIndex}_{scope}_{chamberType}_{scopeName}" -> name
     currentRoster: {},    // rebuilt after each name generation pass
     incumbentRoster: {},  // promoted from currentRoster on confirmElection()
+    // Chamber-leader tracking: keys "{scopeKey}_{chamberType}" -> { party, name }.
+    // Drives the three-state leader badge (incumbent / new leader / new government).
+    currentLeaders: {},   // rebuilt after each name generation pass
+    previousLeaders: {},  // promoted from currentLeaders on confirmElection()
+    leaderStatuses: {},   // computed at generation time -> 'incumbent'|'new-leader'|'new-government'
   }
 }
 
@@ -85,9 +90,14 @@ export const useElectionStore = defineStore('election', {
       if (Object.keys(this.incumbentRoster).length === 0 && Object.keys(this.currentRoster).length > 0) {
         this.incumbentRoster = { ...this.currentRoster }
       }
+      if (Object.keys(this.previousLeaders).length === 0 && Object.keys(this.currentLeaders).length > 0) {
+        this.previousLeaders = { ...this.currentLeaders }
+      }
       this.representativeNames = {}
       this.representativeIncumbents = {}
       this.currentRoster = {}
+      this.currentLeaders = {}
+      this.leaderStatuses = {}
 
       return {
         id: trendPackageId,
@@ -133,9 +143,17 @@ export const useElectionStore = defineStore('election', {
       this.trendHistory.push([...newTrends])
       this.electionNumber++
       this.incumbentRoster = { ...this.currentRoster }
+      this.previousLeaders = { ...this.currentLeaders }
     },
     saveCurrentRoster(roster) {
       this.currentRoster = roster
+    },
+    saveCurrentLeaders(leaders, statuses) {
+      this.currentLeaders = leaders
+      this.leaderStatuses = { ...this.leaderStatuses, ...statuses }
+    },
+    getLeaderStatus(blockKey) {
+      return this.leaderStatuses[blockKey] ?? null
     },
     setScenarioMetadataLoading(trendPackageId = this.trendPackageId) {
       if (trendPackageId && trendPackageId !== this.trendPackageId) return
@@ -195,6 +213,9 @@ export const useElectionStore = defineStore('election', {
         representativeIncumbents: { ...this.representativeIncumbents },
         currentRoster: { ...this.currentRoster },
         incumbentRoster: { ...this.incumbentRoster },
+        currentLeaders: { ...this.currentLeaders },
+        previousLeaders: { ...this.previousLeaders },
+        leaderStatuses: { ...this.leaderStatuses },
       }
     },
     hydrateElectionState(state) {
@@ -224,6 +245,9 @@ export const useElectionStore = defineStore('election', {
       this.representativeIncumbents = { ...(state.representativeIncumbents || {}) }
       this.currentRoster = { ...(state.currentRoster || {}) }
       this.incumbentRoster = { ...(state.incumbentRoster || {}) }
+      this.currentLeaders = { ...(state.currentLeaders || {}) }
+      this.previousLeaders = { ...(state.previousLeaders || {}) }
+      this.leaderStatuses = { ...(state.leaderStatuses || {}) }
       this.scenarioMetadataStatus = 'idle'
       this.scenarioMetadataError = null
     },

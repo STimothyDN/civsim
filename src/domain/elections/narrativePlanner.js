@@ -1,10 +1,15 @@
 import { DEFAULT_VOLATILITY } from './constants/apportionmentRules'
 import { PARTIES, PARTY_META, partyMetaFromConfig } from './constants/parties'
+import { DEFAULT_PARTIES } from './constants/defaultParties'
 import { RANDOM_TREND_TEMPLATES, generateTrendPackageFromSelections } from './trends/randomizeTrends'
-import { lowerHouseLeaderTitle, upperHouseLeaderTitle } from './chambers/names'
+import { lowerHouseLeaderTitle, upperHouseLeaderTitle, lowerHouseName, upperHouseName } from './chambers/names'
+import { DEFAULT_CHAMBERS } from './constants/defaultConfig'
+import { resolveStructure } from './constants/politicalStructures'
+import { FEATURE_CATALOG, FEATURE_GROUPS } from './features/featureCatalog'
+import { buildEmpireFeatureProfile, compileNarrativePoliticalModel } from './weightGenerators'
 
-const DEFAULT_ENDPOINT = 'http://localhost:1234/api/v1/chat'
-const DEFAULT_MODEL = 'liquid/lfm2-24b-a2b'
+export const DEFAULT_ENDPOINT = 'http://localhost:1234/api/v1/chat'
+export const DEFAULT_MODEL = 'google/gemma-4-e4b'
 const DEFAULT_CONTEXT_LENGTH = 131072
 const MAX_TEMPLATE_DESCRIPTION = 160
 const MAX_TEMPLATE_HOOK = 150
@@ -14,9 +19,16 @@ const MAX_SCENARIO_DESCRIPTION = 260
 const MAX_WORLD_PROVINCES = 10
 const MAX_GROUP_SUMMARIES = 12
 const MAX_TOP_CONTEXT_VALUES = 6
-const CLIMATE_SUMMARY_TOKEN_BUDGETS = [480, 900]
-const NARRATIVE_PLAN_TOKEN_BUDGETS = [1700, 2400]
+const CLIMATE_SUMMARY_TOKEN_BUDGETS = [480, 900, 1800]
+const NARRATIVE_PLAN_TOKEN_BUDGETS = [1700, 2400, 3600]
+const POLITICAL_WEIGHTS_TOKEN_BUDGETS = [2200, 3400]
 const REPRESENTATIVE_NAMING_TOKEN_BUDGET = 2000
+const REPRESENTATIVE_NAMING_TOKEN_BUDGETS = [REPRESENTATIVE_NAMING_TOKEN_BUDGET, 3200]
+const BROADCAST_TOKEN_BUDGETS = [3500, 4800]
+const POLL_BREAKDOWN_TOKEN_BUDGETS = [1800, 2800]
+const TICKER_TOKEN_BUDGETS = [700, 1400]
+const RETRYABLE_JSON_ERROR_CODES = ['length', 'empty', 'invalid-json', 'no-json']
+const RETRYABLE_TEXT_ERROR_CODES = ['length', 'empty']
 const MAX_CUSTOM_TRENDS = 3
 const MAX_CUSTOM_EFFECTS = 4
 const CUSTOM_EFFECT_LEVELS = ['national', 'province', 'county']
@@ -145,11 +157,28 @@ class ModelOutputError extends Error {
 }
 
 function stripThinkBlocks(text) {
-  return String(text || '')
+  let cleaned = String(text || '')
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+    .replace(/<\|channel\|?[^>]*>thought[\s\S]*?(?:<channel\|>|<\|channel\|>)/gi, '')
+    .replace(/<unused94>[\s\S]*?<unused95>/gi, '')
     .replace(/<\|tool_call_start\|>[\s\S]*?<\|tool_call_end\|>/gi, '')
     .replace(/<\|tool_call\|>[\s\S]*?<\|\/tool_call\|>/gi, '')
+
+  const orphanClosers = [/<\/think>/gi, /<\/thinking>/gi, /<channel\|>/gi, /<unused95>/gi]
+  for (const closer of orphanClosers) {
+    let match
+    let lastEnd = -1
+    while ((match = closer.exec(cleaned)) !== null) {
+      lastEnd = match.index + match[0].length
+    }
+    if (lastEnd >= 0) {
+      cleaned = cleaned.slice(lastEnd)
+    }
+  }
+
+  return cleaned
+    .replace(/^(?:<think>|<thinking>|<\|channel\|?[^>]*>thought|<unused94>)\s*/i, '')
     .trim()
 }
 
@@ -672,8 +701,12 @@ function broadcastSystemPrompt(scope = 'national', targetName = null) {
     'STRUCTURE: Paragraphs 3 and 4 — drill down. Decisive provinces, demographic swings, trend impacts. Use representative names with exact titles throughout.',
     'STRUCTURE: Paragraph 5 — incumbent story. When incumbentChanges data is present, name who changed titles, who lost power, who secured a mandate. Reference the outgoing figure by name too: "[Former PM Name] steps aside as..." If isFirstElection or incumbentChanges is empty, use this for forward analysis.',
     'STRUCTURE: Paragraphs 6–7 (optional) — outlook and coalition analysis. Use only when data supports the depth.',
+    'PRECOMPUTED MATH — DO NOT RECALCULATE: Every chamber carries a margin object with finished arithmetic (leaderSeats, runnerUpSeats, seatLeadOverRunnerUp, voteLeadOverRunnerUpPct, majorityThreshold, seatsShortOfMajority, majoritySurplus, hasOwnMajority) plus a ready-to-read marginLabel sentence. Use these numbers as given. Never add up seats, subtract from a majority threshold, or compute a lead yourself — small arithmetic errors read as broadcast mistakes.',
+    'POLLING SURPRISES: When pollingVsResult is present, its parties[].voteDeltaPct and seatDelta are already computed against the certified result (positive = beat the polls, negative = underperformed). Use them, and biggestSurprise, to call who exceeded or fell short of expectations. Do not infer the comparison from the raw polling and result numbers yourself.',
     'HISTORICAL CONTEXT: When isFirstElection is false, use swingPct and strongestSwing to frame shifts vs. the previous election. When isFirstElection is true, skip historical comparisons.',
-    'INCUMBENT CHANGES: When incumbentChanges data is provided, this is the central human drama. Party-flip: name both the outgoing and incoming leader with exact titles. Minority-to-majority: mandate story. Majority-to-minority: rebuke story. Always use exact role titles: Prime Minister, Principal Chancellor, Premier, Head Chancellor, Governor, Chancellor.',
+    'GOVERNMENT STRUCTURE: The government field defines the system. Obey government.note. When government.hasRegionTier is false (federalist union) there is NO regional tier — never mention regions, regional assemblies, or regional leaders; treat the provinces as the federal building blocks. Use government.nationalComposition and provinceDelegations to explain how national seats were assembled (e.g. population-driven national delegations, small-province parity in the upper house).',
+    'TITLES: Use the exact role titles in government.chamberTitles and the chamber names in government.chamberNames — these reflect the active configuration and may differ between civilizations. Do not assume default titles like Prime Minister or Governor unless they appear there.',
+    'INCUMBENT CHANGES: When incumbentChanges data is provided, this is the central human drama. Party-flip: name both the outgoing and incoming leader with exact titles. Minority-to-majority: mandate story. Majority-to-minority: rebuke story. Always use the role titles supplied in incumbentChanges and government.chamberTitles.',
     'POLLING CONTEXT: When polling.aggregate is provided, compare final results to pre-election expectations. Highlight surprises.',
     'PARTY IDENTITY: Use partyIdentityRules to collapse color labels, IDs, abbreviations, and formal names into one party identity.',
     'Use only supplied facts and numbers; do not invent counties, parties, margins, quotes, or scenarios.',
@@ -695,18 +728,100 @@ function tickerSystemPrompt(scope = 'national', targetName = null) {
   }
 
   return [
-    `You are writing one election results ticker update for ${scopeName}, like a chyron running on CNN, BBC, or a major network.`,
-    'PHASE: Results are FINAL. Use definitive past-tense language: won, took, secured, held. Do not use uncertainty language like "projected" or "too close to call."',
-    'Return exactly one plain-text paragraph, 55 to 85 words.',
+    `You are the chyron writer for ${scopeName}, producing the scrolling election-night headline bar like BBC, ABC (Australia), or CBC election coverage.`,
+    'PHASE: Results are FINAL. Use definitive past-tense language: won, took, secured, held, swept, lost. Do not use uncertainty language like "projected" or "too close to call."',
     scopeRules[scope] || scopeRules.national,
-    'Lead with the most important result — the control call, the seat shift, the biggest story from this scope.',
-    'KEY LEADERS: If topLeaders data is present, you may name the governing leader once (e.g., "Prime Minister Vannak Chan") when directly relevant to the lead. One name max — keep it tight.',
-    'Follow with the key context using supplied trends and numbers. Keep it punchy and viewer-focused.',
-    'Treat polling.aggregate as the pre-election benchmark; note surprises only when they are striking.',
-    'Use hard data, but stay compact enough for an on-screen ticker. Think "bottom line" journalism.',
-    'Use only supplied facts and numbers; do not invent counties, parties, margins, or quotes.',
-    'No markdown, heading, bullets, preamble, hidden reasoning, or <think> blocks.',
+    'OUTPUT: Return 4 to 6 separate ticker headlines, ONE PER LINE. Each line is a single self-contained chyron headline — no line depends on another. Do NOT write a paragraph.',
+    'LINE FORMAT: Begin each line with a SHORT uppercase tag, then a colon, then the headline. Example tags: RESULT, UPSET, TREND, REGION, PROVINCE, MANDATE, SWING, OUTLOOK. Example line: "UPSET: Divinus Sol beat its polls by 4 points in the industrial east."',
+    'LENGTH: Each headline is punchy — roughly 8 to 18 words. Tight, viewer-facing, present a single fact or angle. No trailing period needed.',
+    'VARIETY — cover DIFFERENT angles across the lines, do not repeat the same fact: (1) the lead control call or seat result, (2) a polling surprise from pollingVsResult or polling.aggregate — who beat or missed their polls, (3) an empire trend from activeTrends and how it moved the vote, (4) a notable region/province or swing, (5) an incumbent/mandate change if incumbentChanges is present, (6) a forward-looking outlook line.',
+    'KEY LEADERS: When topLeaders is present, name the governing leader with their exact title in at least one headline (e.g., "Prime Minister Vannak Chan"). Use supplied titles only.',
+    'Treat polling.aggregate as the pre-election benchmark; surface surprises where the result diverged from it.',
+    'Use partyIdentityRules to collapse color labels, ids, abbreviations, and formal names into one party identity.',
+    'Use only supplied facts and numbers; do not invent counties, parties, margins, leaders, or quotes.',
+    'No markdown, bullets, numbering, preamble, commentary, hidden reasoning, or <think> blocks. Just the headline lines.',
   ].join(' ')
+}
+
+// Tag → ticker tone, matching the AppTicker palette (gold/azure/jade/coral/ink).
+const TICKER_TONE_BY_TAG = {
+  RESULT: 'gold',
+  MANDATE: 'gold',
+  CONTROL: 'gold',
+  UPSET: 'coral',
+  SURPRISE: 'coral',
+  SHOCK: 'coral',
+  TREND: 'jade',
+  ECONOMY: 'jade',
+  REGION: 'azure',
+  PROVINCE: 'azure',
+  MAP: 'azure',
+  SWING: 'azure',
+  OUTLOOK: 'ink',
+  WATCH: 'ink',
+}
+const TICKER_TONE_ROTATION = ['gold', 'coral', 'jade', 'azure', 'ink']
+
+function tickerToneForTag(tag, index = 0) {
+  return TICKER_TONE_BY_TAG[String(tag || '').toUpperCase()] || TICKER_TONE_ROTATION[index % TICKER_TONE_ROTATION.length]
+}
+
+// Parse the model's line-per-headline output into structured ticker items.
+// Tolerant of an optional "TAG:" prefix, stray bullets/numbering, blank lines, and JSON arrays.
+function parseTickerHeadlines(rawText) {
+  const cleaned = stripThinkBlocks(chatContentToText(rawText))
+    .replace(/^```(?:json|text)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim()
+  if (!cleaned) return []
+
+  let rawEntries = null
+  if (cleaned.startsWith('[') || cleaned.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(cleaned)
+      if (Array.isArray(parsed)) {
+        rawEntries = parsed
+      } else if (parsed && typeof parsed === 'object') {
+        const listCandidate = parsed.headlines || parsed.items || parsed.ticker || parsed.lines
+        if (Array.isArray(listCandidate)) rawEntries = listCandidate
+      }
+    } catch {
+      // Fall back to line-based parsing below.
+    }
+  }
+
+  const lines = rawEntries
+    ? rawEntries.map((entry) => {
+        if (typeof entry === 'string') return entry
+        if (entry && typeof entry === 'object') {
+          const tag = entry.tag || entry.category || entry.label || ''
+          const text = entry.text || entry.headline || entry.line || entry.title || ''
+          return tag ? `${tag}: ${text}` : String(text)
+        }
+        return ''
+      })
+    : cleaned
+        .split(/\r?\n/)
+        .map((line) => line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').replace(/^["']|["'],?$/g, '').trim())
+        .filter((line) => line && !/^[\[\]{}],?$/.test(line))
+
+  const items = []
+  lines.forEach((line, index) => {
+    const normalizedLine = String(line || '').trim()
+    if (!normalizedLine) return
+    const match = normalizedLine.match(/^([A-Z][A-Z &/]{1,18}?):\s*(.+)$/)
+    const tag = match ? match[1].trim().toUpperCase() : 'ELECTION'
+    const text = (match ? match[2] : normalizedLine).replace(/\s+/g, ' ').trim()
+    if (!text) return
+    items.push({
+      id: `llm-${index}`,
+      tag,
+      tone: tickerToneForTag(tag, items.length),
+      text,
+    })
+  })
+
+  return items
 }
 
 function pollBreakdownSystemPrompt() {
@@ -960,6 +1075,7 @@ function incumbentLeadershipChanges(
   targetName = null,
   partyMeta = PARTY_META,
   representativeNames = {},
+  chambers = DEFAULT_CHAMBERS,
 ) {
   if (!previousElectionResults || Object.keys(previousElectionResults).length === 0) return []
 
@@ -1017,11 +1133,11 @@ function incumbentLeadershipChanges(
     if (!changeType) continue
 
     const currentTitle = chamberType === 'assembly'
-      ? lowerHouseLeaderTitle(chamberLevel)
-      : upperHouseLeaderTitle(chamberLevel)
+      ? lowerHouseLeaderTitle(chamberLevel, chambers)
+      : upperHouseLeaderTitle(chamberLevel, chambers)
     const previousTitle = chamberType === 'assembly'
-      ? lowerHouseLeaderTitle(chamberLevel)
-      : upperHouseLeaderTitle(chamberLevel)
+      ? lowerHouseLeaderTitle(chamberLevel, chambers)
+      : upperHouseLeaderTitle(chamberLevel, chambers)
 
     const currentLeaderPartyName = partyMeta[currentLeaderParty]?.name || PARTY_META[currentLeaderParty]?.name || currentLeaderParty
     const previousLeaderPartyName = partyMeta[previousLeaderParty]?.name || PARTY_META[previousLeaderParty]?.name || previousLeaderParty
@@ -1067,6 +1183,74 @@ function incumbentLeadershipChanges(
   return changes
 }
 
+// Pre-compute the seat/majority arithmetic the broadcast would otherwise ask a
+// small local model to infer. Local models reliably botch subtraction ("a
+// comfortable 12-seat majority" when the lead is actually 2), so we hand them
+// finished numbers plus a ready-to-read sentence.
+function controlMath(chamber = {}, partyMeta = PARTY_META) {
+  const control = chamber?.control || {}
+  const seats = chamber?.seats || {}
+  const voteShares = chamber?.vote_shares || null
+  const leaderParty = control.leaderParty || null
+  if (!leaderParty) return undefined
+
+  const totalSeats = integerOrNull(chamber?.seat_count) ?? sumSeats(seats)
+  const majority = integerOrNull(control.majority)
+  const leaderSeats = integerOrNull(seats?.[leaderParty]) ?? 0
+  const leaderName = partyMeta[leaderParty]?.name || PARTY_META[leaderParty]?.name || leaderParty
+
+  const runnerUpParty = PARTIES
+    .filter((party) => party !== leaderParty)
+    .map((party) => ({ party, seats: integerOrNull(seats?.[party]) ?? 0 }))
+    .sort((a, b) => b.seats - a.seats || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party))[0]
+    ?.party || null
+  const runnerUpSeats = runnerUpParty ? integerOrNull(seats?.[runnerUpParty]) ?? 0 : null
+
+  const leaderVotePct = voteShares ? roundNumber((numberOrNull(voteShares?.[leaderParty]) ?? 0) * 100, 1) : null
+  const runnerUpVotePct = voteShares && runnerUpParty
+    ? roundNumber((numberOrNull(voteShares?.[runnerUpParty]) ?? 0) * 100, 1)
+    : null
+
+  const seatGapToMajority = majority !== null ? majority - leaderSeats : null
+  const hasOwnMajority = seatGapToMajority !== null && seatGapToMajority <= 0
+  const isMinorityGov = control.status === 'minority-government' ||
+    (Array.isArray(control.supportParties) && control.supportParties.length > 0)
+  const coalitionSeats = integerOrNull(control.seats)
+
+  let marginLabel = control.label || null
+  if (majority !== null) {
+    if (hasOwnMajority) {
+      marginLabel = `${leaderName} won an outright majority — ${leaderSeats} of ${totalSeats} seats, ${leaderSeats - majority} clear of the ${majority}-seat line.`
+    } else if (isMinorityGov && coalitionSeats !== null) {
+      marginLabel = `${leaderName} finished ${seatGapToMajority} short of the ${majority}-seat majority and governs with coalition support (${coalitionSeats} of ${totalSeats}).`
+    } else {
+      marginLabel = `No party reached the ${majority}-seat majority; ${leaderName} leads with ${leaderSeats} of ${totalSeats}, ${seatGapToMajority} short.`
+    }
+  }
+
+  return compactObject({
+    leaderParty,
+    leaderName,
+    leaderSeats,
+    leaderVotePct,
+    runnerUpParty,
+    runnerUpName: runnerUpParty ? (partyMeta[runnerUpParty]?.name || PARTY_META[runnerUpParty]?.name || runnerUpParty) : null,
+    runnerUpSeats,
+    runnerUpVotePct,
+    seatLeadOverRunnerUp: runnerUpSeats !== null ? leaderSeats - runnerUpSeats : null,
+    voteLeadOverRunnerUpPct: (leaderVotePct !== null && runnerUpVotePct !== null)
+      ? roundNumber(leaderVotePct - runnerUpVotePct, 1)
+      : null,
+    majorityThreshold: majority,
+    seatsShortOfMajority: hasOwnMajority ? 0 : (seatGapToMajority ?? null),
+    majoritySurplus: hasOwnMajority ? leaderSeats - majority : 0,
+    hasOwnMajority,
+    governingStatus: control.status || (isMinorityGov ? 'minority-government' : (hasOwnMajority ? 'majority' : 'no-control')),
+    coalitionSeats,
+    marginLabel,
+  })
+}
+
 function chamberContext(chamber = {}, baselineChamber = null, partyMeta = PARTY_META) {
   return compactObject({
     control: chamber?.control?.label,
@@ -1077,6 +1261,7 @@ function chamberContext(chamber = {}, baselineChamber = null, partyMeta = PARTY_
     votePct: chamber?.vote_shares ? voteShareMap(chamber.vote_shares) : null,
     swingPct: baselineChamber?.vote_shares ? getSwings(chamber?.vote_shares, baselineChamber.vote_shares) : null,
     strongestSwing: baselineChamber?.vote_shares ? strongestSwing(chamber?.vote_shares, baselineChamber.vote_shares, partyMeta) : null,
+    margin: controlMath(chamber, partyMeta),
     leaderParty: chamber?.control?.leaderParty || null,
     isMinority: Array.isArray(chamber?.control?.supportParties) && chamber.control.supportParties.length > 0,
     supportParties: chamber?.control?.supportParties || [],
@@ -1173,16 +1358,16 @@ function nationalFocusExamples(results = {}, baselineResults = {}, max = 4, part
     .slice(0, max)
 }
 
-function extractImportantRepresentatives(chamber, chamberType, scope, provinces = [], partyMeta = PARTY_META, targetName = null, seatDetails = [], representativeNames = {}) {
+function extractImportantRepresentatives(chamber, chamberType, scope, provinces = [], partyMeta = PARTY_META, targetName = null, seatDetails = [], representativeNames = {}, chambers = DEFAULT_CHAMBERS) {
   if (!chamber?.control?.leaderParty) return null
-  
+
   const leaderParty = chamber.control.leaderParty
   const supportParties = chamber.control.supportParties || []
-  
+
   // Get proper leader title based on scope and chamber type
-  const leaderTitle = chamberType === 'assembly' 
-    ? lowerHouseLeaderTitle(scope) 
-    : upperHouseLeaderTitle(scope)
+  const leaderTitle = chamberType === 'assembly'
+    ? lowerHouseLeaderTitle(scope, chambers)
+    : upperHouseLeaderTitle(scope, chambers)
   
   const representatives = []
   
@@ -1222,7 +1407,6 @@ function extractImportantRepresentatives(chamber, chamberType, scope, provinces 
     isLeader: true,
     jurisdiction: leaderInfo?.jurisdiction || (targetName || (scope === 'national' ? 'National' : scope === 'regional' ? 'Regional' : 'Provincial')),
     voteShare: leaderInfo?.voteShare || null,
-    supportMetric: leaderInfo?.supportMetric || null,
   })
   
   // Add support party leaders for minority governments
@@ -1238,7 +1422,6 @@ function extractImportantRepresentatives(chamber, chamberType, scope, provinces 
       isSupport: true,
       jurisdiction: supportInfo?.jurisdiction || (targetName || (scope === 'national' ? 'National' : scope === 'regional' ? 'Regional' : 'Provincial')),
       voteShare: supportInfo?.voteShare || null,
-      supportMetric: supportInfo?.supportMetric || null,
     })
   })
   
@@ -1259,14 +1442,13 @@ function extractImportantRepresentatives(chamber, chamberType, scope, provinces 
       isOppositionLeader: true,
       jurisdiction: oppositionInfo?.jurisdiction || (targetName || (scope === 'national' ? 'National' : scope === 'regional' ? 'Regional' : 'Provincial')),
       voteShare: oppositionInfo?.voteShare || null,
-      supportMetric: oppositionInfo?.supportMetric || null,
     })
   }
   
   return representatives.length > 0 ? representatives : null
 }
 
-function representativesContext(results = {}, scope = 'national', targetName = null, partyMeta = PARTY_META, seatDetails = [], representativeNames = {}) {
+function representativesContext(results = {}, scope = 'national', targetName = null, partyMeta = PARTY_META, seatDetails = [], representativeNames = {}, chambers = DEFAULT_CHAMBERS) {
   const representatives = []
   
   if (scope === 'national' || scope === 'overview') {
@@ -1279,7 +1461,8 @@ function representativesContext(results = {}, scope = 'national', targetName = n
       partyMeta,
       targetName,
       seatDetails,
-      representativeNames
+      representativeNames,
+      chambers
     )
     if (nationalAssemblyReps) {
       nationalAssemblyReps.forEach(rep => representatives.push({ ...rep, chamber: 'Assembly', scope: 'National' }))
@@ -1294,7 +1477,8 @@ function representativesContext(results = {}, scope = 'national', targetName = n
       partyMeta,
       targetName,
       seatDetails,
-      representativeNames
+      representativeNames,
+      chambers
     )
     if (nationalCouncilReps) {
       nationalCouncilReps.forEach(rep => representatives.push({ ...rep, chamber: 'Council', scope: 'National' }))
@@ -1312,7 +1496,8 @@ function representativesContext(results = {}, scope = 'national', targetName = n
         partyMeta,
         targetName,
         seatDetails,
-        representativeNames
+        representativeNames,
+        chambers
       )
       if (regionalAssemblyReps) {
         regionalAssemblyReps.forEach(rep => representatives.push({ ...rep, chamber: 'Assembly', scope: 'Regional', region: targetName }))
@@ -1326,7 +1511,8 @@ function representativesContext(results = {}, scope = 'national', targetName = n
         partyMeta,
         targetName,
         seatDetails,
-        representativeNames
+        representativeNames,
+        chambers
       )
       if (regionalCouncilReps) {
         regionalCouncilReps.forEach(rep => representatives.push({ ...rep, chamber: 'Council', scope: 'Regional', region: targetName }))
@@ -1345,7 +1531,8 @@ function representativesContext(results = {}, scope = 'national', targetName = n
         partyMeta,
         targetName,
         seatDetails,
-        representativeNames
+        representativeNames,
+        chambers
       )
       if (provincialAssemblyReps) {
         provincialAssemblyReps.forEach(rep => representatives.push({ ...rep, chamber: 'Assembly', scope: 'Provincial', province: targetName }))
@@ -1359,7 +1546,8 @@ function representativesContext(results = {}, scope = 'national', targetName = n
         partyMeta,
         targetName,
         seatDetails,
-        representativeNames
+        representativeNames,
+        chambers
       )
       if (provincialCouncilReps) {
         provincialCouncilReps.forEach(rep => representatives.push({ ...rep, chamber: 'Council', scope: 'Provincial', province: targetName }))
@@ -1370,9 +1558,10 @@ function representativesContext(results = {}, scope = 'national', targetName = n
   return representatives.length > 0 ? representatives.slice(0, 6) : null
 }
 
-function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'national', targetName = null, partyMeta = PARTY_META, seatDetails = [], representativeNames = {}) {
-  const representatives = representativesContext(results, scope, targetName, partyMeta, seatDetails, representativeNames)
-  
+// Named leaders (keyFigures) are emitted once at the top level of the broadcast
+// payload, so the focus block intentionally omits them to avoid duplicating the
+// same roster — wasted tokens and a confusion risk for a small local model.
+function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'national', targetName = null, partyMeta = PARTY_META) {
   if (scope === 'overview') {
     return {
       type: 'overview',
@@ -1383,7 +1572,6 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
       }),
       regionalOverview: regionOverview(results, baselineResults, 14, partyMeta),
       provinceHighlights: provinceHighlights(results, baselineResults, 10, partyMeta),
-      representatives,
     }
   }
 
@@ -1400,7 +1588,6 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
       type: 'regional',
       region: regionContext(targetName, region, baselineRegion, partyMeta),
       provinces,
-      representatives,
     }
   }
 
@@ -1416,14 +1603,12 @@ function broadcastFocusContext(results = {}, baselineResults = {}, scope = 'nati
       type: 'provincial',
       province: provinceResultContext(province, baselineProvince, partyMeta),
       counties,
-      representatives,
     }
   }
 
   return {
     type: 'national',
     examples: nationalFocusExamples(results, baselineResults, 4, partyMeta),
-    representatives,
   }
 }
 
@@ -1551,12 +1736,137 @@ function allScopePollingContext(pollingScopes = [], baselineResults = {}, partyM
     .filter(Boolean)
 }
 
-function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null, seatDetails = [], representativeNames = {}, incumbentRoster = {}, electionNumber = 0) {
+// The chamber whose result the scope's polling was forecasting, so we can diff
+// projections against the certified outcome.
+function primaryResultChamber(results = {}, scope = 'national', targetName = null) {
+  if (scope === 'regional') return results.regions?.[targetName]?.assembly || null
+  if (scope === 'provincial') return (results.provinces || []).find((province) => province.name === targetName)?.assembly || null
+  return results.national?.assembly || null
+}
+
+// Pre-compute "did they beat their polls?" — the central surprise narrative.
+// Without this the local model has to align two vote-share maps and subtract,
+// which it does unreliably; we hand it finished deltas and a verdict per party.
+function pollingVsResultContext(polling = null, resultChamber = null, partyMeta = PARTY_META) {
+  if (!polling || !resultChamber?.vote_shares) return undefined
+  const aggregate = polling.aggregate || {}
+  const pollPct = aggregate.voteSharesPct || pollingVotePctMap(aggregate.voteShares)
+  if (!pollPct || Object.keys(pollPct).length === 0) return undefined
+
+  const resultPct = voteShareMap(resultChamber.vote_shares)
+  const projectedSeats = aggregate.projectedSeats?.assembly || aggregate.seats?.assembly || aggregate.projectedSeats || null
+  const resultSeats = resultChamber.seats || {}
+
+  const parties = PARTIES
+    .map((party) => {
+      const poll = numberOrNull(pollPct?.[party])
+      const actual = numberOrNull(resultPct?.[party])
+      if (poll === null && actual === null) return null
+      const voteDeltaPct = (poll !== null && actual !== null) ? roundNumber(actual - poll, 1) : null
+      const projSeat = projectedSeats ? integerOrNull(projectedSeats?.[party]) : null
+      const actualSeat = integerOrNull(resultSeats?.[party])
+      const seatDelta = (projSeat !== null && actualSeat !== null) ? actualSeat - projSeat : null
+      if (voteDeltaPct === null && seatDelta === null) return null
+      return compactObject({
+        party,
+        name: partyMeta[party]?.name || PARTY_META[party]?.name || party,
+        pollPct: poll,
+        resultPct: actual,
+        voteDeltaPct,
+        projectedSeats: projSeat,
+        actualSeats: actualSeat,
+        seatDelta,
+        verdict: voteDeltaPct === null
+          ? null
+          : voteDeltaPct >= 1 ? 'beat their polls'
+            : voteDeltaPct <= -1 ? 'underperformed their polls'
+              : 'finished in line with their polls',
+      })
+    })
+    .filter(Boolean)
+
+  if (parties.length === 0) return undefined
+
+  const biggestSurprise = [...parties]
+    .filter((row) => row.voteDeltaPct !== null)
+    .sort((a, b) => Math.abs(b.voteDeltaPct) - Math.abs(a.voteDeltaPct))[0] || null
+
+  return compactObject({
+    note: 'Pre-election polls vs the certified result. voteDeltaPct/seatDelta are already computed (positive = did better than polled, negative = worse). Quote these numbers; do not recalculate them.',
+    scopeLabel: polling.scopeLabel,
+    parties,
+    biggestSurprise,
+  })
+}
+
+// Tell the broadcast which governing structure it is covering. The engine builds
+// decentralized vs federalist results very differently (a federalist system has
+// NO regional tier and composes its national chambers from provinces), but the
+// broadcast otherwise just reads chambers and can't tell them apart — so it would
+// invent regions or describe an at-large national assembly that doesn't exist.
+function governmentContext(results = {}, chambers = DEFAULT_CHAMBERS) {
+  const structure = resolveStructure(results?.config?.structure)
+  const isFederalist = structure.id === 'federalist'
+
+  const chamberTitles = compactObject({
+    nationalAssemblyLeader: lowerHouseLeaderTitle('national', chambers),
+    nationalCouncilLeader: upperHouseLeaderTitle('national', chambers),
+    regionalAssemblyLeader: structure.hasRegionTier ? lowerHouseLeaderTitle('regional', chambers) : undefined,
+    regionalCouncilLeader: structure.hasRegionTier ? upperHouseLeaderTitle('regional', chambers) : undefined,
+    provincialAssemblyLeader: lowerHouseLeaderTitle('provincial', chambers),
+    provincialCouncilLeader: upperHouseLeaderTitle('provincial', chambers),
+  })
+
+  const chamberNames = compactObject({
+    nationalAssembly: lowerHouseName('national', '', chambers),
+    nationalCouncil: upperHouseName('national', '', chambers),
+    provincialAssembly: lowerHouseName('provincial', '', chambers),
+    provincialCouncil: upperHouseName('provincial', '', chambers),
+  })
+
+  let nationalComposition
+  let provinceDelegations
+  if (isFederalist) {
+    const allocation = (results?.national?.assembly?.province_allocation || [])
+      .filter((row) => integerOrNull(row?.seats) !== null)
+      .sort((a, b) => (integerOrNull(b.seats) || 0) - (integerOrNull(a.seats) || 0))
+      .slice(0, 6)
+      .map((row) => compactObject({ province: row.name, nationalAssemblySeats: integerOrNull(row.seats) }))
+    if (allocation.length) provinceDelegations = allocation
+
+    const upper = structure.national?.upper || {}
+    nationalComposition = compactObject({
+      lower: "National assembly seats are apportioned ACROSS the provinces by population (largest-remainder, minimum one seat each), then filled from each province's own assembly vote and summed — bigger provinces send bigger national delegations.",
+      upper: upper.basis === 'equalPerProvince'
+        ? `National council uses small-province parity: every province contributes ${integerOrNull(upper.seatsPerProvince) ?? 2} seats regardless of size, so smaller provinces are deliberately over-represented.`
+        : "National council seats are built from each province's council delegation and summed.",
+    })
+  }
+
+  return compactObject({
+    structureId: structure.id,
+    structureLabel: structure.label,
+    summary: truncate(structure.description, 220),
+    hasRegionTier: structure.hasRegionTier,
+    governingTiers: structure.tiers,
+    note: isFederalist
+      ? 'FEDERALIST union: there is NO regional tier. The only governments are the provinces and the national government. Frame provinces as the federal building blocks; never invent regions, regional assemblies, or regional leaders.'
+      : 'DECENTRALIZED/devolved system: full bicameral governments exist at province, region, and national level, and regional chambers aggregate the provinces beneath them.',
+    chamberTitles,
+    chamberNames,
+    nationalComposition,
+    provinceDelegations,
+  })
+}
+
+function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'national', targetName = null, polling = null, seatDetails = [], representativeNames = {}, electionNumber = 0) {
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
   const partyMeta = partyMetaForContext(results)
+  const chambers = results.config?.chambers || DEFAULT_CHAMBERS
   const isFirstElection = (electionNumber || 0) === 0
-  const keyFigures = representativesContext(results, scope, targetName, partyMeta, seatDetails, representativeNames)
+  const keyFigures = representativesContext(results, scope, targetName, partyMeta, seatDetails, representativeNames, chambers)
+  const pollingVsResult = pollingVsResultContext(polling, primaryResultChamber(results, scope, targetName), partyMeta)
 
   return JSON.stringify({
     task: 'Write 5 to 7 plain-text election broadcast paragraphs based only on this newsroom data. Results are FINALIZED.',
@@ -1583,23 +1893,29 @@ function broadcastUserPrompt(results = {}, baselineResults = {}, scope = 'nation
         : 'baselineResults represents the PREVIOUS CONFIRMED ELECTION used for swingPct and seat-change comparisons.',
       'swingPct and strongestSwing fields show how current results compare to the previous election.',
       'incumbentChanges lists leadership transitions between the previous and current election; use these to tell the political story.',
-      'polling.aggregate represents PRE-ELECTION EXPECTATIONS; compare with final results to highlight surprises.',
+      'Every chamber carries a margin object with finished seat math (leaderSeats, seatLeadOverRunnerUp, seatsShortOfMajority, majoritySurplus) and a marginLabel sentence. Quote these directly — never recompute seat totals or majority margins.',
+      pollingVsResult
+        ? 'pollingVsResult diffs the PRE-ELECTION polls against the certified result. Its voteDeltaPct and seatDelta are already calculated; use them (and biggestSurprise) to call who beat or missed their polls.'
+        : 'polling.aggregate represents PRE-ELECTION EXPECTATIONS; compare with final results to highlight surprises.',
+      'government describes the political structure. Obey government.note: in a FEDERALIST union there is no regional tier, so never reference regions or regional leaders; use government.chamberTitles and government.chamberNames for every title and chamber name, and use government.nationalComposition / provinceDelegations to explain how national seats were built.',
     ].filter(Boolean),
+    government: governmentContext(results, chambers),
     partyLegend: partyLegend(partyMeta),
     partyIdentityRules: partyIdentityRules(partyMeta),
     activeTrends: trendSummaries(results.config?.trends || []),
-    incumbentChanges: isFirstElection ? [] : incumbentLeadershipChanges(results, baselineResults, scope, targetName, partyMeta, representativeNames),
+    incumbentChanges: isFirstElection ? [] : incumbentLeadershipChanges(results, baselineResults, scope, targetName, partyMeta, representativeNames, chambers),
     national: includeNational ? compactObject({
       population: integerOrNull(results.national?.population),
       assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
     }) : undefined,
     polling: pollingContext(polling),
-    focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta, seatDetails, representativeNames),
+    pollingVsResult,
+    focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
   })
 }
 
-function buildTickerTopLeaders(results, scope, targetName, partyMeta, representativeNames) {
+function buildTickerTopLeaders(results, scope, targetName, partyMeta, representativeNames, chambers = DEFAULT_CHAMBERS) {
   const levelScope = scope === 'overview' ? 'national' : scope
   let chamberPairs = []
 
@@ -1627,8 +1943,8 @@ function buildTickerTopLeaders(results, scope, targetName, partyMeta, representa
     if (!chamber?.control?.leaderParty) continue
     const party = chamber.control.leaderParty
     const title = chamberType === 'assembly'
-      ? lowerHouseLeaderTitle(chamberLevel)
-      : upperHouseLeaderTitle(chamberLevel)
+      ? lowerHouseLeaderTitle(chamberLevel, chambers)
+      : upperHouseLeaderTitle(chamberLevel, chambers)
     const name = Object.entries(representativeNames || {})
       .find(([k]) => k.startsWith(`${party}_`))?.[1] || null
     entries.push(compactObject({
@@ -1647,9 +1963,10 @@ function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national'
   const target = targetName || (scope === 'overview' ? 'Election Overview' : 'National')
   const includeNational = scope === 'overview' || scope === 'national'
   const partyMeta = partyMetaForContext(results)
+  const chambers = results.config?.chambers || DEFAULT_CHAMBERS
 
   return JSON.stringify({
-    task: 'Write one concise election ticker paragraph based only on this page-specific data. Results are FINAL.',
+    task: 'Write 4 to 6 separate election ticker headlines (one per line, each prefixed with an uppercase TAG:) based only on this page-specific data. Results are FINAL. Cover different angles — result, polling surprise, trend, region/province, mandate change, outlook.',
     scope,
     target,
     phase: 'post_election',
@@ -1661,20 +1978,26 @@ function tickerUserPrompt(results = {}, baselineResults = {}, scope = 'national'
       regional: `Regional ticker. Focus only on ${targetName || 'the selected region'} and its provinces.`,
       provincial: `Provincial ticker. Focus only on ${targetName || 'the selected province'} and its counties.`,
     }[scope] || 'National ticker.',
-    topLeaders: buildTickerTopLeaders(results, scope, targetName, partyMeta, representativeNames),
+    topLeaders: buildTickerTopLeaders(results, scope, targetName, partyMeta, representativeNames, chambers),
     partyLegend: partyLegend(partyMeta),
+    partyIdentityRules: partyIdentityRules(partyMeta),
+    government: governmentContext(results, chambers),
     activeTrends: trendSummaries(results.config?.trends || []).slice(0, 8),
     climate: compactObject({
       name: results.config?.scenarioName,
       description: results.config?.scenarioDescription,
       trendCount: Array.isArray(results.config?.trends) ? results.config.trends.length : 0,
     }),
+    incumbentChanges: (electionNumber || 0) === 0
+      ? []
+      : incumbentLeadershipChanges(results, baselineResults, scope, targetName, partyMeta, representativeNames, chambers),
     national: includeNational ? compactObject({
       population: integerOrNull(results.national?.population),
       assembly: chamberContext(results.national?.assembly, baselineResults?.national?.assembly, partyMeta),
       council: chamberContext(results.national?.prelates, baselineResults?.national?.prelates, partyMeta),
     }) : undefined,
     polling: pollingContext(polling),
+    pollingVsResult: pollingVsResultContext(polling, primaryResultChamber(results, scope, targetName), partyMeta),
     focus: broadcastFocusContext(results, baselineResults, scope, targetName, partyMeta),
   })
 }
@@ -1769,49 +2092,532 @@ function chatContentToText(content) {
   return String(content || '')
 }
 
+function isPlainObject(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+function skipWhitespaceAndComments(text, startIndex) {
+  let i = startIndex
+  while (i < text.length) {
+    const ch = text[i]
+    if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n') {
+      i += 1
+      continue
+    }
+    if (ch === '/' && text[i + 1] === '/') {
+      i += 2
+      while (i < text.length && text[i] !== '\n') i += 1
+      continue
+    }
+    if (ch === '/' && text[i + 1] === '*') {
+      i += 2
+      while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i += 1
+      if (i < text.length) i += 2
+      continue
+    }
+    break
+  }
+  return i
+}
+
+function isLikelyClosingQuote(text, quoteIndex, stringRole) {
+  let i = quoteIndex + 1
+  let sawNewline = false
+  while (i < text.length) {
+    const ch = text[i]
+    if (ch === '\n' || ch === '\r') sawNewline = true
+    if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n') {
+      i += 1
+      continue
+    }
+    break
+  }
+
+  if (i >= text.length) return true
+
+  const ch = text[i]
+  if (ch === ':') return stringRole === 'key'
+  if (ch === '}' || ch === ']') return true
+  if (ch === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) return true
+
+  if (ch === ',') {
+    const afterComma = skipWhitespaceAndComments(text, i + 1)
+    if (afterComma >= text.length) return true
+    const rest = text.slice(afterComma)
+    if (/^["'{[\]}\-0-9]/.test(rest)) return true
+    if (/^(?:true|false|null|True|False|None|undefined|NaN)\b/.test(rest)) return true
+    if (/^[A-Za-z_$][A-Za-z0-9_$-]*\s*:/.test(rest)) return true
+    return false
+  }
+
+  if (sawNewline) {
+    const rest = text.slice(i)
+    if (/^["'{[\]}]/.test(rest)) return true
+    if (/^[A-Za-z_$][A-Za-z0-9_$-]*\s*:/.test(rest)) return true
+  }
+
+  return false
+}
+
+function repairJsonStringsAndComments(rawInput) {
+  const text = String(rawInput || '')
+    .replace(/^\uFEFF/, '')
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+
+  let out = ''
+  let inString = false
+  let quoteChar = '"'
+  let stringRole = 'value'
+  let lastStructural = ''
+  const containerStack = []
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i]
+
+    if (!inString) {
+      if (ch === '/' && text[i + 1] === '/') {
+        i += 2
+        while (i < text.length && text[i] !== '\n') i += 1
+        if (i < text.length) out += '\n'
+        continue
+      }
+      if (ch === '/' && text[i + 1] === '*') {
+        i += 2
+        while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i += 1
+        i += 1
+        continue
+      }
+
+      if (ch === '{' || ch === '[') {
+        containerStack.push(ch)
+        lastStructural = ch
+        out += ch
+        continue
+      }
+      if (ch === '}' || ch === ']') {
+        if (containerStack.length) containerStack.pop()
+        lastStructural = ch
+        out += ch
+        continue
+      }
+      if (ch === ':' || ch === ',') {
+        lastStructural = ch
+        out += ch
+        continue
+      }
+
+      if (ch === '"' || (ch === "'" && (lastStructural === '{' || lastStructural === '[' || lastStructural === ',' || lastStructural === ':' || lastStructural === ''))) {
+        inString = true
+        quoteChar = ch
+        const topContainer = containerStack[containerStack.length - 1]
+        stringRole = topContainer === '{' && (lastStructural === '{' || lastStructural === ',') ? 'key' : 'value'
+        out += '"'
+        continue
+      }
+
+      out += ch
+      continue
+    }
+
+    // Inside a string
+    if (ch === '\\') {
+      const next = text[i + 1]
+      if (next === undefined) {
+        // Drop dangling trailing backslash so it cannot escape an added closing quote
+        continue
+      }
+      if (next === '"' || next === '\\' || next === '/' || next === 'b' || next === 'f' || next === 'n' || next === 'r' || next === 't') {
+        out += `\\${next}`
+        i += 1
+        continue
+      }
+      if (next === 'u' && /^[0-9a-fA-F]{4}/.test(text.slice(i + 2, i + 6))) {
+        out += text.slice(i, i + 6)
+        i += 5
+        continue
+      }
+      if (next === "'") {
+        out += "'"
+        i += 1
+        continue
+      }
+      out += `\\\\${next}`
+      i += 1
+      continue
+    }
+
+    if (ch === '\n') {
+      out += '\\n'
+      continue
+    }
+    if (ch === '\r') {
+      if (text[i + 1] !== '\n') out += '\\r'
+      continue
+    }
+    if (ch === '\t') {
+      out += '\\t'
+      continue
+    }
+    const code = ch.charCodeAt(0)
+    if (code < 0x20) {
+      out += `\\u${code.toString(16).padStart(4, '0')}`
+      continue
+    }
+
+    if (quoteChar === "'") {
+      if (ch === '"') {
+        out += '\\"'
+        continue
+      }
+      if (ch === "'") {
+        const prevChar = text[i - 1] || ''
+        const nextChar = text[i + 1] || ''
+        if (/[A-Za-z0-9]/.test(prevChar) && /[A-Za-z0-9]/.test(nextChar)) {
+          out += "'"
+          continue
+        }
+        if (isLikelyClosingQuote(text, i, stringRole)) {
+          inString = false
+          lastStructural = 'string'
+          out += '"'
+        } else {
+          out += "'"
+        }
+        continue
+      }
+      out += ch
+      continue
+    }
+
+    if (ch === '"') {
+      if (isLikelyClosingQuote(text, i, stringRole)) {
+        inString = false
+        lastStructural = 'string'
+        out += '"'
+      } else {
+        out += '\\"'
+      }
+      continue
+    }
+
+    out += ch
+  }
+
+  return { text: out, inString }
+}
+
+function applyStructuralJsonRepairs(input) {
+  // Split by valid double-quoted string literals so transformations only apply outside strings
+  const parts = input.split(/("(?:\\.|[^"\\])*")/g)
+
+  for (let i = 0; i < parts.length; i += 2) {
+    let segment = parts[i]
+    // Quote unquoted keys after { or ,
+    segment = segment.replace(/([{,]\s*)([A-Za-z_$][A-Za-z0-9_$-]*)\s*:/g, '$1"$2":')
+    // Replace Python/JS constants outside strings
+    segment = segment
+      .replace(/\bTrue\b/g, 'true')
+      .replace(/\bFalse\b/g, 'false')
+      .replace(/\bNone\b/g, 'null')
+      .replace(/\bundefined\b/g, 'null')
+      .replace(/\bNaN\b/g, 'null')
+      .replace(/\bInfinity\b/g, 'null')
+    // Strip leading + on numbers
+    segment = segment.replace(/(:\s*|\[\s*|,\s*)\+(\d)/g, '$1$2')
+    parts[i] = segment
+  }
+
+  // Insert missing commas between adjacent string tokens or values separated only by whitespace
+  for (let i = 2; i < parts.length; i += 2) {
+    const gap = parts[i - 1]
+    if (/^\s*$/.test(gap)) {
+      parts[i - 1] = `,${gap}`
+    } else {
+      // Missing comma between a primitive/closing bracket at the end of gap and the next string
+      parts[i - 1] = gap.replace(/(\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[}\]])(\s+)$/, '$1,$2')
+    }
+  }
+
+  for (let i = 0; i < parts.length; i += 2) {
+    let segment = parts[i]
+    // Missing comma after a string (start of segment) before {, [, boolean, null, or number
+    if (i > 0) {
+      segment = segment.replace(/^(\s+)([{[✨]|-?\d|\b(?:true|false|null)\b)/, ',$1$2')
+    }
+    // Missing comma between closing } or ] and opening { or [
+    segment = segment.replace(/([}\]])(\s+)([{[✨])/g, '$1,$2$3')
+    // Collapse duplicate commas and leading commas after { or [
+    segment = segment.replace(/,\s*,+/g, ',')
+    segment = segment.replace(/([{[✨])\s*,/g, '$1')
+    // Remove trailing commas before } or ]
+    segment = segment.replace(/,\s*([\]}])/g, '$1')
+    parts[i] = segment
+  }
+
+  return parts.join('')
+}
+
+function scanJsonStructure(text) {
+  const stack = []
+  const cutPoints = []
+  let inString = false
+  let escaped = false
+  let lastSignificant = ''
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i]
+    if (inString) {
+      if (escaped) {
+        escaped = false
+      } else if (ch === '\\') {
+        escaped = true
+      } else if (ch === '"') {
+        inString = false
+        lastSignificant = '"'
+      }
+      continue
+    }
+
+    if (ch === '"') {
+      inString = true
+      continue
+    }
+    if (ch === '{' || ch === '[') {
+      stack.push(ch)
+      lastSignificant = ch
+      cutPoints.push({ index: i + 1, stack: [...stack] })
+      continue
+    }
+    if (ch === '}' || ch === ']') {
+      if (stack.length) stack.pop()
+      lastSignificant = ch
+      continue
+    }
+    if (ch === ',') {
+      lastSignificant = ','
+      cutPoints.push({ index: i, stack: [...stack] })
+      continue
+    }
+    if (!/\s/.test(ch)) {
+      lastSignificant = ch
+    }
+  }
+
+  return { stack, inString, lastSignificant, cutPoints }
+}
+
+function closingBracketsForStack(stack) {
+  let closers = ''
+  for (let i = stack.length - 1; i >= 0; i -= 1) {
+    closers += stack[i] === '{' ? '}' : ']'
+  }
+  return closers
+}
+
+function buildTruncatedJsonVariants(repaired) {
+  const variants = []
+  let base = repaired.trim()
+  const state = scanJsonStructure(base)
+
+  // Variant 1: Close directly at the end of the string
+  let direct = base
+  if (state.inString) {
+    direct = `${direct.replace(/\\+$/, '')}"`
+  }
+  const afterStringState = scanJsonStructure(direct)
+  let trimmedDirect = direct.replace(/,\s*$/, '')
+  if (/:\s*$/.test(trimmedDirect)) {
+    trimmedDirect = `${trimmedDirect}null`
+  }
+  trimmedDirect = applyStructuralJsonRepairs(trimmedDirect + closingBracketsForStack(afterStringState.stack))
+  variants.push(trimmedDirect)
+
+  // Variant 2+: Backtrack to recent safe cut points (',', '{', '[') in case truncation happened mid-key or mid-token
+  for (let idx = state.cutPoints.length - 1; idx >= 0 && variants.length < 8; idx -= 1) {
+    const cut = state.cutPoints[idx]
+    const sliced = base.slice(0, cut.index).replace(/,\s*$/, '')
+    const closed = applyStructuralJsonRepairs(sliced + closingBracketsForStack(cut.stack))
+    if (!variants.includes(closed)) {
+      variants.push(closed)
+    }
+  }
+
+  return variants
+}
+
+function tryParseJsonObject(candidate) {
+  const trimmed = String(candidate || '').trim()
+  if (!trimmed) return null
+
+  try {
+    const direct = JSON.parse(trimmed)
+    if (isPlainObject(direct)) return direct
+  } catch {
+    // Continue to repair steps.
+  }
+
+  const { text: stringRepaired, inString } = repairJsonStringsAndComments(trimmed)
+  const closedStringRepaired = inString ? `${stringRepaired.replace(/\\+$/, '')}"` : stringRepaired
+  const structurallyRepaired = applyStructuralJsonRepairs(closedStringRepaired)
+
+  try {
+    const parsed = JSON.parse(structurallyRepaired)
+    if (isPlainObject(parsed)) return parsed
+  } catch {
+    // Continue to truncation recovery.
+  }
+
+  const truncatedVariants = buildTruncatedJsonVariants(stringRepaired)
+  for (const variant of truncatedVariants) {
+    try {
+      const parsed = JSON.parse(variant)
+      if (isPlainObject(parsed)) return parsed
+    } catch {
+      // Try next variant.
+    }
+  }
+
+  return null
+}
+
+function extractBalancedBraceBlocks(text) {
+  const completeBlocks = []
+  const unclosedBlocks = []
+  let depth = 0
+  let start = -1
+  let inString = false
+  let escaped = false
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i]
+    if (inString) {
+      if (escaped) {
+        escaped = false
+      } else if (ch === '\\') {
+        escaped = true
+      } else if (ch === '"') {
+        inString = false
+      }
+      continue
+    }
+
+    if (ch === '"') {
+      inString = true
+      continue
+    }
+
+    if (ch === '{') {
+      if (depth === 0) start = i
+      depth += 1
+    } else if (ch === '}' && depth > 0) {
+      depth -= 1
+      if (depth === 0 && start >= 0) {
+        completeBlocks.push(text.slice(start, i + 1))
+        start = -1
+      }
+    }
+  }
+
+  if (depth > 0 && start >= 0) {
+    unclosedBlocks.push(text.slice(start))
+  }
+
+  // Sort complete blocks by length descending so the main payload beats tiny `{...}` notes in preamble
+  completeBlocks.sort((a, b) => b.length - a.length)
+  return [...completeBlocks, ...unclosedBlocks]
+}
+
+function salvageJsonObject(text) {
+  const normalized = repairJsonStringsAndComments(text).text
+  const salvaged = {}
+  const pairRegex = /"([A-Za-z0-9_$-]+)"\s*:\s*(\[[\s\S]*?\]|\{[\s\S]*?\}|"(?:\\.|[^"\\])*"|-?\d+(?:\.\d+)?|\btrue\b|\bfalse\b|\bnull\b)/g
+  let match = pairRegex.exec(normalized)
+
+  while (match !== null) {
+    const [, key, rawValue] = match
+    try {
+      salvaged[key] = JSON.parse(applyStructuralJsonRepairs(rawValue))
+    } catch {
+      // Skip unparseable individual field
+    }
+    match = pairRegex.exec(normalized)
+  }
+
+  return Object.keys(salvaged).length ? salvaged : null
+}
+
+function collectJsonCandidates(text) {
+  const candidates = []
+  const addCandidate = (value) => {
+    const trimmed = String(value || '').trim()
+    if (trimmed && !candidates.includes(trimmed)) {
+      candidates.push(trimmed)
+    }
+  }
+
+  // 1. Markdown fenced blocks (closed or truncated)
+  const closedFenceRegex = /```(?:json|javascript|js)?\s*([\s\S]*?)```/gi
+  let fenceMatch = closedFenceRegex.exec(text)
+  while (fenceMatch !== null) {
+    addCandidate(fenceMatch[1])
+    fenceMatch = closedFenceRegex.exec(text)
+  }
+  const openFenceMatch = text.match(/```(?:json|javascript|js)?\s*([\s\S]+)$/i)
+  if (openFenceMatch) {
+    addCandidate(openFenceMatch[1])
+  }
+
+  // 2. Full trimmed text if it starts with {
+  if (text.startsWith('{')) {
+    addCandidate(text)
+  }
+
+  // 3. Balanced top-level {...} blocks (and any unclosed top-level {... block)
+  for (const block of extractBalancedBraceBlocks(text)) {
+    addCandidate(block)
+  }
+
+  // 4. First '{' to last '}' span, plus suffix from first '{' (handles unescaped quotes throwing off brace scanner)
+  const firstBrace = text.indexOf('{')
+  const lastBrace = text.lastIndexOf('}')
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    addCandidate(text.slice(firstBrace, lastBrace + 1))
+  }
+  if (firstBrace >= 0) {
+    addCandidate(text.slice(firstBrace))
+  }
+
+  return candidates
+}
+
 function extractJsonObject(rawText) {
-  if (rawText && typeof rawText === 'object' && !Array.isArray(rawText)) return rawText
+  if (isPlainObject(rawText)) return rawText
 
   const text = stripThinkBlocks(chatContentToText(rawText)).trim()
   if (!text) throw new ModelOutputError('The model returned an empty response.', 'empty')
 
-  // Try parsing directly first
-  try {
-    return JSON.parse(text)
-  } catch (e) {
-    // Attempt to extract the JSON block
-    const start = text.indexOf('{')
-    const end = text.lastIndexOf('}')
-    
-    if (start >= 0 && end > start) {
-      let jsonCandidate = text.slice(start, end + 1)
-        .replace(/\/\/.*$/gm, '') // Remove single-line comments
-        .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
-        .replace(/,\s*([\]}])/g, '$1') // Remove trailing commas
-      
-      try {
-        return JSON.parse(jsonCandidate)
-      } catch (innerError) {
-        // More aggressive repair: handle unescaped quotes in summary/reason fields
-        // This is a common failure point for small models
-        try {
-          // Replace single quotes with double quotes for keys (crude)
-          const repaired = jsonCandidate
-            .replace(/([{,]\s*)'([^']+)':/g, '$1"$2":') // keys
-            .replace(/:\s*'([^']*)'/g, ': "$1"') // values
-          return JSON.parse(repaired)
-        } catch (repairError) {
-          throw new ModelOutputError(`JSON Parse Error: ${innerError.message}. Content near: ${jsonCandidate.slice(0, 100)}...`, 'invalid-json')
-        }
-      }
-    }
-    
-    if (import.meta.env.DEV) console.warn('[narrativePlanner] no-json model output:', text)
+  const candidates = collectJsonCandidates(text)
+  for (const candidate of candidates) {
+    const parsed = tryParseJsonObject(candidate)
+    if (parsed) return parsed
+  }
+
+  const salvaged = salvageJsonObject(text)
+  if (salvaged) return salvaged
+
+  if (text.includes('{') || text.includes('```')) {
     throw new ModelOutputError(
-      `Could not find a valid JSON object in model output. Output started: ${text.slice(0, 120)}`,
-      'no-json',
+      `JSON Parse Error: Could not parse JSON object from model output. Content near: ${text.slice(0, 120)}...`,
+      'invalid-json',
     )
   }
+
+  if (import.meta.env.DEV) console.warn('[narrativePlanner] no-json model output:', text)
+  throw new ModelOutputError(
+    `Could not find a valid JSON object in model output. Output started: ${text.slice(0, 120)}`,
+    'no-json',
+  )
 }
 
 function cleanScenarioText(value, fallback, maxLength) {
@@ -2241,7 +3047,11 @@ function nativeChatOutputToText(payload = {}) {
     .filter(Boolean)
 
   if (messages.length) return messages.join('\n\n')
-  return chatContentToText(result?.message?.content ?? result?.text ?? '')
+  const openAiChoice = Array.isArray(result?.choices) ? result.choices[0] : null
+  if (openAiChoice) {
+    return chatContentToText(openAiChoice.message?.content ?? openAiChoice.text ?? '')
+  }
+  return chatContentToText(result?.message?.content ?? result?.content ?? result?.text ?? '')
 }
 
 function parseSseBlock(block) {
@@ -2395,10 +3205,13 @@ async function readNativeChatStream(response, onStatus) {
     reasoningChunks: 0,
   }
   let buffer = ''
+  let rawText = ''
 
   while (true) {
     const { value, done } = await reader.read()
-    buffer += decoder.decode(value || new Uint8Array(), { stream: !done })
+    const chunk = decoder.decode(value || new Uint8Array(), { stream: !done })
+    rawText += chunk
+    buffer += chunk
     const blocks = buffer.split(/\r?\n\r?\n/)
     buffer = blocks.pop() || ''
 
@@ -2422,7 +3235,15 @@ async function readNativeChatStream(response, onStatus) {
     throw new Error(streamState.error.message || 'LM Studio emitted a streaming error.')
   }
 
-  const content = streamState.content.trim() || nativeChatOutputToText(streamState.finalResult)
+  let content = streamState.content.trim() || nativeChatOutputToText(streamState.finalResult)
+  if (!content && rawText.trim().startsWith('{')) {
+    try {
+      const fallbackPayload = JSON.parse(rawText.trim())
+      content = nativeChatOutputToText(fallbackPayload)
+    } catch {
+      // Ignore fallback JSON parse failure.
+    }
+  }
   return content
 }
 
@@ -2499,6 +3320,68 @@ function seedFromPlan(plan, narrative) {
   return `narrative-${hint.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'scenario'}`
 }
 
+function normalizePlanSelections(plan) {
+  const rawList = pickField(plan, ['selections', 'selectedTemplates', 'templates', 'trends'])
+  if (!Array.isArray(rawList)) return []
+
+  return rawList
+    .map((entry) => {
+      if (typeof entry === 'string') {
+        return { templateId: entry, intensity: 1 }
+      }
+      if (!entry || typeof entry !== 'object') return null
+      const templateId = entry.templateId || entry.template_id || entry.id || entry.template || ''
+      if (!templateId) return null
+      return {
+        ...entry,
+        templateId,
+      }
+    })
+    .filter(Boolean)
+}
+
+function cleanNarrativeTextOutput(rawText) {
+  const stripped = stripThinkBlocks(chatContentToText(rawText))
+    .replace(/^```(?:json|text|markdown)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim()
+
+  if (!stripped) return ''
+
+  if ((stripped.startsWith('{') && stripped.endsWith('}')) || (stripped.startsWith('[') && stripped.endsWith(']'))) {
+    try {
+      const parsed = JSON.parse(stripped)
+      if (Array.isArray(parsed)) {
+        const lines = parsed
+          .map((item) => {
+            if (typeof item === 'string') return item.trim()
+            if (item && typeof item === 'object') {
+              const speaker = item.speaker || item.role || item.analyst || ''
+              const body = item.text || item.paragraph || item.content || item.line || ''
+              return speaker && body ? `${speaker}: ${body}`.trim() : String(body || '').trim()
+            }
+            return ''
+          })
+          .filter(Boolean)
+        if (lines.length) return lines.join('\n\n')
+      } else if (parsed && typeof parsed === 'object') {
+        const listField = parsed.paragraphs || parsed.turns || parsed.dialogue || parsed.script || parsed.broadcast || parsed.lines
+        if (Array.isArray(listField)) {
+          return cleanNarrativeTextOutput(JSON.stringify(listField))
+        }
+        const textField = parsed.text || parsed.script || parsed.broadcast || parsed.content
+        if (typeof textField === 'string' && textField.trim()) {
+          return textField.trim()
+        }
+      }
+    } catch {
+      // Return plain stripped text below.
+    }
+  }
+
+  return stripped
+}
+
 export async function requestElectionNarrativePlan({
   narrative,
   data,
@@ -2527,11 +3410,11 @@ export async function requestElectionNarrativePlan({
   }
 
   let lastError = null
-  let content = null
+  let plan = null
 
   for (const max_tokens of NARRATIVE_PLAN_TOKEN_BUDGETS) {
     try {
-      content = await requestChatCompletion({
+      const content = await requestChatCompletion({
         endpoint,
         model,
         temperature: 0.35,
@@ -2553,17 +3436,17 @@ export async function requestElectionNarrativePlan({
         detail: 'Checking JSON, template selections, volatility, and generated custom trends.',
       })
 
+      plan = extractJsonObject(content)
+      plan.selections = normalizePlanSelections(plan)
       break
     } catch (error) {
       lastError = error
-      const retryable = ['length', 'empty']
-      if (!retryable.includes(error.code)) throw error
+      if (!RETRYABLE_JSON_ERROR_CODES.includes(error.code)) throw error
     }
   }
 
-  if (!content) throw lastError || new Error('Narrative plan could not be generated.')
+  if (!plan) throw lastError || new Error('Narrative plan could not be generated.')
 
-  const plan = extractJsonObject(content)
   const seed = seedFromPlan(plan, narrative)
   emitLlmStatus(onStatus, {
     phase: 'compiling',
@@ -2645,8 +3528,7 @@ export async function requestElectionClimateSummary({
       return metadata
     } catch (error) {
       lastError = error
-      const retryable = ['length', 'empty', 'invalid-json', 'no-json']
-      if (!retryable.includes(error.code)) throw error
+      if (!RETRYABLE_JSON_ERROR_CODES.includes(error.code)) throw error
     }
   }
 
@@ -2661,7 +3543,6 @@ export async function requestElectionBroadcast({
   polling = null,
   seatDetails = [],
   representativeNames = {},
-  incumbentRoster = {},
   electionNumber = 0,
   endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
   model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
@@ -2675,7 +3556,7 @@ export async function requestElectionBroadcast({
   })
 
   const systemPrompt = broadcastSystemPrompt(scope, targetName)
-  const userPrompt = broadcastUserPrompt(results, baselineResults, scope, targetName, polling, seatDetails, representativeNames, incumbentRoster, electionNumber)
+  const userPrompt = broadcastUserPrompt(results, baselineResults, scope, targetName, polling, seatDetails, representativeNames, electionNumber)
 
   if (import.meta.env.DEV) {
     console.log('=== ELECTION BROADCAST LLM CONTEXT ===')
@@ -2685,25 +3566,40 @@ export async function requestElectionBroadcast({
     console.log('=====================================')
   }
 
-  const content = await requestChatCompletion({
-    endpoint,
-    model,
-    temperature: 0.65,
-    max_tokens: 3500,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    onStatus,
-  })
-  emitLlmStatus(onStatus, {
-    phase: 'complete',
-    progress: 1,
-    message: 'Broadcast script received.',
-    detail: 'Formatting paragraphs for the transmission screen.',
-  })
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ]
+  let lastError = null
 
-  return stripThinkBlocks(content)
+  for (const max_tokens of BROADCAST_TOKEN_BUDGETS) {
+    try {
+      const content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.65,
+        max_tokens,
+        messages,
+        onStatus,
+      })
+      const cleaned = cleanNarrativeTextOutput(content)
+      if (!cleaned) {
+        throw new ModelOutputError('The model returned an empty response.', 'empty')
+      }
+      emitLlmStatus(onStatus, {
+        phase: 'complete',
+        progress: 1,
+        message: 'Broadcast script received.',
+        detail: 'Formatting paragraphs for the transmission screen.',
+      })
+      return cleaned
+    } catch (error) {
+      lastError = error
+      if (!RETRYABLE_TEXT_ERROR_CODES.includes(error.code)) throw error
+    }
+  }
+
+  throw lastError || new Error('Broadcast script could not be generated.')
 }
 
 export async function requestPollBreakdown({
@@ -2721,25 +3617,40 @@ export async function requestPollBreakdown({
     message: 'Assembling poll roundtable packet.',
     detail: 'Collecting national takeaways, prior-election baselines, all-scope poll-of-polls, pollster splits, surprises, and campaign climate.',
   })
-  const content = await requestChatCompletion({
-    endpoint,
-    model,
-    temperature: 0.58,
-    max_tokens: 1800,
-    messages: [
-      { role: 'system', content: pollBreakdownSystemPrompt() },
-      { role: 'user', content: pollBreakdownUserPrompt(results, baselineResults, polling, pollingScopes) },
-    ],
-    onStatus,
-  })
-  emitLlmStatus(onStatus, {
-    phase: 'complete',
-    progress: 1,
-    message: 'Poll roundtable script received.',
-    detail: 'Formatting analyst turns for the breakdown screen.',
-  })
+  const messages = [
+    { role: 'system', content: pollBreakdownSystemPrompt() },
+    { role: 'user', content: pollBreakdownUserPrompt(results, baselineResults, polling, pollingScopes) },
+  ]
+  let lastError = null
 
-  return stripThinkBlocks(content)
+  for (const max_tokens of POLL_BREAKDOWN_TOKEN_BUDGETS) {
+    try {
+      const content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.58,
+        max_tokens,
+        messages,
+        onStatus,
+      })
+      const cleaned = cleanNarrativeTextOutput(content)
+      if (!cleaned) {
+        throw new ModelOutputError('The model returned an empty response.', 'empty')
+      }
+      emitLlmStatus(onStatus, {
+        phase: 'complete',
+        progress: 1,
+        message: 'Poll roundtable script received.',
+        detail: 'Formatting analyst turns for the breakdown screen.',
+      })
+      return cleaned
+    } catch (error) {
+      lastError = error
+      if (!RETRYABLE_TEXT_ERROR_CODES.includes(error.code)) throw error
+    }
+  }
+
+  throw lastError || new Error('Poll roundtable script could not be generated.')
 }
 
 export async function requestElectionTicker({
@@ -2758,27 +3669,45 @@ export async function requestElectionTicker({
     phase: 'preparing',
     progress: 0.14,
     message: 'Preparing ticker brief.',
-    detail: 'Compressing page-specific election data into one paragraph.',
+    detail: 'Compressing page-specific election data into breaking-news headlines.',
   })
-  const content = await requestChatCompletion({
-    endpoint,
-    model,
-    temperature: 0.45,
-    max_tokens: 420,
-    messages: [
-      { role: 'system', content: tickerSystemPrompt(scope, targetName) },
-      { role: 'user', content: tickerUserPrompt(results, baselineResults, scope, targetName, polling, representativeNames, electionNumber) },
-    ],
-    onStatus,
-  })
-  emitLlmStatus(onStatus, {
-    phase: 'complete',
-    progress: 1,
-    message: 'Ticker copy received.',
-    detail: 'Ready to type onto the election ticker.',
-  })
+  const messages = [
+    { role: 'system', content: tickerSystemPrompt(scope, targetName) },
+    { role: 'user', content: tickerUserPrompt(results, baselineResults, scope, targetName, polling, representativeNames, electionNumber) },
+  ]
+  let lastError = null
 
-  return stripThinkBlocks(content).replace(/\s+/g, ' ').trim()
+  for (const max_tokens of TICKER_TOKEN_BUDGETS) {
+    try {
+      const content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.5,
+        max_tokens,
+        messages,
+        onStatus,
+      })
+
+      const headlines = parseTickerHeadlines(content)
+      if (!headlines.length) {
+        throw new ModelOutputError('The ticker model returned no usable headlines.', 'empty')
+      }
+
+      emitLlmStatus(onStatus, {
+        phase: 'complete',
+        progress: 1,
+        message: 'Ticker headlines received.',
+        detail: `Loading ${headlines.length} headlines onto the election ticker.`,
+      })
+
+      return headlines
+    } catch (error) {
+      lastError = error
+      if (!RETRYABLE_TEXT_ERROR_CODES.includes(error.code)) throw error
+    }
+  }
+
+  throw lastError || new Error('Ticker headlines could not be generated.')
 }
 
 function calculateProvinceDemographics(province, allProvinces, countryData) {
@@ -2855,6 +3784,14 @@ function buildSeatNamingContext(seatDetails, provinces, countryData) {
   return seats
 }
 
+function representativeNamingSystemPrompt() {
+  return [
+    'You are an onomastics historian naming elected representatives for a political simulation.',
+    'Return strict JSON only. Do not include markdown, code fences, commentary, or <think> blocks.',
+    'Map each requested seat key ("party_seatIndex") to a single plausible full name string ("Given Surname") matching its province demographics.',
+  ].join(' ')
+}
+
 function representativeNamingUserPrompt({ seatDetails, provinces, countryData, scope = 'national' }) {
   const context = buildSeatNamingContext(seatDetails, provinces, countryData)
 
@@ -2870,48 +3807,59 @@ function representativeNamingUserPrompt({ seatDetails, provinces, countryData, s
     urban: Math.round((p.features?.urbanization_index || 0) * 100),
   })) || []
 
-  const promptParts = [
-    'Generate personal names for elected representatives of the Khmer Empire.',
-    '',
-    'EMPIRE:',
-    `- Country: ${countryData?.basic_info?.name || 'Khmer Empire'}`,
-    `- Scope: ${scope}`,
-    `- Provinces: ${provinces?.length || 0}`,
-    `- Population: ${countryData?.population?.total?.toLocaleString() || 'Unknown'}`,
-    '',
-    'NAMING TRADITIONS:',
-    '- Khmer names: Given name + surname (Sokha Prak, Bopha Chan)',
-    '- Given names: Sokha, Sopheap, Vannak, Dara, Bopha, Srey, Chhaya, Rithy, Sopheap',
-    '- Surnames: Prak, Chan, Sim, Kim, Lim, Oum, Nhem, Sun, Mao, Khun, San, Khem, Tep',
-    '- Western names (for diaspora areas): David, John, Maria, Sarah, Marcus, Julia',
-    '',
-    'RULES BY DEMOGRAPHICS:',
-    '- Core Khmer >70%: Traditional Khmer names (Sokha Prak)',
-    '- American >20%: Western given + Khmer surname (David Kim)',
-    '- Roman >15%: Latin given + Khmer surname (Marcus Sim)',
-    '- Frontier >30%: Rugged, nature-connected names (Rithy Nhem)',
-    '- Urban >70%: Modern, cosmopolitan acceptable (Maria Lim)',
-    '- Mixed influences: Blend styles appropriately',
-    '',
-    'PROVINCES:',
-    JSON.stringify(provinceInfo),
-    '',
-    'SEATS TO NAME:',
-    JSON.stringify(context),
-    '',
-    'INSTRUCTIONS:',
-    '1. Generate ONE unique name per seat',
-    '2. Match name style to province demographics',
-    '3. Higher support = more traditional/prestigious names',
-    '4. Mix male/female names for balance',
-    '',
-    'OUTPUT: JSON object {"party_seatIndex": "Full Name"}',
-    'Example: {"yellow_0": "Sokha Prak", "green_0": "David Kim", "red_0": "Marcus Lim"}',
-    '',
-    'Generate names:',
-  ]
+  return JSON.stringify({
+    task: 'Generate one unique personal name ("Given Surname") for each elected representative seat.',
+    empire: {
+      country: countryData?.basic_info?.name || 'Khmer Empire',
+      scope,
+      provinceCount: provinces?.length || 0,
+      population: countryData?.population?.total || null,
+    },
+    namingTraditions: {
+      khmer: 'Given name + surname (e.g., Sokha Prak, Bopha Chan)',
+      khmerGivenExamples: ['Sokha', 'Sopheap', 'Vannak', 'Dara', 'Bopha', 'Srey', 'Chhaya', 'Rithy'],
+      khmerSurnameExamples: ['Prak', 'Chan', 'Sim', 'Kim', 'Lim', 'Oum', 'Nhem', 'Sun', 'Mao', 'Khun', 'San', 'Khem', 'Tep'],
+      diasporaGivenExamples: ['David', 'John', 'Maria', 'Sarah', 'Marcus', 'Julia'],
+    },
+    demographicRules: [
+      'core > 70: Traditional Khmer given + Khmer surname (e.g., Sokha Prak).',
+      'am > 20: Western given + Khmer surname (e.g., David Kim).',
+      'ro > 15: Latin/Roman given + Khmer surname (e.g., Marcus Sim).',
+      'fr > 30: Rugged frontier-inflected Khmer names (e.g., Rithy Nhem).',
+      'ur > 70: Cosmopolitan blend acceptable (e.g., Maria Lim).',
+      'Balance male and female names and make every seat name unique.',
+    ],
+    provinces: provinceInfo,
+    seatsToName: context,
+    requiredOutputFormat: {
+      '<party>_<seatIndex>': 'Full Name string',
+    },
+    exampleOutput: {
+      yellow_0: 'Sokha Prak',
+      green_0: 'David Kim',
+      red_0: 'Marcus Lim',
+    },
+  })
+}
 
-  return promptParts.join('\n')
+function normalizeRepresentativeNamesMap(parsed) {
+  if (!isPlainObject(parsed)) return {}
+  const nested = pickField(parsed, ['names', 'representatives', 'seats', 'results', 'data'])
+  const source = isPlainObject(nested) ? nested : parsed
+  const normalized = {}
+
+  for (const [key, value] of Object.entries(source)) {
+    if (typeof value === 'string' && value.trim()) {
+      normalized[key] = value.trim()
+    } else if (value && typeof value === 'object') {
+      const candidate = value.name || value.fullName || value.representative || ''
+      if (typeof candidate === 'string' && candidate.trim()) {
+        normalized[key] = candidate.trim()
+      }
+    }
+  }
+
+  return normalized
 }
 
 export async function requestRepresentativeNames({
@@ -2935,39 +3883,42 @@ export async function requestRepresentativeNames({
     { role: 'user', content: representativeNamingUserPrompt({ seatDetails, provinces, countryData, scope }) },
   ]
 
-  emitLlmStatus(onStatus, {
-    phase: 'connecting',
-    progress: 0.25,
-    message: 'Connecting to naming historian.',
-    detail: 'Sending demographic data and seat jurisdictions.',
-  })
+  let lastError = null
 
-  const content = await requestChatCompletion({
-    endpoint,
-    model,
-    temperature: 0.7,
-    max_tokens: REPRESENTATIVE_NAMING_TOKEN_BUDGET,
-    messages,
-    onStatus,
-  })
+  for (const max_tokens of REPRESENTATIVE_NAMING_TOKEN_BUDGETS) {
+    try {
+      const content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.55,
+        max_tokens,
+        messages,
+        onStatus,
+      })
 
-  emitLlmStatus(onStatus, {
-    phase: 'parsing',
-    progress: 0.8,
-    message: 'Parsing representative names.',
-    detail: 'Extracting names from historian response.',
-  })
+      emitLlmStatus(onStatus, {
+        phase: 'parsing',
+        progress: 0.8,
+        message: 'Parsing representative names.',
+        detail: 'Extracting names from historian response.',
+      })
 
-  const parsed = extractJsonObject(stripThinkBlocks(content))
+      const parsed = normalizeRepresentativeNamesMap(extractJsonObject(stripThinkBlocks(content)))
+      emitLlmStatus(onStatus, {
+        phase: 'complete',
+        progress: 1,
+        message: 'Representatives named.',
+        detail: `Generated ${Object.keys(parsed).length} representative names.`,
+      })
 
-  emitLlmStatus(onStatus, {
-    phase: 'complete',
-    progress: 1,
-    message: 'Representatives named.',
-    detail: `Generated ${Object.keys(parsed || {}).length} representative names.`,
-  })
+      return parsed
+    } catch (error) {
+      lastError = error
+      if (!RETRYABLE_JSON_ERROR_CODES.includes(error.code)) throw error
+    }
+  }
 
-  return parsed || {}
+  throw lastError || new Error('Representative names could not be generated.')
 }
 
 const CULTURE_BANK_LABELS = {
@@ -2976,12 +3927,33 @@ const CULTURE_BANK_LABELS = {
   surnames: 'surnames (family names)',
 }
 
+const CULTURE_CATEGORY_ALIASES = {
+  givenMale: ['givenMale', 'given_male', 'maleGivenNames', 'maleGiven', 'maleNames', 'male_names', 'male', 'men'],
+  givenFemale: ['givenFemale', 'given_female', 'femaleGivenNames', 'femaleGiven', 'femaleNames', 'female_names', 'female', 'women'],
+  surnames: ['surnames', 'surname', 'familyNames', 'family_names', 'lastNames', 'last_names', 'family'],
+}
+
 function sanitizeNameList(value, count) {
-  if (!Array.isArray(value)) return []
+  let rawEntries = []
+  if (Array.isArray(value)) {
+    rawEntries = value
+  } else if (typeof value === 'string') {
+    rawEntries = value.split(/[\r\n,;]+/)
+  } else {
+    return []
+  }
+
   const seen = new Set()
   const out = []
-  for (const entry of value) {
-    const name = String(entry || '').trim().replace(/^["'\-•\d.\s]+/, '').trim()
+  for (const entry of rawEntries) {
+    const rawValue = entry && typeof entry === 'object'
+      ? (entry.name || entry.value || entry.label || '')
+      : entry
+    const name = String(rawValue || '')
+      .trim()
+      .replace(/^["'\-•*\d.)\]:\s]+/, '')
+      .replace(/["',.;:\s]+$/, '')
+      .trim()
     if (!name) continue
     const key = name.toLowerCase()
     if (seen.has(key)) continue
@@ -2990,6 +3962,67 @@ function sanitizeNameList(value, count) {
     if (out.length >= count) break
   }
   return out
+}
+
+function extractCultureCategoryNames(parsed, category, count) {
+  if (!isPlainObject(parsed)) return []
+  const aliases = CULTURE_CATEGORY_ALIASES[category] || [category]
+  const direct = pickField(parsed, aliases)
+  const directList = sanitizeNameList(direct, count)
+  if (directList.length) return directList
+
+  const containers = ['names', 'categories', 'banks', 'nameBanks', 'result', 'data']
+  for (const containerKey of containers) {
+    const nested = pickField(parsed, [containerKey])
+    if (isPlainObject(nested)) {
+      const nestedList = sanitizeNameList(pickField(nested, aliases), count)
+      if (nestedList.length) return nestedList
+    }
+  }
+
+  return []
+}
+
+function cultureNamingSystemPrompt() {
+  return [
+    'You are an onomastics historian who invents authentic personal names for fictional and historical cultures.',
+    'Return strict JSON only. Do not include prose, markdown, code fences, commentary, or <think> blocks.',
+    'Every requested category key must map to a JSON array of unique single-word name strings with no numbering, titles, or honorifics.',
+  ].join(' ')
+}
+
+function cultureNamingUserPrompt({ cultureLabel, wanted, count }) {
+  const requestedCategories = Object.fromEntries(
+    wanted.map((category) => [
+      category,
+      `Array of ${count} unique ${CULTURE_BANK_LABELS[category]} appropriate for "${cultureLabel}" (single words only)`,
+    ]),
+  )
+  const exampleOutput = Object.fromEntries(
+    wanted.map((category) => [
+      category,
+      category === 'givenMale'
+        ? ['Sokha', 'Vannak', 'Rithy']
+        : category === 'givenFemale'
+          ? ['Bopha', 'Chhaya', 'Srey']
+          : ['Prak', 'Chan', 'Lim'],
+    ]),
+  )
+
+  return JSON.stringify({
+    task: `Generate personal name banks appropriate for the culture: "${cultureLabel}".`,
+    cultureLabel,
+    countPerCategory: count,
+    requestedCategories,
+    rules: [
+      `Return a single JSON object with exactly these keys: ${wanted.join(', ')}.`,
+      `Each value must be a JSON array of ${count} unique, plausible names as plain strings.`,
+      'Given names are single words and surnames are single words.',
+      'Do not number the names. Do not include titles or honorifics. Do not include explanations.',
+    ],
+    requiredOutputFormat: requestedCategories,
+    exampleOutput,
+  })
 }
 
 /**
@@ -3016,69 +4049,262 @@ export async function requestCultureNames({
     detail: `Requesting ${wanted.length} name bank(s) for "${cultureLabel}".`,
   })
 
-  const keyList = wanted.map((c) => `"${c}" (${CULTURE_BANK_LABELS[c]})`).join(', ')
-  const exampleKeys = wanted.map((c) => `"${c}": ["..."]`).join(', ')
-
   const messages = [
-    {
-      role: 'system',
-      content: [
-        'You are an onomastics expert who invents authentic personal names for fictional nations.',
-        'You respond with ONLY a single minified JSON object — no prose, no markdown, no code fences.',
-      ].join(' '),
-    },
-    {
-      role: 'user',
-      content: [
-        `Generate personal names appropriate for the culture: "${cultureLabel}".`,
-        `Return a JSON object with exactly these keys: ${keyList}.`,
-        `Each value must be an array of ${count} unique, plausible names as plain strings (given names are single words; surnames are single words).`,
-        'Do not number the names. Do not include titles or honorifics. Do not include explanations.',
-        `Output format: {${exampleKeys}}`,
-      ].join('\n'),
-    },
+    { role: 'system', content: cultureNamingSystemPrompt() },
+    { role: 'user', content: cultureNamingUserPrompt({ cultureLabel, wanted, count }) },
   ]
 
-  emitLlmStatus(onStatus, {
-    phase: 'connecting',
-    progress: 0.25,
-    message: 'Connecting to naming historian.',
-    detail: `Generating names for "${cultureLabel}".`,
-  })
+  let lastError = null
 
-  const content = await requestChatCompletion({
-    endpoint,
-    model,
-    temperature: 0.9,
-    max_tokens: REPRESENTATIVE_NAMING_TOKEN_BUDGET,
-    messages,
-    onStatus,
-  })
+  for (const max_tokens of REPRESENTATIVE_NAMING_TOKEN_BUDGETS) {
+    try {
+      const content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.65,
+        max_tokens,
+        messages,
+        onStatus,
+      })
 
-  emitLlmStatus(onStatus, {
-    phase: 'parsing',
-    progress: 0.8,
-    message: 'Parsing generated names.',
-    detail: 'Extracting name banks from the response.',
-  })
+      emitLlmStatus(onStatus, {
+        phase: 'parsing',
+        progress: 0.8,
+        message: 'Parsing generated names.',
+        detail: 'Extracting name banks from the response.',
+      })
 
-  const parsed = extractJsonObject(stripThinkBlocks(content)) || {}
-  const result = {}
-  for (const category of wanted) {
-    result[category] = sanitizeNameList(parsed[category], count)
+      const parsed = extractJsonObject(stripThinkBlocks(content)) || {}
+      const result = {}
+      for (const category of wanted) {
+        result[category] = extractCultureCategoryNames(parsed, category, count)
+      }
+
+      const totalGenerated = Object.values(result).reduce((sum, arr) => sum + arr.length, 0)
+      if (!totalGenerated) {
+        throw new ModelOutputError('The model did not return any usable names.', 'empty')
+      }
+
+      emitLlmStatus(onStatus, {
+        phase: 'complete',
+        progress: 1,
+        message: 'Names generated.',
+        detail: `Generated ${totalGenerated} names across ${wanted.length} bank(s).`,
+      })
+
+      return result
+    } catch (error) {
+      lastError = error
+      if (!RETRYABLE_JSON_ERROR_CODES.includes(error.code)) throw error
+    }
   }
 
-  const totalGenerated = Object.values(result).reduce((sum, arr) => sum + arr.length, 0)
+  throw lastError || new Error('The model did not return any usable names.')
+}
+
+function politicalWeightsCatalogByGroup() {
+  return Object.fromEntries(
+    FEATURE_GROUPS.map((group) => [
+      group,
+      FEATURE_CATALOG
+        .filter((entry) => entry.group === group)
+        .map((entry) => ({
+          key: entry.key,
+          label: entry.label,
+          scopes: entry.scopes,
+        })),
+    ]),
+  )
+}
+
+function voterBlocSummariesForWeights(data) {
+  const blocs = Array.isArray(data?.config?.voterBlocs) ? data.config.voterBlocs : []
+  return blocs.slice(0, 12).map((bloc) => compactObject({
+    label: bloc?.label || 'Voter bloc',
+    party: bloc?.party || null,
+    religion: bloc?.source?.religion || null,
+    originalCountryIncludes: bloc?.source?.selector?.originalCountryIncludes || undefined,
+    groupIncludes: bloc?.source?.selector?.groupIncludes || undefined,
+    strength: bloc?.strength || undefined,
+  }))
+}
+
+function politicalWeightsSystemPrompt() {
+  return [
+    'You are the political-model architect for a Civilization-style election simulator.',
+    'Your job is to translate a user narrative and the empire’s actual demographic, geographic, civic, and economic data into party base-support biases and feature affinity weights.',
+    'YOUR ENTIRE RESPONSE MUST BE A SINGLE RAW JSON OBJECT — nothing before the opening { and nothing after the closing }.',
+    'Do not include markdown, code fences, commentary, tool calls, or <think> blocks.',
+    'Each party score is computed as: score(party, scope) = bias[scope] + sum(affinities[scope][featureKey] * featureValue[featureKey]).',
+    'Positive affinity weights (0.04 to 0.40) boost a party where that feature is high; negative affinity weights (-0.30 to -0.03) penalize the party where that feature is high.',
+    'Select 5 to 12 meaningful features per party from ALLOWED_FEATURES that match both USER_NARRATIVE and CURRENT_WORLD (including EMPIRE_FEATURE_PROFILE).',
+    'Respect party tiers (major parties typically have bias 0.05 to 0.16 and broader coalitions; minor parties typically have bias 0.005 to 0.05 and sharper niche affinities, unless USER_NARRATIVE explicitly elevates or suppresses a party).',
+  ].join(' ')
+}
+
+function politicalWeightsUserPrompt(narrative, data, parties = []) {
+  const partyList = (Array.isArray(parties) && parties.length ? parties : DEFAULT_PARTIES).map((party) => compactObject({
+    id: party.id,
+    name: party.name,
+    abbreviation: party.abbreviation,
+    colorName: party.colorName,
+    tier: party.tier || 'major',
+    ideology: party.ideology || null,
+    coalitionPartners: Array.isArray(party.coalitionPartners) ? party.coalitionPartners : undefined,
+  }))
+
+  const featureProfile = buildEmpireFeatureProfile(data || {})
+
+  return JSON.stringify({
+    task: 'Generate the political model weight matrix (bias and feature affinities for every party in PARTIES) so the simulated election matches USER_NARRATIVE and CURRENT_WORLD.',
+    USER_NARRATIVE: narrative,
+    CURRENT_WORLD: {
+      ...worldContext(data || {}),
+      voterBlocs: voterBlocSummariesForWeights(data),
+    },
+    EMPIRE_FEATURE_PROFILE: featureProfile,
+    PARTIES: partyList,
+    ALLOWED_FEATURES: politicalWeightsCatalogByGroup(),
+    rules: [
+      'Return a single JSON object with top-level keys: title, summary, partyWeights.',
+      `partyWeights MUST include an entry for every party id in PARTIES (${partyList.map((p) => p.id).join(', ')}).`,
+      'Each party entry in partyWeights must have: rationale (1 short sentence), bias (number 0.005 to 0.22 or { county, province, national }), and affinities (object mapping 5 to 12 feature keys from ALLOWED_FEATURES to numeric weights between -0.35 and 0.40).',
+      'Use EMPIRE_FEATURE_PROFILE.strongestCleavages and dominantCharacteristics so chosen features actually exist and vary across the empire.',
+      'Align positive and negative weights with USER_NARRATIVE and each party’s identity.',
+      'STOP immediately after the closing brace of the top-level JSON object.',
+    ],
+    requiredOutputFormat: {
+      title: 'short descriptive name for the weight model',
+      summary: 'one sentence explaining how the weights align the parties with the narrative and empire data',
+      partyWeights: {
+        '<partyId>': {
+          rationale: 'one short sentence explaining this party’s coalition and weights',
+          bias: { county: 0.08, province: 0.09, national: 0.09 },
+          affinities: {
+            '<feature_key>': 'number between -0.35 and 0.40',
+          },
+        },
+      },
+    },
+    exampleOutput: {
+      title: 'Industrial Riverlands vs Sacred Core',
+      summary: 'Weights pit the urban labor movement in rail and river counties against the temple-backed imperial core and agrarian frontier.',
+      partyWeights: {
+        yellow: {
+          rationale: 'Anchors the sacred capital, high-loyalty core provinces, and state-religion strongholds.',
+          bias: { county: 0.06, province: 0.07, national: 0.07 },
+          affinities: {
+            imperial_core_index: 0.24,
+            cultural_elite_index: 0.16,
+            state_religion_share: 0.14,
+            science_index: 0.1,
+            loyalty_index: 0.08,
+            conquered_index: -0.2,
+            localist_index: -0.1,
+          },
+        },
+        orange: {
+          rationale: 'Captures industrial zones, organized workers, and dense urban river corridors.',
+          bias: { county: 0.11, province: 0.11, national: 0.11 },
+          affinities: {
+            industrial_index: 0.34,
+            worker_index: 0.28,
+            urbanization_index: 0.2,
+            production_index: 0.18,
+            worker_grievance_index: 0.15,
+            agrarian_index: -0.08,
+          },
+        },
+      },
+    },
+  })
+}
+
+export async function requestPoliticalModelWeights({
+  narrative,
+  data,
+  parties = data?.config?.parties || DEFAULT_PARTIES,
+  endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
+  model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
+  onStatus,
+} = {}) {
+  const partyList = Array.isArray(parties) && parties.length ? parties : DEFAULT_PARTIES
+
+  emitLlmStatus(onStatus, {
+    phase: 'preparing',
+    progress: 0.08,
+    message: 'Building empire & party feature profile.',
+    detail: `Analyzing ${data?.provinces?.length || 0} provinces and ${partyList.length} parties for narrative weight calibration.`,
+  })
+
+  const messages = [
+    { role: 'system', content: politicalWeightsSystemPrompt() },
+    { role: 'user', content: politicalWeightsUserPrompt(narrative, data, partyList) },
+  ]
+
+  let lastError = null
+  let plan = null
+
+  for (const max_tokens of POLITICAL_WEIGHTS_TOKEN_BUDGETS) {
+    try {
+      const content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.35,
+        max_tokens,
+        messages,
+        onStatus,
+      })
+
+      emitLlmStatus(onStatus, {
+        phase: 'parsing',
+        progress: 0.84,
+        message: 'Parsing narrative political weights.',
+        detail: 'Extracting party biases, feature affinities, and rationales.',
+      })
+
+      plan = extractJsonObject(stripThinkBlocks(content))
+      break
+    } catch (error) {
+      lastError = error
+      if (!RETRYABLE_JSON_ERROR_CODES.includes(error.code)) throw error
+    }
+  }
+
+  if (!plan) {
+    throw lastError || new Error('Political model weights could not be generated.')
+  }
+
+  emitLlmStatus(onStatus, {
+    phase: 'compiling',
+    progress: 0.94,
+    message: 'Calibrating weights to empire data.',
+    detail: 'Mapping feature affinities across county, province, and national scopes.',
+  })
+
+  const compiledModel = compileNarrativePoliticalModel(plan, data, partyList)
+  const title = cleanScenarioText(
+    pickField(plan, ['title', 'name', 'modelName']),
+    'Narrative Political Model',
+    MAX_SCENARIO_NAME,
+  )
+  const summary = cleanScenarioText(
+    pickField(plan, ['summary', 'description', 'overview']),
+    'Party biases and feature affinities tuned to match the narrative and empire data.',
+    MAX_SCENARIO_DESCRIPTION,
+  )
+
   emitLlmStatus(onStatus, {
     phase: 'complete',
     progress: 1,
-    message: 'Names generated.',
-    detail: `Generated ${totalGenerated} names across ${wanted.length} bank(s).`,
+    message: 'Narrative weights ready.',
+    detail: `${compiledModel.length} parties calibrated across county, province, and national scopes.`,
   })
 
-  if (!totalGenerated) {
-    throw new ModelOutputError('The model did not return any usable names.', 'empty')
+  return {
+    title,
+    summary,
+    plan,
+    model: compiledModel,
   }
-
-  return result
 }

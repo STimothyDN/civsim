@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { generateRepresentativeNames, DEFAULT_NAMING } from './representativeNames'
+import {
+  generateRepresentativeNames,
+  generateScopeBlockNames,
+  incumbentSurvivalChance,
+  computeLeaderStatus,
+  DEFAULT_NAMING,
+} from './representativeNames'
 
 function seats(party, n, startIndex = 0) {
   return Array.from({ length: n }, (_, i) => ({
@@ -115,5 +121,99 @@ describe('config-driven representative naming', () => {
   it('ships a default naming config with a home culture and cultures', () => {
     expect(DEFAULT_NAMING.homeCulture.givenMale.length).toBeGreaterThan(0)
     expect(DEFAULT_NAMING.cultures.length).toBeGreaterThan(0)
+  })
+})
+
+describe('incumbent survival through elections', () => {
+  const naming = {
+    homeCulture: { id: 'home', label: 'H', givenMale: ['Aaa'], givenFemale: ['Aae'], surnames: ['Bbb'] },
+    cultures: [],
+  }
+  const scopeKey = 'national_assembly'
+
+  function priorRoster(party, n) {
+    const roster = {}
+    for (let i = 0; i < n; i++) roster[`${party}_${i}_${scopeKey}`] = `Incumbent ${i}`
+    return roster
+  }
+  function blockSeats(party, n, supportMetric) {
+    return Array.from({ length: n }, (_, i) => ({
+      party, seatIndex: i, withinPartyIndex: i, jurisdiction: 'X', supportMetric,
+    }))
+  }
+
+  it('survival chance rises with seat safety and stays within bounds', () => {
+    expect(incumbentSurvivalChance(0)).toBeCloseTo(0.55)
+    expect(incumbentSurvivalChance(100)).toBeCloseTo(0.95)
+    expect(incumbentSurvivalChance(60)).toBeGreaterThan(incumbentSurvivalChance(10))
+    // Clamps out-of-range inputs.
+    expect(incumbentSurvivalChance(-20)).toBeCloseTo(0.55)
+    expect(incumbentSurvivalChance(250)).toBeCloseTo(0.95)
+  })
+
+  it('baseline tags every sitting member incumbent, even without a prior roster', () => {
+    const { incumbencies, names, rosterEntries } =
+      generateScopeBlockNames(blockSeats('blue', 10, 0), [], 'seed', scopeKey, {}, naming, [], true)
+    expect(Object.values(incumbencies)).toHaveLength(10)
+    expect(Object.values(incumbencies).every(Boolean)).toBe(true)
+    // Fresh names are recorded so the baseline cohort can be incumbents next cycle.
+    expect(Object.keys(rosterEntries)).toHaveLength(10)
+    expect(Object.values(names).every(Boolean)).toBe(true)
+  })
+
+  it('safe-seat incumbents almost always survive; knife-edge incumbents often fall', () => {
+    const safe = generateScopeBlockNames(blockSeats('blue', 100, 100), [], 's', scopeKey, priorRoster('blue', 100), naming, [], false)
+    const marginal = generateScopeBlockNames(blockSeats('blue', 100, 0), [], 's', scopeKey, priorRoster('blue', 100), naming, [], false)
+    const safeSurvivors = Object.values(safe.incumbencies).filter(Boolean).length
+    const marginalSurvivors = Object.values(marginal.incumbencies).filter(Boolean).length
+
+    expect(safeSurvivors).toBeGreaterThan(marginalSurvivors)
+    expect(safeSurvivors).toBeGreaterThan(80) // ~95% retention
+    expect(marginalSurvivors).toBeLessThan(80) // ~55% retention
+    expect(marginalSurvivors).toBeGreaterThan(25)
+  })
+
+  it('a surviving incumbent keeps their exact name; a replaced one gets a fresh face', () => {
+    const { names, incumbencies } =
+      generateScopeBlockNames(blockSeats('blue', 40, 60), [], 's', scopeKey, priorRoster('blue', 40), naming, [], false)
+    for (let i = 0; i < 40; i++) {
+      if (incumbencies[`blue_${i}`]) {
+        expect(names[`blue_${i}`]).toBe(`Incumbent ${i}`)
+      } else {
+        expect(names[`blue_${i}`]).not.toBe(`Incumbent ${i}`)
+      }
+    }
+  })
+
+  it('seats with no prior officeholder are always tagged new', () => {
+    const { incumbencies } =
+      generateScopeBlockNames(blockSeats('green', 12, 100), [], 's', scopeKey, {}, naming, [], false)
+    expect(Object.values(incumbencies).every((v) => v === false)).toBe(true)
+  })
+})
+
+describe('three-state chamber leader status', () => {
+  const prev = { party: 'blue', name: 'Jane Doe' }
+
+  it('treats every baseline leader as incumbent', () => {
+    expect(computeLeaderStatus(true, undefined, 'blue', 'Anyone')).toBe('incumbent')
+    expect(computeLeaderStatus(true, prev, 'red', 'Other')).toBe('incumbent')
+  })
+
+  it('flags a different controlling party as a new government', () => {
+    expect(computeLeaderStatus(false, prev, 'red', 'Someone Else')).toBe('new-government')
+  })
+
+  it('flags the same party with a different person as a new leader', () => {
+    expect(computeLeaderStatus(false, prev, 'blue', 'John Smith')).toBe('new-leader')
+  })
+
+  it('keeps the same party and same person as incumbent', () => {
+    expect(computeLeaderStatus(false, prev, 'blue', 'Jane Doe')).toBe('incumbent')
+  })
+
+  it('returns null when there is no prior leader to compare against', () => {
+    expect(computeLeaderStatus(false, undefined, 'blue', 'Jane Doe')).toBe(null)
+    expect(computeLeaderStatus(false, {}, 'blue', 'Jane Doe')).toBe(null)
   })
 })

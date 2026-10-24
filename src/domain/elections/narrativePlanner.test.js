@@ -1,20 +1,25 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  DEFAULT_ENDPOINT,
+  DEFAULT_MODEL,
+  requestCultureNames,
   requestElectionBroadcast,
   requestElectionClimateSummary,
   requestElectionTicker,
   requestElectionNarrativePlan,
+  requestPoliticalModelWeights,
   requestPollBreakdown,
+  requestRepresentativeNames,
 } from './narrativePlanner'
 
 function mockChatResponse(content) {
   const encoder = new TextEncoder()
   const event = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`
   const streamText = [
-    event('chat.start', { model_instance_id: 'liquid/lfm2-24b-a2b' }),
-    event('model_load.start', { model_instance_id: 'liquid/lfm2-24b-a2b' }),
-    event('model_load.progress', { model_instance_id: 'liquid/lfm2-24b-a2b', progress: 0.65 }),
-    event('model_load.end', { model_instance_id: 'liquid/lfm2-24b-a2b', load_time_seconds: 1.2 }),
+    event('chat.start', { model_instance_id: 'google/gemma-4-e4b' }),
+    event('model_load.start', { model_instance_id: 'google/gemma-4-e4b' }),
+    event('model_load.progress', { model_instance_id: 'google/gemma-4-e4b', progress: 0.65 }),
+    event('model_load.end', { model_instance_id: 'google/gemma-4-e4b', load_time_seconds: 1.2 }),
     event('prompt_processing.start', {}),
     event('prompt_processing.progress', { progress: 0.5 }),
     event('prompt_processing.end', {}),
@@ -23,7 +28,7 @@ function mockChatResponse(content) {
     event('message.end', {}),
     event('chat.end', {
       result: {
-        model_instance_id: 'liquid/lfm2-24b-a2b',
+        model_instance_id: 'google/gemma-4-e4b',
         output: [{ type: 'message', content }],
         stats: {
           input_tokens: 120,
@@ -117,6 +122,9 @@ function chamber({ yellow = 0.4, orange = 0.3, seats = { yellow: 8, orange: 5, r
       label: 'Divinus Sol majority',
       detail: `${seats.yellow} of ${Object.values(seats).reduce((sum, value) => sum + value, 0)} seats`,
       majority: 11,
+      leaderParty: 'yellow',
+      supportParties: [],
+      status: seats.yellow >= 11 ? 'majority' : 'minority-government',
     },
   }
 }
@@ -210,14 +218,14 @@ describe('narrativePlanner LLM prompts', () => {
       narrative: 'A rail boom is helping the imperial center.',
       data: sampleWorld(),
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     const body = lastRequestBody()
     const userPayload = JSON.parse(body.input)
     const railTemplate = userPayload.TREND_TEMPLATES.find((template) => template.id === 'rail-opening')
 
-    expect(body.model).toBe('liquid/lfm2-24b-a2b')
+    expect(body.model).toBe('google/gemma-4-e4b')
     expect(body.max_output_tokens).toBe(1700)
     expect(body.context_length).toBe(131072)
     expect(body.stream).toBe(true)
@@ -279,7 +287,7 @@ describe('narrativePlanner LLM prompts', () => {
       narrative: 'A canal guild revolt is affecting toll counties.',
       data: sampleWorld(),
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     expect(packageDef.trends).toHaveLength(1)
@@ -314,7 +322,7 @@ describe('narrativePlanner LLM prompts', () => {
       seed: 'scenario-test',
       data: sampleWorld(),
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     const body = lastRequestBody()
@@ -334,7 +342,7 @@ describe('narrativePlanner LLM prompts', () => {
       baselineResults: sampleBaselineResults(),
       scope: 'national',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     const body = lastRequestBody()
@@ -350,6 +358,66 @@ describe('narrativePlanner LLM prompts', () => {
     expect(userPayload.focus.type).toBe('national')
     expect(userPayload.focus.regionalOverview).toBeUndefined()
     expect(userPayload.focus.examples[0].assembly.strongestSwing).toMatchObject({ party: 'yellow', points: 9 })
+
+    // Seat/majority math is pre-computed for the local model rather than inferred.
+    expect(userPayload.national.assembly.margin).toMatchObject({
+      leaderParty: 'yellow',
+      leaderSeats: 8,
+      runnerUpParty: 'orange',
+      runnerUpSeats: 5,
+      seatLeadOverRunnerUp: 3,
+      majorityThreshold: 11,
+      seatsShortOfMajority: 3,
+      hasOwnMajority: false,
+    })
+    expect(userPayload.national.assembly.margin.marginLabel).toContain('11-seat majority')
+    expect(userPayload.national.assembly.margin.marginLabel).toContain('8 of 20')
+
+    // Default (decentralized) structure is described to the model with a region tier.
+    expect(userPayload.government).toMatchObject({
+      structureId: 'decentralized',
+      hasRegionTier: true,
+    })
+    expect(userPayload.government.chamberTitles.nationalAssemblyLeader).toBe('Prime Minister')
+    expect(userPayload.government.chamberTitles.regionalAssemblyLeader).toBe('Premier')
+    expect(userPayload.government.provinceDelegations).toBeUndefined()
+  })
+
+  it('describes a federalist structure with no region tier and per-province delegations', async () => {
+    mockChatResponse('The federation has voted.\n\nProvinces sent their delegations.\n\nThe capital leads.\n\nThe upper house holds parity.\n\nThe mandate is set.')
+
+    const federalistResults = sampleResults()
+    federalistResults.config = {
+      ...federalistResults.config,
+      structure: { id: 'federalist', national: { upper: { basis: 'equalPerProvince', seatsPerProvince: 2 } } },
+    }
+    federalistResults.regions = {} // federalist has no region tier
+    federalistResults.national.assembly.province_allocation = [
+      { name: 'Angkor Thom', seats: 7 },
+      { name: 'Hariharalaya', seats: 3 },
+    ]
+
+    await requestElectionBroadcast({
+      results: federalistResults,
+      baselineResults: sampleBaselineResults(),
+      scope: 'national',
+      endpoint: 'http://lm.test/api/v1/chat',
+      model: 'google/gemma-4-e4b',
+    })
+
+    const body = lastRequestBody()
+    const userPayload = JSON.parse(body.input)
+
+    expect(userPayload.government).toMatchObject({
+      structureId: 'federalist',
+      hasRegionTier: false,
+    })
+    expect(userPayload.government.chamberTitles.regionalAssemblyLeader).toBeUndefined()
+    expect(userPayload.government.note).toContain('NO regional tier')
+    expect(userPayload.government.nationalComposition.lower).toContain('apportioned ACROSS the provinces by population')
+    expect(userPayload.government.nationalComposition.upper).toContain('small-province parity')
+    expect(userPayload.government.provinceDelegations[0]).toMatchObject({ province: 'Angkor Thom', nationalAssemblySeats: 7 })
+    expect(body.system_prompt).toContain('GOVERNMENT STRUCTURE')
   })
 
   it('sends regional scope and targetName to the broadcast prompt', async () => {
@@ -361,7 +429,7 @@ describe('narrativePlanner LLM prompts', () => {
       scope: 'regional',
       targetName: 'Capital Region',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     const body = lastRequestBody()
@@ -406,7 +474,7 @@ describe('narrativePlanner LLM prompts', () => {
       scope: 'national',
       polling,
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     let body = lastRequestBody()
@@ -424,6 +492,18 @@ describe('narrativePlanner LLM prompts', () => {
     })
     expect(userPayload.polling.methodologyNotes[0]).toContain('Aurora Public Opinion')
 
+    // Polls-vs-result deltas are computed in JS so the model quotes them rather than subtracting.
+    const yellowDiff = userPayload.pollingVsResult.parties.find((row) => row.party === 'yellow')
+    expect(yellowDiff).toMatchObject({
+      pollPct: 41.2,
+      resultPct: 42,
+      voteDeltaPct: 0.8,
+      projectedSeats: 9,
+      actualSeats: 8,
+      seatDelta: -1,
+    })
+    expect(userPayload.pollingVsResult.biggestSurprise).toBeTruthy()
+
     vi.restoreAllMocks()
     mockChatResponse('Polls show Divinus Sol ahead, but the spread keeps the call cautious.')
 
@@ -433,7 +513,7 @@ describe('narrativePlanner LLM prompts', () => {
       scope: 'national',
       polling,
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     body = lastRequestBody()
@@ -505,7 +585,7 @@ describe('narrativePlanner LLM prompts', () => {
       polling,
       pollingScopes: [polling, regionalPolling],
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     const body = lastRequestBody()
@@ -602,7 +682,7 @@ describe('narrativePlanner LLM prompts', () => {
       polling,
       pollingScopes: [polling],
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     const body = lastRequestBody()
@@ -630,7 +710,7 @@ describe('narrativePlanner LLM prompts', () => {
       scope: 'provincial',
       targetName: 'Angkor Thom',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     const body = lastRequestBody()
@@ -656,7 +736,7 @@ describe('narrativePlanner LLM prompts', () => {
       baselineResults: sampleBaselineResults(),
       scope: 'national',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     expect(broadcastText).not.toContain('<think>')
@@ -664,19 +744,20 @@ describe('narrativePlanner LLM prompts', () => {
     expect(broadcastText).toContain('The empire has voted')
 
     vi.restoreAllMocks()
-    mockChatResponse('<think>reasoning</think> Divinus Sol holds the board.')
+    mockChatResponse('<think>reasoning</think>\nRESULT: Divinus Sol holds the board.')
 
-    const tickerText = await requestElectionTicker({
+    const tickerItems = await requestElectionTicker({
       results: sampleResults(),
       baselineResults: sampleBaselineResults(),
       scope: 'national',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
-    expect(tickerText).not.toContain('<think>')
-    expect(tickerText).not.toContain('reasoning')
-    expect(tickerText).toBe('Divinus Sol holds the board.')
+    expect(Array.isArray(tickerItems)).toBe(true)
+    expect(tickerItems[0].text).not.toContain('<think>')
+    expect(tickerItems[0].text).not.toContain('reasoning')
+    expect(tickerItems[0]).toMatchObject({ tag: 'RESULT', tone: 'gold', text: 'Divinus Sol holds the board.' })
   })
 
   it('survives malformed JSON in an SSE data line without crashing the stream', async () => {
@@ -684,14 +765,14 @@ describe('narrativePlanner LLM prompts', () => {
     const corruptBlock = 'event: message\ndata: not-valid-json\n\n'
     const goodEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`
     const streamText = [
-      goodEvent('chat.start', { model_instance_id: 'liquid/lfm2-24b-a2b' }),
+      goodEvent('chat.start', { model_instance_id: 'google/gemma-4-e4b' }),
       corruptBlock,
       goodEvent('message.start', {}),
       goodEvent('message.delta', { content: 'Divinus Sol projected.' }),
       goodEvent('message.end', {}),
       goodEvent('chat.end', {
         result: {
-          model_instance_id: 'liquid/lfm2-24b-a2b',
+          model_instance_id: 'google/gemma-4-e4b',
           output: [{ type: 'message', content: 'Divinus Sol projected.' }],
           stats: { input_tokens: 50, total_output_tokens: 10 },
         },
@@ -714,22 +795,27 @@ describe('narrativePlanner LLM prompts', () => {
       baselineResults: sampleBaselineResults(),
       scope: 'national',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
     })
 
     expect(text).toBe('Divinus Sol projected.')
   })
 
-  it('uses a compact one-paragraph request for election tickers', async () => {
-    mockChatResponse('Divinus Sol is holding the national board as rail politics keeps the capital steady.')
+  it('requests multiple tagged ticker headlines and parses them into items', async () => {
+    mockChatResponse([
+      'RESULT: Divinus Sol holds the national board with a clear plurality.',
+      'UPSET: The opposition beat its polls by four points in the capital.',
+      'TREND: Rail politics kept the industrial corridor steady.',
+      '- OUTLOOK: A council fight looms as the new term opens.',
+    ].join('\n'))
     const statuses = []
 
-    const text = await requestElectionTicker({
+    const items = await requestElectionTicker({
       results: sampleResults(),
       baselineResults: sampleBaselineResults(),
       scope: 'overview',
       endpoint: 'http://lm.test/api/v1/chat',
-      model: 'liquid/lfm2-24b-a2b',
+      model: 'google/gemma-4-e4b',
       onStatus: (status) => statuses.push(status),
     })
 
@@ -737,9 +823,15 @@ describe('narrativePlanner LLM prompts', () => {
     const systemContent = body.system_prompt
     const userPayload = JSON.parse(body.input)
 
-    expect(body.temperature).toBe(0.45)
-    expect(body.max_output_tokens).toBe(420)
-    expect(systemContent).toContain('exactly one plain-text paragraph')
+    expect(body.temperature).toBe(0.5)
+    expect(body.max_output_tokens).toBe(700)
+    expect(systemContent).toContain('4 to 6 separate ticker headlines')
+    expect(items).toHaveLength(4)
+    expect(items[0]).toMatchObject({ tag: 'RESULT', tone: 'gold' })
+    expect(items[1]).toMatchObject({ tag: 'UPSET', tone: 'coral' })
+    expect(items[2]).toMatchObject({ tag: 'TREND', tone: 'jade' })
+    // Leading bullet markers are stripped before the tag is parsed.
+    expect(items[3]).toMatchObject({ tag: 'OUTLOOK', tone: 'ink', text: 'A council fight looms as the new term opens.' })
     expect(userPayload.scope).toBe('overview')
     expect(userPayload.scopeBoundary).toContain('only ticker allowed to consolidate')
     expect(userPayload.focus.type).toBe('overview')
@@ -767,6 +859,201 @@ describe('narrativePlanner LLM prompts', () => {
       label: 'model_load.progress',
     })
     expect(statuses.every((status) => Number.isFinite(status.timestamp))).toBe(true)
-    expect(text).toBe('Divinus Sol is holding the national board as rail politics keeps the capital steady.')
+    expect(items.every((item) => typeof item.text === 'string' && item.text.length)).toBe(true)
+  })
+
+  it('defaults all LLM calls to google/gemma-4-e4b and the native LM Studio chat endpoint', async () => {
+    expect(DEFAULT_MODEL).toBe('google/gemma-4-e4b')
+    expect(DEFAULT_ENDPOINT).toBe('http://localhost:1234/api/v1/chat')
+
+    mockChatResponse(JSON.stringify({
+      givenMale: ['Sokha', 'Vannak'],
+      givenFemale: ['Bopha', 'Chhaya'],
+      surnames: ['Prak', 'Chan'],
+    }))
+
+    const names = await requestCultureNames({
+      label: 'Khmer',
+      categories: ['givenMale', 'givenFemale', 'surnames'],
+      count: 2,
+    })
+
+    const fetchCall = globalThis.fetch.mock.calls.at(-1)
+    const body = lastRequestBody()
+    const userPayload = JSON.parse(body.input)
+
+    expect(fetchCall[0]).toBe(DEFAULT_ENDPOINT)
+    expect(body.model).toBe('google/gemma-4-e4b')
+    expect(body.stream).toBe(true)
+    expect(body.store).toBe(false)
+    expect(body.max_output_tokens).toBe(2000)
+    expect(userPayload.cultureLabel).toBe('Khmer')
+    expect(userPayload.requestedCategories).toHaveProperty('givenMale')
+    expect(names).toEqual({
+      givenMale: ['Sokha', 'Vannak'],
+      givenFemale: ['Bopha', 'Chhaya'],
+      surnames: ['Prak', 'Chan'],
+    })
+  })
+
+  it('generates representative names with the structured gemma-4-e4b prompt and normalizes nested maps', async () => {
+    mockChatResponse(JSON.stringify({
+      names: {
+        yellow_0: 'Sokha Prak',
+        orange_0: 'David Kim',
+      },
+    }))
+
+    const statuses = []
+    const repNames = await requestRepresentativeNames({
+      seatDetails: [
+        { party: 'yellow', seatIndex: 0, jurisdiction: 'Angkor Thom', supportMetric: 68 },
+        { party: 'orange', seatIndex: 0, jurisdiction: 'Angkor Thom', supportMetric: 52 },
+      ],
+      provinces: sampleWorld().provinces,
+      countryData: sampleWorld().country,
+      scope: 'national',
+      onStatus: (status) => statuses.push(status),
+    })
+
+    const body = lastRequestBody()
+    const userPayload = JSON.parse(body.input)
+
+    expect(body.model).toBe('google/gemma-4-e4b')
+    expect(body.max_output_tokens).toBe(2000)
+    expect(userPayload.seatsToName).toHaveLength(2)
+    expect(userPayload.seatsToName[0]).toMatchObject({ key: 'yellow_0', place: 'Angkor Thom' })
+    expect(repNames).toEqual({
+      yellow_0: 'Sokha Prak',
+      orange_0: 'David Kim',
+    })
+    expect(statuses.at(-1)).toMatchObject({ phase: 'complete', progress: 1 })
+  })
+
+  it('repairs malformed, commented, unescaped-quote, single-quoted, and truncated JSON without throwing JSON Parse errors', async () => {
+    // 1. Gemma reasoning channel with braces + unescaped quotes + raw newline + URL with // + line comment + trailing comma
+    mockChatResponse([
+      '<|channel>thought\nConsidering candidate {"draft": true} for the climate name.\n<channel|>',
+      '```json',
+      '{',
+      '  // Scenario metadata',
+      '  scenarioName: "The "Monsoon" Mandate",',
+      '  \'scenarioDescription\': \'King\'s coalition rallied around http://khmer.gov/rail\\nand held the industrial corridor.\',',
+      '}',
+      '```',
+    ].join('\n'))
+
+    const metadata = await requestElectionClimateSummary({
+      trends: [sampleTrend()],
+      seed: 'repair-test',
+      data: sampleWorld(),
+    })
+
+    expect(metadata.name).toBe('The "Monsoon" Mandate')
+    expect(metadata.description).toContain("King's coalition rallied around http://khmer.gov/rail")
+
+    // 2. Truncated JSON array in culture naming + alias keys
+    vi.restoreAllMocks()
+    mockChatResponse('{"male_names": ["1. Sokha", "Vannak", "Rithy')
+
+    const cultureNames = await requestCultureNames({
+      label: 'Khmer',
+      categories: ['givenMale'],
+      count: 5,
+    })
+
+    expect(cultureNames.givenMale).toEqual(['Sokha', 'Vannak', 'Rithy'])
+  })
+
+  it('retries narrative planning and culture naming with higher token budgets when an initial response has no JSON', async () => {
+    const encoder = new TextEncoder()
+    const makeStream = (content) => {
+      const event = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`
+      const text = [
+        event('chat.start', { model_instance_id: 'google/gemma-4-e4b' }),
+        event('message.delta', { content }),
+        event('chat.end', { result: { output: [{ type: 'message', content }] } }),
+      ].join('')
+      return {
+        ok: true,
+        body: new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(text))
+            controller.close()
+          },
+        }),
+        text: async () => text,
+      }
+    }
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(makeStream('Thinking through the prompt without emitting JSON...'))
+      .mockResolvedValueOnce(makeStream(JSON.stringify({
+        title: 'Recovered Plan',
+        summary: 'Succeeded on retry.',
+        selections: [{ id: 'rail-opening', intensity: 0.5 }],
+      })))
+
+    const { plan, packageDef } = await requestElectionNarrativePlan({
+      narrative: 'Rail recovery',
+      data: sampleWorld(),
+    })
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+    expect(JSON.parse(fetchSpy.mock.calls[0][1].body).max_output_tokens).toBe(1700)
+    expect(JSON.parse(fetchSpy.mock.calls[1][1].body).max_output_tokens).toBe(2400)
+    expect(plan.title).toBe('Recovered Plan')
+    expect(packageDef.trends[0].templateId).toBe('rail-opening')
+  })
+
+  it('requests narrative-driven political model weights with empire context and compiles scoped party weights', async () => {
+    mockChatResponse(JSON.stringify({
+      title: 'Rail Labor vs Imperial Core',
+      summary: 'Industrial rail workers back UWC while Divinus Sol holds the sacred capital.',
+      partyWeights: {
+        yellow: {
+          rationale: 'Backed by the imperial capital and state religion.',
+          bias: 0.09,
+          affinities: {
+            imperial_core_index: 0.26,
+            state_religion_share: 0.16,
+            conquered_index: -0.2,
+          },
+        },
+        orange: {
+          rationale: 'Rallies rail and industrial counties.',
+          bias: 0.12,
+          affinities: {
+            industrial_index: 0.34,
+            urbanization_index: 0.22,
+          },
+        },
+      },
+    }))
+
+    const statuses = []
+    const result = await requestPoliticalModelWeights({
+      narrative: 'Rail workers surge for Orange while Yellow holds the capital.',
+      data: sampleWorld(),
+      onStatus: (status) => statuses.push(status),
+    })
+
+    const fetchCall = globalThis.fetch.mock.calls.at(-1)
+    const body = lastRequestBody()
+    const userPayload = JSON.parse(body.input)
+
+    expect(fetchCall[0]).toBe(DEFAULT_ENDPOINT)
+    expect(body.model).toBe('google/gemma-4-e4b')
+    expect(body.max_output_tokens).toBe(2200)
+    expect(userPayload.USER_NARRATIVE).toContain('Rail workers surge for Orange')
+    expect(userPayload.CURRENT_WORLD.country).toMatchObject({ name: 'Khmer Empire', leader: 'Jayavarman VII' })
+    expect(userPayload.EMPIRE_FEATURE_PROFILE).toHaveProperty('strongestCleavages')
+    expect(userPayload.ALLOWED_FEATURES).toHaveProperty('Economy')
+    expect(result.title).toBe('Rail Labor vs Imperial Core')
+    expect(result.summary).toContain('Industrial rail workers')
+    const orange = result.model.find((entry) => entry.id === 'orange')
+    expect(orange.affinities.province.industrial_index).toBe(0.34)
+    expect(orange.affinities.county.urban_index).toBe(0.22)
+    expect(statuses.at(-1)).toMatchObject({ phase: 'complete', progress: 1 })
   })
 })

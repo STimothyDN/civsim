@@ -34,6 +34,7 @@ import ElectionNarrativeModal from './components/elections/ElectionNarrativeModa
 import ElectionBroadcastModal from './components/elections/ElectionBroadcastModal.vue'
 import PollBreakdownModal from './components/elections/PollBreakdownModal.vue'
 import ToastNotification from './components/ToastNotification.vue'
+import { useGlobalElectionTicker } from './composables/useGlobalElectionTicker'
 
 export default {
   name: 'App',
@@ -44,6 +45,10 @@ export default {
   setup() {
     const route = useRoute()
     const railOpen = ref(false)
+
+    // Mount the global election-ticker generator once at the shell so the
+    // ticker button (anywhere in the app) can drive AppTicker via the store.
+    useGlobalElectionTicker()
 
     // Close the mobile rail whenever navigation occurs.
     watch(() => route.path, () => { railOpen.value = false })

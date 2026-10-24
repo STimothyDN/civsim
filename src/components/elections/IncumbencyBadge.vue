@@ -23,7 +23,8 @@ export default {
     const electionStore = useElectionStore()
 
     const status = computed(() => {
-      if (electionStore.isBaseline) return null
+      // Baseline is the sitting government at game start, so its members read as
+      // incumbents (the store tags them true); we no longer hide the badge here.
       if (props.isIncumbent !== null && props.isIncumbent !== undefined) {
         return Boolean(props.isIncumbent)
       }

@@ -27,7 +27,7 @@
         <span>Assembly Leader</span>
         <strong>
           {{ lowerHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(assemblyLeader.party, assemblyLeader.seatIndex) || '' }}
-          <IncumbencyBadge :party="assemblyLeader.party" :seat-index="assemblyLeader.seatIndex" />
+          <LeaderStatusBadge :status="electionStore.getLeaderStatus('national_assembly')" />
         </strong>
         <small class="leader-line">from {{ assemblyLeader.jurisdiction }} ({{ partyMeta[assemblyLeader.party]?.abbreviation || assemblyLeader.party }})</small>
         <small v-if="assemblySupportLeaders?.length" class="leader-support-line">
@@ -38,7 +38,7 @@
         <span>Council Leader</span>
         <strong>
           {{ upperHouseLeaderTitle('national') }} {{ electionStore.getRepresentativeName(councilLeader.party, councilLeader.seatIndex + SEAT_OFFSETS.national.prelates) || '' }}
-          <IncumbencyBadge :party="councilLeader.party" :seat-index="councilLeader.seatIndex + SEAT_OFFSETS.national.prelates" />
+          <LeaderStatusBadge :status="electionStore.getLeaderStatus('national_prelates')" />
         </strong>
         <small class="leader-line">from {{ councilLeader.jurisdiction }} ({{ partyMeta[councilLeader.party]?.abbreviation || councilLeader.party }})</small>
         <small v-if="councilSupportLeaders?.length" class="leader-support-line">
@@ -46,13 +46,6 @@
         </small>
       </div>
     </template>
-
-    <ElectionTickerCard
-      :request-id="tickerRequestId"
-      :scope="tickerScope"
-      :target-name="tickerTargetName"
-      :ticker-key="tickerKey"
-    />
 
     <section class="election-panel">
       <div class="election-panel-heading">
@@ -248,9 +241,8 @@ import { TriangleAlert, Vote } from 'lucide-vue-next'
 import ElectionPageShell from '../components/elections/ElectionPageShell.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import CaucusListCard from '../components/elections/CaucusListCard.vue'
-import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
-import IncumbencyBadge from '../components/elections/IncumbencyBadge.vue'
+import LeaderStatusBadge from '../components/elections/LeaderStatusBadge.vue'
 import PartySwingCards from '../components/elections/PartySwingCards.vue'
 import PopularVoteBoard from '../components/elections/PopularVoteBoard.vue'
 import ProvinceCallBoard from '../components/elections/ProvinceCallBoard.vue'
@@ -260,7 +252,6 @@ import CoalitionArithmeticPanel from '../components/elections/CoalitionArithmeti
 import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionFormatters } from '../composables/useElectionFormatters'
-import { useElectionTicker } from '../composables/useElectionTicker'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
 import { APPORTIONMENT, PARTIES, THRESHOLDS, formatShare } from '../domain/elections'
 import { useChamberLabels } from '../composables/useChamberLabels'
@@ -275,9 +266,8 @@ export default {
     CaucusListCard,
     CoalitionArithmeticPanel,
     ElectionPageShell,
-    ElectionTickerCard,
     PartyBadge,
-    IncumbencyBadge,
+    LeaderStatusBadge,
     PartySwingCards,
     PopularVoteBoard,
     ProvinceCallBoard,
@@ -353,9 +343,6 @@ export default {
       seatIndexOffset: SEAT_OFFSETS.national.prelates,
       seatCount: computed(() => results.value.national.prelates.seat_count),
     })
-
-    const { showElectionTicker, tickerKey, tickerRequestId, tickerScope, tickerTargetName } =
-      useElectionTicker({ results, defaultScope: 'national' })
 
     const nationalSeatColumns = [
       { key: 'assemblySeats', label: 'Assembly Seats' },
@@ -436,11 +423,6 @@ export default {
       regionRows,
       results,
       store,
-      showElectionTicker,
-      tickerKey,
-      tickerRequestId,
-      tickerScope,
-      tickerTargetName,
       Vote,
       warnings,
       nationalAssemblyJurisdictionLabels,

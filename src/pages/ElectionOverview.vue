@@ -14,18 +14,11 @@
       :election-year="electionStore.electionYear"
       :assembly-leader-name="scoreboardAssemblyLeaderName"
       :council-leader-name="scoreboardCouncilLeaderName"
-      :assembly-leader-incumbent="scoreboardAssemblyLeaderIncumbent"
-      :council-leader-incumbent="scoreboardCouncilLeaderIncumbent"
+      :assembly-leader-status="scoreboardAssemblyLeaderStatus"
+      :council-leader-status="scoreboardCouncilLeaderStatus"
     />
 
     <PowerBalanceStrip :results="results" :party-meta="partyMeta" />
-
-    <ElectionTickerCard
-      :request-id="tickerRequestId"
-      :scope="tickerScope"
-      :target-name="tickerTargetName"
-      :ticker-key="tickerKey"
-    />
 
     <div class="election-data-grid">
       <ChamberComposition
@@ -219,14 +212,12 @@ import PowerBalanceStrip from '../components/elections/PowerBalanceStrip.vue'
 import ChamberComposition from '../components/elections/ChamberComposition.vue'
 import CaucusListCard from '../components/elections/CaucusListCard.vue'
 import ControlCallBoard from '../components/elections/ControlCallBoard.vue'
-import ElectionTickerCard from '../components/elections/ElectionTickerCard.vue'
 import PartyBadge from '../components/elections/PartyBadge.vue'
 import { LayoutDashboard } from 'lucide-vue-next'
 import ProvinceChart from '../components/ProvinceChart.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionFormatters } from '../composables/useElectionFormatters'
 import { useElectionLeaders } from '../composables/useElectionLeaders'
-import { useElectionTicker } from '../composables/useElectionTicker'
 import { useElectionStore } from '../stores/electionStore'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
 import { PARTIES, formatShare } from '../domain/elections'
@@ -264,7 +255,6 @@ export default {
     ControlCallBoard,
     ElectionPageShell,
     ElectionScoreboard,
-    ElectionTickerCard,
     LayoutDashboard,
     PartyBadge,
     PowerBalanceStrip,
@@ -319,16 +309,8 @@ export default {
       if (!leader) return ''
       return electionStore.getRepresentativeName(leader.party, leader.seatIndex + SEAT_OFFSETS.national.prelates) || ''
     })
-    const scoreboardAssemblyLeaderIncumbent = computed(() => {
-      const leader = nationalAssemblyLeader.value
-      if (!leader) return null
-      return electionStore.isRepresentativeIncumbent(leader.party, leader.seatIndex + SEAT_OFFSETS.national.assembly)
-    })
-    const scoreboardCouncilLeaderIncumbent = computed(() => {
-      const leader = nationalCouncilLeader.value
-      if (!leader) return null
-      return electionStore.isRepresentativeIncumbent(leader.party, leader.seatIndex + SEAT_OFFSETS.national.prelates)
-    })
+    const scoreboardAssemblyLeaderStatus = computed(() => electionStore.getLeaderStatus('national_assembly'))
+    const scoreboardCouncilLeaderStatus = computed(() => electionStore.getLeaderStatus('national_prelates'))
     const regionOrder = computed(() => store.currentData?.province_groups || [])
     const regionRows = computed(() => orderRegionsByReference(Object.values(results.value.regions), regionOrder.value))
     const hasRegions = computed(() => regionRows.value.length > 0)
@@ -345,9 +327,6 @@ export default {
       scope: 'national',
       provinces: results.value.provinces,
     }))
-
-    const { showElectionTicker, tickerKey, tickerRequestId, tickerScope, tickerTargetName } =
-      useElectionTicker({ results, defaultScope: 'overview' })
 
     const topRegionRows = computed(() => regionRows.value.slice(0, 6))
     const topProvinceRows = computed(() => [...results.value.provinces].sort((a, b) => b.provincial_population - a.provincial_population).slice(0, 8))
@@ -426,11 +405,6 @@ export default {
       regionalChartOption,
       results,
       store,
-      showElectionTicker,
-      tickerKey,
-      tickerRequestId,
-      tickerScope,
-      tickerTargetName,
       topProvinceRows,
       topRegionRows,
       upperHouseNameFor,
@@ -439,8 +413,8 @@ export default {
       electionStore,
       scoreboardAssemblyLeaderName,
       scoreboardCouncilLeaderName,
-      scoreboardAssemblyLeaderIncumbent,
-      scoreboardCouncilLeaderIncumbent,
+      scoreboardAssemblyLeaderStatus,
+      scoreboardCouncilLeaderStatus,
     }
   },
 }

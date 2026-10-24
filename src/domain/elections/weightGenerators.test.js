@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
-import { generatePoliticalModel, WEIGHT_BOUNDS } from './weightGenerators'
+import {
+  buildEmpireFeatureProfile,
+  compileNarrativePoliticalModel,
+  generatePoliticalModel,
+  WEIGHT_BOUNDS,
+} from './weightGenerators'
 import { normalizeTemplateInput } from '../templateCodec'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -49,5 +54,66 @@ describe('weight generators', () => {
     // Focused minors carry no more feature weights than a wide-appeal major.
     expect(countyFeatureCount(minorIdx)).toBeLessThanOrEqual(countyFeatureCount(majorIdx))
     expect(model[minorIdx].bias.province).toBeTypeOf('number')
+  })
+
+  it('builds an empire feature profile with cleavages and dominant characteristics', () => {
+    const profile = buildEmpireFeatureProfile(data)
+    expect(profile.strongestCleavages.length).toBeGreaterThan(0)
+    expect(profile.dominantCharacteristics.length).toBeGreaterThan(0)
+    expect(profile.strongestCleavages[0]).toMatchObject({
+      key: expect.any(String),
+      label: expect.any(String),
+      group: expect.any(String),
+      mean: expect.any(Number),
+      std: expect.any(Number),
+    })
+  })
+
+  it('compiles narrative political model weights across scopes, maps sibling keys, and calibrates biases', () => {
+    const plan = {
+      title: 'Workers vs Temple Core',
+      summary: 'Industrial river corridors rally behind Orange while Yellow holds the sacred core.',
+      partyWeights: {
+        yellow: {
+          rationale: 'Dominates the imperial core and state religion centers.',
+          bias: 0.08,
+          affinities: {
+            imperial_core_index: 0.28,
+            state_religion_share: 0.18,
+            conquered_index: -0.22,
+          },
+        },
+        // Matched by party name alias and tests cross-scope sibling projection (urbanization_index -> urban_index at county)
+        'United Workers Congress': {
+          rationale: 'Sweeps urban industrial counties.',
+          bias: { county: 0.11, province: 0.12, national: 0.12 },
+          affinities: {
+            industrial_index: 0.36,
+            urbanization_index: 0.24,
+            commerce_index: 0.15,
+            unknown_feature_key: 0.99,
+          },
+        },
+      },
+    }
+
+    const compiled = compileNarrativePoliticalModel(plan, data, parties)
+    expectWellFormed(compiled)
+
+    const yellow = compiled.find((p) => p.id === 'yellow')
+    const orange = compiled.find((p) => p.id === 'orange')
+
+    expect(yellow.rationale).toBe('Dominates the imperial core and state religion centers.')
+    expect(yellow.affinities.province.imperial_core_index).toBe(0.28)
+    expect(yellow.affinities.county.imperial_core_index).toBe(0.28)
+    expect(yellow.affinities.province.conquered_index).toBe(-0.22)
+
+    // Sibling mapping: urbanization_index (province/national) -> urban_index (county)
+    expect(orange.affinities.province.urbanization_index).toBe(0.24)
+    expect(orange.affinities.county.urban_index).toBe(0.24)
+    // Sibling mapping: commerce_index (province/national) -> commercial_index (county)
+    expect(orange.affinities.province.commerce_index).toBe(0.15)
+    expect(orange.affinities.county.commercial_index).toBe(0.15)
+    expect(orange.affinities.province).not.toHaveProperty('unknown_feature_key')
   })
 })
