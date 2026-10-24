@@ -457,6 +457,20 @@ export const useFormStore = defineStore('form', {
       this._recalcVersion++
       this.scheduleAutosave()
     },
+    /** Comma-separated platform descriptors ("Labor, industrial workers, …"). */
+    setPartyIdeology(partyId, ideology) {
+      const party = this._findParty(partyId)
+      if (!party) return
+      party.ideology = String(ideology || '')
+      this.scheduleAutosave()
+    },
+    /** The user's free-text brief that descriptors are generated from. */
+    setPartyDescription(partyId, description) {
+      const party = this._findParty(partyId)
+      if (!party) return
+      party.description = String(description || '')
+      this.scheduleAutosave()
+    },
     setPartyColor(partyId, color) {
       const party = this._findParty(partyId)
       if (!party) return
@@ -496,6 +510,7 @@ export const useFormStore = defineStore('form', {
         color: palette.color,
         tier: 'major',
         ideology: '',
+        description: '',
         coalitionPartners: [],
         bias: { county: 0, province: 0, national: 0 },
         affinities: { county: {}, province: {}, national: {} },

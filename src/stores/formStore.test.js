@@ -204,6 +204,18 @@ describe('formStore', () => {
     expect(store.activeWorldId).toBe(first)
   })
 
+  it('edits party descriptors and keeps the description through a reload', () => {
+    const store = useFormStore()
+    store.loadTemplate(sampleTemplate(), { silent: true })
+    store.setPartyIdeology('orange', 'Shipwrights, dockside guilds')
+    store.setPartyDescription('orange', 'Harbor labor party of the fjord towns.')
+
+    store.loadTemplate(JSON.parse(JSON.stringify(store.currentData)), { silent: true })
+    const orange = store.currentData.config.parties.find((party) => party.id === 'orange')
+    expect(orange.ideology).toBe('Shipwrights, dockside guilds')
+    expect(orange.description).toBe('Harbor labor party of the fjord towns.')
+  })
+
   it('keeps county suggestion lists in sync with edits', () => {
     const store = useFormStore()
     const template = sampleTemplate()

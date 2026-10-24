@@ -25,6 +25,9 @@ const POLITICAL_WEIGHTS_TOKEN_BUDGETS = [2200, 3400]
 const VOTER_BLOCS_TOKEN_BUDGETS = [2000, 3200]
 const REPRESENTATIVE_NAMING_TOKEN_BUDGET = 2000
 const REPRESENTATIVE_NAMING_TOKEN_BUDGETS = [REPRESENTATIVE_NAMING_TOKEN_BUDGET, 3200]
+const PARTY_DESCRIPTOR_TOKEN_BUDGETS = [700, 1400]
+const MAX_PARTY_DESCRIPTORS = 6
+const MAX_PARTY_DESCRIPTOR_LENGTH = 48
 const BROADCAST_TOKEN_BUDGETS = [3500, 4800]
 const POLL_BREAKDOWN_TOKEN_BUDGETS = [1800, 2800]
 const TICKER_TOKEN_BUDGETS = [700, 1400]
@@ -4163,6 +4166,7 @@ function politicalWeightsUserPrompt(narrative, data, parties = []) {
     colorName: party.colorName,
     tier: party.tier || 'major',
     ideology: party.ideology || null,
+    description: party.description || null,
     coalitionPartners: Array.isArray(party.coalitionPartners) ? party.coalitionPartners : undefined,
   }))
 
@@ -4620,6 +4624,7 @@ function voterBlocsUserPrompt(narrative, data, parties = []) {
     colorName: party.colorName,
     tier: party.tier || 'major',
     ideology: party.ideology || null,
+    description: party.description || null,
   }))
 
   const blocContext = buildEmpireVoterBlocContext(data || {})
@@ -4785,4 +4790,138 @@ export async function requestNarrativeVoterBlocs({
     plan,
     voterBlocs: compiledBlocs,
   }
+}
+
+// ── Party descriptors ─────────────────────────────────────────────────────
+// A party's `ideology` is a short comma-separated list of platform/base
+// descriptors ("Labor, industrial workers, urban economic justice") that every
+// prompt's party legend carries. These helpers derive it from the user's
+// free-text description of the party.
+
+function partyDescriptorsSystemPrompt() {
+  return [
+    'You are a political scientist who summarizes a party\'s platform and voter base for a Civilization-style election simulator.',
+    'Return strict JSON only. Do not include prose, markdown, code fences, commentary, or <think> blocks.',
+    `Respond with {"descriptors": [...]}: 3 to ${MAX_PARTY_DESCRIPTORS} short descriptor phrases (1 to 4 words each) covering ideology, core constituencies, and signature causes.`,
+    'Descriptors must come from USER_DESCRIPTION; do not invent facts it does not support, and do not repeat the party name.',
+    'Make the party distinct from OTHER_PARTIES.',
+  ].join(' ')
+}
+
+function partyDescriptorsUserPrompt({ description, party, otherParties, data }) {
+  return JSON.stringify({
+    task: 'Summarize this party as short platform/base descriptors.',
+    USER_DESCRIPTION: description,
+    PARTY: compactObject({
+      name: party?.name,
+      abbreviation: party?.abbreviation,
+      colorName: party?.colorName,
+      tier: party?.tier,
+      currentDescriptors: party?.ideology || null,
+    }),
+    OTHER_PARTIES: otherParties.map((other) => compactObject({
+      name: other.name,
+      descriptors: other.ideology || null,
+    })),
+    CURRENT_WORLD: data ? worldContext(data, { includeProvinces: false }) : null,
+    requiredOutputFormat: { descriptors: ['descriptor phrase', 'descriptor phrase', 'descriptor phrase'] },
+    exampleOutput: {
+      descriptors: ['Labor', 'industrial workers', 'organized production', 'urban economic justice'],
+    },
+  })
+}
+
+/**
+ * Normalize model output (array or delimited string) into the stored
+ * `ideology` string: unique, trimmed, capped phrases joined with ", ", with the
+ * first letter capitalized to match the bundled defaults.
+ */
+export function compilePartyDescriptors(plan) {
+  const raw = pickField(plan, ['descriptors', 'ideology', 'features', 'tags', 'platform'])
+  const phrases = (Array.isArray(raw) ? raw : String(raw || '').split(/[,;\n]/))
+    .map((item) => String(item && typeof item === 'object' ? item.label || item.name || '' : item || '')
+      .replace(/^[\s\-*•\d.)]+/, '')
+      .replace(/["“”]/g, '')
+      .trim())
+    .filter((item) => item && item.length <= MAX_PARTY_DESCRIPTOR_LENGTH)
+  const seen = new Set()
+  const descriptors = []
+  for (const phrase of phrases) {
+    const key = phrase.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    descriptors.push(phrase)
+    if (descriptors.length >= MAX_PARTY_DESCRIPTORS) break
+  }
+  const joined = descriptors.join(', ')
+  return {
+    descriptors,
+    ideology: joined ? joined.charAt(0).toUpperCase() + joined.slice(1) : '',
+  }
+}
+
+export async function requestPartyDescriptors({
+  description,
+  party,
+  parties = [],
+  data = null,
+  endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
+  model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
+  onStatus,
+} = {}) {
+  const brief = String(description || '').trim()
+  if (!brief) throw new Error('Describe the party first.')
+  const otherParties = (Array.isArray(parties) ? parties : []).filter((other) => other?.id !== party?.id)
+
+  emitLlmStatus(onStatus, {
+    phase: 'preparing',
+    progress: 0.1,
+    message: 'Preparing party profile brief.',
+    detail: `Summarizing ${party?.name || 'the party'} against ${otherParties.length} rival parties.`,
+  })
+
+  const messages = [
+    { role: 'system', content: partyDescriptorsSystemPrompt() },
+    { role: 'user', content: partyDescriptorsUserPrompt({ description: brief, party, otherParties, data }) },
+  ]
+
+  let lastError = null
+  for (const max_tokens of PARTY_DESCRIPTOR_TOKEN_BUDGETS) {
+    try {
+      const content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.4,
+        max_tokens,
+        messages,
+        onStatus,
+      })
+
+      emitLlmStatus(onStatus, {
+        phase: 'parsing',
+        progress: 0.85,
+        message: 'Parsing party descriptors.',
+        detail: 'Extracting platform and voter-base phrases.',
+      })
+
+      const plan = extractJsonObject(stripThinkBlocks(content)) || {}
+      const result = compilePartyDescriptors(plan)
+      if (!result.descriptors.length) {
+        throw new ModelOutputError('The model did not return any usable descriptors.', 'empty')
+      }
+
+      emitLlmStatus(onStatus, {
+        phase: 'complete',
+        progress: 1,
+        message: 'Party descriptors ready.',
+        detail: result.ideology,
+      })
+      return result
+    } catch (error) {
+      lastError = error
+      if (!RETRYABLE_JSON_ERROR_CODES.includes(error.code)) throw error
+    }
+  }
+
+  throw lastError || new Error('The model did not return any usable descriptors.')
 }

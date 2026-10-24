@@ -9,6 +9,8 @@ import {
   requestElectionNarrativePlan,
   requestNarrativeVoterBlocs,
   compileNarrativeVoterBlocs,
+  compilePartyDescriptors,
+  requestPartyDescriptors,
   requestPoliticalModelWeights,
   requestPollBreakdown,
   requestRepresentativeNames,
@@ -1125,6 +1127,38 @@ describe('narrativePlanner LLM prompts', () => {
       strength: { county: 0.45, province: 0.3, national: 0.12 },
     })
     expect(statuses.at(-1)).toMatchObject({ phase: 'complete', progress: 1 })
+  })
+
+  it('generates party descriptors from a user description, in context of rival parties', async () => {
+    mockChatResponse(JSON.stringify({
+      descriptors: ['Clan autonomy', 'coastal landholders', 'sea trade', 'Old faith', 'sea trade'],
+    }))
+    const world = sampleWorld()
+    const parties = world.config?.parties || [
+      { id: 'yellow', name: 'Divinus Sol', ideology: 'Imperial centralist' },
+      { id: 'orange', name: 'United Workers Congress', ideology: 'Labor' },
+    ]
+    const party = { ...parties[0], description: 'Jarls of the coast defending clan autonomy.' }
+
+    const result = await requestPartyDescriptors({
+      description: party.description,
+      party,
+      parties,
+      data: world,
+    })
+
+    const userPayload = JSON.parse(lastRequestBody().input)
+    expect(userPayload.USER_DESCRIPTION).toBe('Jarls of the coast defending clan autonomy.')
+    expect(userPayload.PARTY.name).toBe(party.name)
+    expect(userPayload.OTHER_PARTIES.map((other) => other.name)).not.toContain(party.name)
+    expect(result.descriptors).toEqual(['Clan autonomy', 'coastal landholders', 'sea trade', 'Old faith'])
+    expect(result.ideology).toBe('Clan autonomy, coastal landholders, sea trade, Old faith')
+  })
+
+  it('normalizes descriptor output given as a delimited string', () => {
+    expect(compilePartyDescriptors({ ideology: '- labor; industrial workers\n2. urban justice' }).ideology)
+      .toBe('Labor, industrial workers, urban justice')
+    expect(compilePartyDescriptors({}).descriptors).toEqual([])
   })
 
   it('honors an explicit matchBy when the model echoes placeholder fields from the output format', () => {

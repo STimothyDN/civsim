@@ -121,7 +121,7 @@
             <span class="swatch" :style="{ background: party.color }"></span>
             <div>
               <strong>{{ party.colorName }} Party</strong>
-              <small>{{ party.ideology || 'Custom party' }}</small>
+              <small>{{ party.name || 'Custom party' }}</small>
             </div>
             <div class="party-reorder">
               <button type="button" class="icon-button" :disabled="index === 0" :aria-label="`Move ${party.name} up`" @click="reorderParty(party.id, 'up')">
@@ -167,6 +167,59 @@
               <span></span>
             </button>
           </div>
+          <div class="party-profile">
+            <div class="party-profile-row">
+              <label class="party-name-field party-profile-descriptors">
+                <span>Platform &amp; base descriptors</span>
+                <input
+                  :value="party.ideology"
+                  :aria-label="`${party.id} platform descriptors`"
+                  placeholder="e.g. Labor, industrial workers, urban economic justice"
+                  @input="setPartyIdeology(party.id, $event.target.value)"
+                />
+              </label>
+              <button
+                type="button"
+                class="party-profile-toggle"
+                :class="{ 'party-profile-toggle--active': openProfiles[party.id] }"
+                :aria-expanded="Boolean(openProfiles[party.id])"
+                @click="toggleProfile(party.id)"
+              >
+                <Sparkles :size="14" />
+                Describe with AI
+              </button>
+            </div>
+            <div v-if="openProfiles[party.id]" class="party-profile-panel">
+              <label class="party-profile-field">
+                <span>Describe {{ party.name || 'this party' }} — who it represents, what it wants, where its voters are</span>
+                <textarea
+                  :value="party.description"
+                  rows="3"
+                  :disabled="generatingPartyId === party.id"
+                  placeholder="Example: A Norse jarls' party of coastal landholders and longship captains that defends clan autonomy, sea trade, and the old faith against Catholic centralization."
+                  @input="setPartyDescription(party.id, $event.target.value)"
+                  @keydown.enter.exact.prevent="generateDescriptors(party)"
+                ></textarea>
+              </label>
+              <div class="party-profile-actions">
+                <LlmStatusIndicator
+                  v-if="generatingPartyId === party.id && llmStatus"
+                  :status="llmStatus"
+                  title="Party descriptors"
+                  variant="compact"
+                />
+                <button
+                  type="button"
+                  class="btn-primary"
+                  :disabled="Boolean(generatingPartyId) || !String(party.description || '').trim()"
+                  @click="generateDescriptors(party)"
+                >
+                  <Sparkles :size="14" />
+                  {{ generatingPartyId === party.id ? 'Generating…' : 'Generate descriptors' }}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -182,11 +235,14 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { AlertTriangle, ChevronDown, ChevronUp, Landmark, Layers, MapPinned, Palette, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
 import { PARTY_COLOR_PALETTE } from '../domain/elections/constants/parties'
 import { useFormStore } from '../stores/formStore'
 import { colorForIndex } from '../domain/colors'
+import { requestPartyDescriptors } from '../domain/elections/narrativePlanner'
+import LlmStatusIndicator from './elections/LlmStatusIndicator.vue'
+import { partyProfileLlmStatus } from './elections/llmStatusCopy'
 
 function duplicateNames(items) {
   const seen = new Set()
@@ -202,7 +258,7 @@ function duplicateNames(items) {
 
 export default {
   name: 'ReferenceDataSection',
-  components: { AlertTriangle, ChevronDown, ChevronUp, Landmark, Layers, MapPinned, Palette, Plus, Sparkles, Trash2 },
+  components: { AlertTriangle, ChevronDown, ChevronUp, Landmark, Layers, LlmStatusIndicator, MapPinned, Palette, Plus, Sparkles, Trash2 },
   setup() {
     const store = useFormStore()
     const newGroup = ref('')
@@ -321,6 +377,52 @@ export default {
       store.setPartyAbbreviation(party, value)
     }
 
+    function setPartyIdeology(party, value) {
+      store.setPartyIdeology(party, value)
+    }
+
+    function setPartyDescription(party, value) {
+      store.setPartyDescription(party, value)
+    }
+
+    // ── AI party descriptors ──
+    const openProfiles = reactive({})
+    const generatingPartyId = ref(null)
+    const llmStatus = ref(null)
+
+    function toggleProfile(partyId) {
+      openProfiles[partyId] = !openProfiles[partyId]
+    }
+
+    async function generateDescriptors(party) {
+      if (generatingPartyId.value) return
+      const description = String(party?.description || '').trim()
+      if (!description) {
+        store.showToast('Describe the party first.', 'error')
+        return
+      }
+      generatingPartyId.value = party.id
+      llmStatus.value = null
+      try {
+        const result = await requestPartyDescriptors({
+          description,
+          party,
+          parties: parties.value,
+          data: store.currentData,
+          onStatus: (status) => {
+            llmStatus.value = partyProfileLlmStatus(status)
+          },
+        })
+        store.setPartyIdeology(party.id, result.ideology)
+        store.showToast(`${party.name || 'Party'} descriptors updated`, 'success')
+      } catch (err) {
+        store.showToast(`LM Studio descriptor generation failed: ${err?.message || err}`, 'error')
+      } finally {
+        generatingPartyId.value = null
+        llmStatus.value = null
+      }
+    }
+
     function setPartyColorName(party, value) {
       store.setPartyColorName(party, value)
     }
@@ -367,6 +469,13 @@ export default {
       setPartyAbbreviation,
       setPartyColorName,
       setPartyName,
+      setPartyIdeology,
+      setPartyDescription,
+      openProfiles,
+      toggleProfile,
+      generatingPartyId,
+      llmStatus,
+      generateDescriptors,
       setStateReligion,
       stateReligion,
     }

@@ -705,6 +705,64 @@ const VOTER_BLOCS_COPY = {
   },
 }
 
+const PARTY_PROFILE_COPY = {
+  'app.preparing': {
+    label: 'Brief',
+    message: 'Preparing the party profile brief.',
+    detail: (status) => status.detail || 'Packing the description alongside rival parties.',
+  },
+  'app.connecting': {
+    label: 'Signal',
+    message: 'Opening the party profile channel.',
+    detail: (status) => status.detail || 'Linking the profile brief to LM Studio.',
+  },
+  'model_load.start': {
+    label: 'Model Load',
+    message: 'Loading the local model.',
+    detail: 'LM Studio is loading the requested model.',
+  },
+  'model_load.progress': {
+    label: 'Model Load',
+    message: 'Loading the local model.',
+    detail: (status) => progressDetail(status, 'Model load progress'),
+  },
+  'prompt_processing.progress': {
+    label: 'Prompt',
+    message: 'Reading the party description.',
+    detail: (status) => progressDetail(status, 'Prompt processing progress'),
+  },
+  'reasoning.delta': {
+    label: 'Analyst',
+    message: 'Distilling the platform and voter base.',
+    detail: (status) => status.detail || 'Weighing ideology, constituencies, and signature causes.',
+  },
+  'message.delta': {
+    label: 'Descriptors',
+    message: 'Streaming party descriptors.',
+    detail: (status) => status.detail || 'Descriptors are streaming from LM Studio.',
+  },
+  'app.parsing': {
+    label: 'Parsing',
+    message: 'Reading generated descriptors.',
+    detail: (status) => status.detail || 'Extracting platform phrases.',
+  },
+  'app.complete': {
+    label: 'Complete',
+    message: 'Party descriptors applied.',
+    detail: (status) => status.detail || 'Descriptors updated.',
+  },
+  error: {
+    label: 'Fault',
+    message: 'Descriptor generation failed.',
+    detail: (status) => status.detail || 'LM Studio returned an error.',
+  },
+  default: {
+    label: 'Analyst',
+    message: 'Profiling the party.',
+    detail: 'Waiting for the local model.',
+  },
+}
+
 export function broadcastLlmStatus(status) {
   return mapStatus(status, BROADCAST_COPY)
 }
@@ -731,4 +789,8 @@ export function weightsLlmStatus(status) {
 
 export function voterBlocsLlmStatus(status) {
   return mapStatus(status, VOTER_BLOCS_COPY)
+}
+
+export function partyProfileLlmStatus(status) {
+  return mapStatus(status, PARTY_PROFILE_COPY)
 }

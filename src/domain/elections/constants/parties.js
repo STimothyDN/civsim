@@ -112,6 +112,9 @@ function normalizeOneParty(source, index, usedIds) {
     color: colorOption.color,
     tier: (source?.tier ?? defaults.tier) === 'minor' ? 'minor' : 'major',
     ideology: String(source?.ideology ?? defaults.ideology ?? '').trim(),
+    // Free-text brief the user writes about the party; the descriptor
+    // generator turns it into `ideology` (the compact descriptors prompts use).
+    description: String(source?.description ?? '').trim(),
     coalitionPartners: Array.isArray(source?.coalitionPartners)
       ? source.coalitionPartners.slice()
       : (defaults.coalitionPartners ? defaults.coalitionPartners.slice() : []),
