@@ -1,7 +1,26 @@
 import { computed } from 'vue'
 import { runPolls, pollingPromptPayload } from '../domain/elections/polling/runPolls'
+import { useElectionPipeline } from './electionPipeline'
 import { useElectionResults } from './useElectionResults'
 import { usePollingStore } from '../stores/pollingStore'
+
+// One poll simulation shared by every consumer (polls card, breakdown modal,
+// broadcast, ticker) instead of a separate runPolls pass per component.
+let shared = null
+
+function sharedPollScopes(pipeline, pollingStore) {
+  if (!shared || shared.pipeline !== pipeline) {
+    shared = {
+      pipeline,
+      scopes: pipeline.runInScope(() => computed(() => runPolls({
+        results: pipeline.results.value,
+        baselineResults: pipeline.baselineResults.value,
+        pollSeed: pollingStore.pollSeed,
+      }))),
+    }
+  }
+  return shared.scopes
+}
 
 function findScope(scopes = [], scope = 'national', targetName = null) {
   if (scope === 'overview' || scope === 'national') {
@@ -27,13 +46,9 @@ function findScope(scopes = [], scope = 'national', targetName = null) {
 
 export function usePolls() {
   const pollingStore = usePollingStore()
-  const { baselineResults, results } = useElectionResults()
-
-  const scopes = computed(() => runPolls({
-    results: results.value,
-    baselineResults: baselineResults.value,
-    pollSeed: pollingStore.pollSeed,
-  }))
+  // Installs the shared representative-naming watcher (side effect).
+  useElectionResults()
+  const scopes = sharedPollScopes(useElectionPipeline(), pollingStore)
   const regionalScopes = computed(() => scopes.value.filter((scope) => scope.scope === 'regional'))
   const provincialScopes = computed(() => scopes.value.filter((scope) => scope.scope === 'provincial'))
   const currentScope = computed(() => {

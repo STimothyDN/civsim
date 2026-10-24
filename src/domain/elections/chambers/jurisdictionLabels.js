@@ -1,5 +1,5 @@
 import { num } from '../normalization/numbers'
-import { PARTIES } from '../constants/parties'
+import { partyIdsOf } from '../constants/parties'
 
 /**
  * Generates jurisdiction labels for council/prelates seats based on apportionment scope.
@@ -83,13 +83,14 @@ function compareProvincesForSeating(a, b) {
  * `national_prelate_delegation`).
  */
 function generateNationalDelegationLabels(provinces, seats, delegationKey) {
+  const parties = partyIdsOf(seats)
   const seatAssignments = []
   const sortedProvinces = [...provinces].sort(compareProvincesForSeating)
 
   for (const province of sortedProvinces) {
     const delegation = province[delegationKey] || {}
     const provinceName = province.name || 'Unknown Province'
-    for (const party of PARTIES) {
+    for (const party of parties) {
       const partySeatsFromProvince = num(delegation[party])
       for (let i = 0; i < partySeatsFromProvince; i++) {
         seatAssignments.push({ provinceName, party })
@@ -114,7 +115,7 @@ function generateNationalAssemblyLabels(provinces, seats) {
   const seatAssignments = []
 
   // For each party, calculate their vote share in each province weighted by population
-  for (const party of PARTIES) {
+  for (const party of partyIdsOf(seats)) {
     const partySeatCount = num(seats[party])
     if (partySeatCount === 0) continue
 
@@ -188,7 +189,7 @@ function generateRegionalAssemblyLabels(provinces, regionName, seats) {
   const regionProvinces = provinces.filter((p) => p.group === regionName)
   const seatAssignments = []
 
-  for (const party of PARTIES) {
+  for (const party of partyIdsOf(seats)) {
     const partySeatCount = num(seats[party])
     if (partySeatCount === 0) continue
 
@@ -258,7 +259,7 @@ function generateProvincialAssemblyLabels(province, seats) {
   const counties = province.counties || []
   const seatAssignments = []
 
-  for (const party of PARTIES) {
+  for (const party of partyIdsOf(seats)) {
     const partySeatCount = num(seats[party])
     if (partySeatCount === 0) continue
 
@@ -366,6 +367,7 @@ function generateRegionalCouncilLabels(provinces, regionName, seats) {
       return (a.name || '').localeCompare(b.name || '')
     })
 
+  const parties = partyIdsOf(seats)
   const seatAssignments = []
 
   for (const province of regionProvinces) {
@@ -373,7 +375,7 @@ function generateRegionalCouncilLabels(provinces, regionName, seats) {
     const provinceSeats = prelates.seats || {}
     const provinceName = province.name || 'Unknown Province'
 
-    for (const party of PARTIES) {
+    for (const party of parties) {
       const count = num(provinceSeats[party])
       for (let i = 0; i < count; i++) {
         seatAssignments.push({ provinceName, party })
@@ -394,6 +396,7 @@ function generateProvincialCouncilLabels(province, seats) {
 
   const counties = province.counties || []
   const provinceName = province.name || 'Unknown Province'
+  const parties = partyIdsOf(seats)
 
   if (counties.length === 0) return null
 
@@ -409,7 +412,7 @@ function generateProvincialCouncilLabels(province, seats) {
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
 
     for (const county of populatedCounties) {
-      const countyWinner = findCountyWinner(county.vote_shares)
+      const countyWinner = findCountyWinner(county.vote_shares, parties)
       seatAssignments.push({
         countyName: county.name || 'Unknown County',
         party: countyWinner,
@@ -437,7 +440,7 @@ function generateProvincialCouncilLabels(province, seats) {
 
     // Create party-ordered seat list to match visualization
     const partyOrderedSeats = []
-    for (const party of PARTIES) {
+    for (const party of parties) {
       const count = num(seats[party])
       for (let i = 0; i < count; i++) {
         partyOrderedSeats.push(party)
@@ -460,7 +463,7 @@ function generateProvincialCouncilLabels(province, seats) {
 /**
  * Find the winning party in a county (for winner-take-all councils).
  */
-function findCountyWinner(voteShares = {}) {
+function findCountyWinner(voteShares = {}, parties = partyIdsOf(voteShares)) {
   let winner = null
   let maxShare = -Infinity
 
@@ -471,7 +474,7 @@ function findCountyWinner(voteShares = {}) {
     }
   }
 
-  return winner || PARTIES[0]
+  return winner || parties[0]
 }
 
 /**
@@ -479,9 +482,10 @@ function findCountyWinner(voteShares = {}) {
  * The ChamberComposition orders seats: coalition parties first, then by seat count.
  */
 function reorderAssignmentsByPartyGrouping(assignments, seats) {
+  const parties = partyIdsOf(seats)
   // Group assignments by party
   const byParty = {}
-  for (const party of PARTIES) {
+  for (const party of parties) {
     byParty[party] = []
   }
 
@@ -493,11 +497,10 @@ function reorderAssignmentsByPartyGrouping(assignments, seats) {
   }
 
   // Reconstruct in the same party order used by generateSeatDetails:
-  // seat-count descending, with PARTIES index as a stable tiebreaker.
+  // seat-count descending, with party (config) order as a stable tiebreaker.
   // This ensures labels[seatIndex] corresponds to the correct party at
   // that seatIndex, making jurisdiction lookups accurate.
-  const orderedParties = PARTIES.filter((p) => num(seats[p]) > 0)
-    .sort((a, b) => num(seats[b]) - num(seats[a]) || PARTIES.indexOf(a) - PARTIES.indexOf(b))
+  const orderedParties = orderedPartiesBySeats(seats)
 
   const orderedLabels = []
   for (const party of orderedParties) {
@@ -521,6 +524,17 @@ function reorderAssignmentsByPartyGrouping(assignments, seats) {
   }
 
   return orderedLabels.length > 0 ? orderedLabels : null
+}
+
+/**
+ * Parties holding seats, seat-count descending with config order as the
+ * tiebreaker — the seat order ChamberComposition draws, so labels[seatIndex]
+ * lines up with the rendered seat.
+ */
+export function orderedPartiesBySeats(seats = {}) {
+  const parties = partyIdsOf(seats)
+  return parties.filter((p) => num(seats[p]) > 0)
+    .sort((a, b) => num(seats[b]) - num(seats[a]) || parties.indexOf(a) - parties.indexOf(b))
 }
 
 /**
@@ -577,11 +591,11 @@ export function generateSeatDetails({
   if (!labels) return []
 
   // Build ordered parties (same logic as ChamberComposition)
-  const orderedParties = PARTIES.filter((p) => num(seats[p]) > 0)
-    .sort((a, b) => num(seats[b]) - num(seats[a]) || PARTIES.indexOf(a) - PARTIES.indexOf(b))
+  const orderedParties = orderedPartiesBySeats(seats)
 
   const seatDetails = []
   let seatIndex = 0
+  const lookups = createSeatLookups(provinces, selectedProvince)
 
   for (const party of orderedParties) {
     const partySeatCount = num(seats[party])
@@ -594,7 +608,7 @@ export function generateSeatDetails({
         jurisdiction,
         chamberType,
         scope,
-        provinces,
+        lookups,
         selectedProvince,
         selectedRegionName,
         seatIndex,
@@ -631,7 +645,7 @@ function calculateSeatMetrics({
   jurisdiction,
   chamberType,
   scope,
-  provinces,
+  lookups,
   selectedProvince,
   selectedRegionName,
   seatIndex,
@@ -642,12 +656,12 @@ function calculateSeatMetrics({
 
   if (chamberType === 'assembly') {
     // For assembly, get vote share from the jurisdiction that "supports" this seat
-    const result = getAssemblyVoteShareWithAllParties(party, jurisdiction, scope, provinces, selectedProvince, selectedRegionName)
+    const result = getAssemblyVoteShareWithAllParties(party, jurisdiction, scope, lookups, selectedProvince, selectedRegionName)
     voteShare = result.partyShare
     allVoteShares = result.allShares
   } else {
     // For council, get the vote share from the jurisdiction this seat represents
-    const result = getCouncilVoteShareWithAllParties(party, jurisdiction, scope, provinces, selectedProvince, selectedRegionName)
+    const result = getCouncilVoteShareWithAllParties(party, jurisdiction, scope, lookups, selectedProvince, selectedRegionName)
     voteShare = result.partyShare
     allVoteShares = result.allShares
   }
@@ -723,19 +737,44 @@ function getRunnerUpShare(party, allShares) {
   return maxRunnerUp
 }
 
-function getAssemblyVoteShareWithAllParties(party, jurisdiction, scope, provinces, selectedProvince, selectedRegionName) {
+// Name -> first matching province / county (same result as Array#find), built
+// once per seat-detail pass rather than scanned once per seat.
+function firstByName(items) {
+  const map = new Map()
+  for (const item of items || []) {
+    if (!map.has(item.name)) map.set(item.name, item)
+  }
+  return map
+}
+
+function createSeatLookups(provinces, selectedProvince) {
+  let provinceMap = null
+  let countyMap = null
+  return {
+    province(name) {
+      if (!provinceMap) provinceMap = firstByName(provinces)
+      return provinceMap.get(name)
+    },
+    county(name) {
+      if (!countyMap) countyMap = firstByName(selectedProvince?.counties)
+      return countyMap.get(name)
+    },
+  }
+}
+
+function getAssemblyVoteShareWithAllParties(party, jurisdiction, scope, lookups, selectedProvince, selectedRegionName) {
   let allShares = {}
   let partyShare = 0
 
   switch (scope) {
     case 'national': {
-      const province = provinces.find((p) => p.name === jurisdiction)
+      const province = lookups.province(jurisdiction)
       allShares = province?.assembly?.vote_shares || {}
       partyShare = allShares[party] || 0
       break
     }
     case 'regional': {
-      const province = provinces.find((p) => p.name === jurisdiction)
+      const province = lookups.province(jurisdiction)
       // Only use if it's in the correct region
       if (province && province.group === selectedRegionName) {
         allShares = province?.assembly?.vote_shares || {}
@@ -745,7 +784,7 @@ function getAssemblyVoteShareWithAllParties(party, jurisdiction, scope, province
     }
     case 'provincial': {
       if (!selectedProvince) break
-      const county = selectedProvince.counties?.find((c) => c.name === jurisdiction)
+      const county = lookups.county(jurisdiction)
       allShares = county?.vote_shares || {}
       partyShare = allShares[party] || 0
       break
@@ -755,19 +794,19 @@ function getAssemblyVoteShareWithAllParties(party, jurisdiction, scope, province
   return { partyShare, allShares }
 }
 
-function getCouncilVoteShareWithAllParties(party, jurisdiction, scope, provinces, selectedProvince, selectedRegionName) {
+function getCouncilVoteShareWithAllParties(party, jurisdiction, scope, lookups, selectedProvince, selectedRegionName) {
   let allShares = {}
   let partyShare = 0
 
   switch (scope) {
     case 'national': {
-      const province = provinces.find((p) => p.name === jurisdiction)
+      const province = lookups.province(jurisdiction)
       allShares = province?.prelates?.vote_shares || province?.assembly?.vote_shares || {}
       partyShare = allShares[party] || 0
       break
     }
     case 'regional': {
-      const province = provinces.find((p) => p.name === jurisdiction)
+      const province = lookups.province(jurisdiction)
       // Only use if it's in the correct region
       if (province && province.group === selectedRegionName) {
         allShares = province?.prelates?.vote_shares || {}
@@ -777,7 +816,7 @@ function getCouncilVoteShareWithAllParties(party, jurisdiction, scope, provinces
     }
     case 'provincial': {
       if (!selectedProvince) break
-      const county = selectedProvince.counties?.find((c) => c.name === jurisdiction)
+      const county = lookups.county(jurisdiction)
       allShares = county?.vote_shares || {}
       partyShare = allShares[party] || 0
       break

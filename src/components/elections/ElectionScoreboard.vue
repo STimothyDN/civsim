@@ -11,7 +11,7 @@
         <span class="scoreboard-majority">{{ assemblyMajority }} majority</span>
       </div>
       <div v-if="assemblyLeaderName" class="scoreboard-leader">
-        <span class="scoreboard-leader-title">Prime Minister</span>
+        <span class="scoreboard-leader-title">{{ lowerHouseLeaderTitle('national') }}</span>
         <span class="scoreboard-leader-name">
           {{ assemblyLeaderName }}
           <LeaderStatusBadge :status="assemblyLeaderStatus" />
@@ -22,7 +22,7 @@
     <div class="scoreboard-center">
       <span class="scoreboard-year">{{ electionYear }}</span>
       <strong class="scoreboard-country">{{ countryName }}</strong>
-      <span class="scoreboard-subtitle">{{ formatCompactNumber(population) }} people · {{ provinceCount }} provinces · {{ regionCount }} regions</span>
+      <span class="scoreboard-subtitle">{{ formatCompactNumber(population) }} people · {{ provinceCount }} provinces<template v-if="regionCount"> · {{ regionCount }} regions</template></span>
     </div>
 
     <div class="scoreboard-chamber scoreboard-chamber--right">
@@ -36,7 +36,7 @@
         <span class="scoreboard-majority">{{ councilMajority }} majority</span>
       </div>
       <div v-if="councilLeaderName" class="scoreboard-leader">
-        <span class="scoreboard-leader-title">Principal Chancellor</span>
+        <span class="scoreboard-leader-title">{{ upperHouseLeaderTitle('national') }}</span>
         <span class="scoreboard-leader-name">
           {{ councilLeaderName }}
           <LeaderStatusBadge :status="councilLeaderStatus" />
@@ -51,6 +51,7 @@ import { computed } from 'vue'
 import PartyBadge from './PartyBadge.vue'
 import LeaderStatusBadge from './LeaderStatusBadge.vue'
 import { formatCompactNumber } from '../../domain/formatting'
+import { useChamberLabels } from '../../composables/useChamberLabels'
 
 export default {
   name: 'ElectionScoreboard',
@@ -66,6 +67,8 @@ export default {
     councilLeaderStatus: { type: String, default: null },
   },
   setup(props) {
+    // Leader titles follow the world's configured chambers (Advanced Setup).
+    const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const assemblyControl = computed(() => props.results.national.assembly.control)
     const councilControl = computed(() => props.results.national.prelates.control)
     const assemblyColor = computed(() => props.partyMeta[assemblyControl.value.leaderParty]?.color || '#d4a843')
@@ -97,6 +100,8 @@ export default {
       regionCount,
       gradientStyle,
       formatCompactNumber,
+      lowerHouseLeaderTitle,
+      upperHouseLeaderTitle,
     }
   },
 }

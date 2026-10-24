@@ -28,7 +28,7 @@
 <script>
 import { computed } from 'vue'
 import PartyBadge from './PartyBadge.vue'
-import { PARTIES } from '../../domain/elections'
+import { partyIdsOf } from '../../domain/elections'
 import { formatCompactNumber } from '../../domain/formatting'
 import { topParty } from '../../domain/elections/viewHelpers'
 
@@ -46,7 +46,7 @@ export default {
       props.regions.map((region) => {
         const controlParty = topParty(region.assembly?.vote_shares)
         const seats = region.assembly?.seats || {}
-        const seatSegments = PARTIES
+        const seatSegments = partyIdsOf(props.partyMeta)
           .filter((p) => (seats[p] || 0) > 0)
           .map((p) => ({ party: p, seats: seats[p], color: props.partyMeta[p]?.color || '#666' }))
           .sort((a, b) => b.seats - a.seats)

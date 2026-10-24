@@ -138,10 +138,11 @@
 import { zoom, zoomIdentity } from 'd3-zoom'
 import { select } from 'd3-selection'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { PARTIES } from '../../domain/elections'
+import { partyIdsOf } from '../../domain/elections'
 import { buildGridSeatLayout, buildParliamentSeatLayout, CHAMBER_VIZ_VIEWBOX } from '../../domain/elections/chambers/parliamentLayout'
 import { chamberControlStyle } from '../../domain/elections/chambers/controlStyles'
-import { formatSeatTooltip, generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
+import { formatSeatTooltip, generateSeatDetails, orderedPartiesBySeats } from '../../domain/elections/chambers/jurisdictionLabels'
+import { useChamberLabels } from '../../composables/useChamberLabels'
 import { num } from '../../domain/elections/normalization/numbers'
 import { getSeatOffset } from '../../domain/elections/constants/seatOffsets'
 import { useElectionStore } from '../../stores/electionStore'
@@ -170,35 +171,58 @@ export default {
   setup(props) {
     const store = useFormStore()
     const electionStore = useElectionStore()
+    const { memberTitle } = useChamberLabels()
     const viewMode = ref(props.defaultView === 'dots' ? 'dots' : 'congress')
     const coalitionParties = computed(() => new Set(props.control?.parties || []))
     const controlCardStyle = computed(() => chamberControlStyle(props.control, store.partyMeta))
 
+    const seatParties = computed(() => partyIdsOf(props.seats))
+
+    // Visual order: the governing coalition first, then everyone else by size.
     const orderedParties = computed(() => {
+      const parties = seatParties.value
       const coalition = props.control?.parties || []
-      const rest = PARTIES
+      const rest = parties
         .filter((party) => !coalition.includes(party))
-        .sort((a, b) => Number(props.seats?.[b] || 0) - Number(props.seats?.[a] || 0) || PARTIES.indexOf(a) - PARTIES.indexOf(b))
+        .sort((a, b) => Number(props.seats?.[b] || 0) - Number(props.seats?.[a] || 0) || parties.indexOf(a) - parties.indexOf(b))
       return [...coalition, ...rest]
     })
 
-    const partyRows = computed(() => PARTIES
-      .map((party) => ({ party, seats: Number(props.seats?.[party] || 0) }))
-      .filter((party) => party.seats > 0)
-      .sort((a, b) => b.seats - a.seats || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party)))
+    const partyRows = computed(() => {
+      const parties = seatParties.value
+      return parties
+        .map((party) => ({ party, seats: Number(props.seats?.[party] || 0) }))
+        .filter((party) => party.seats > 0)
+        .sort((a, b) => b.seats - a.seats || parties.indexOf(a.party) - parties.indexOf(b.party))
+    })
+
+    // Jurisdiction labels and seat details are ordered by seat count, not by
+    // the coalition-first drawing order, so each party's block starts at its
+    // offset in that order. Indexing them by drawn position mislabeled a
+    // junior partner's seats whenever a larger opposition party sat between.
+    const detailOffsets = computed(() => {
+      const offsets = {}
+      let offset = 0
+      for (const party of orderedPartiesBySeats(props.seats)) {
+        offsets[party] = offset
+        offset += Number(props.seats?.[party] || 0)
+      }
+      return offsets
+    })
 
     const seatList = computed(() => {
-      let seatIndex = 0
       return orderedParties.value.flatMap((party) => {
         const seatCount = Number(props.seats?.[party] || 0)
+        const offset = detailOffsets.value[party] ?? 0
         return Array.from({ length: seatCount }, (_, index) => {
-          const jurisdiction = props.jurisdictionLabels?.[seatIndex]
+          const detailIndex = offset + index
+          const jurisdiction = props.jurisdictionLabels?.[detailIndex]
           const partyName = store.partyMeta[party]?.name || party
           const title = formatSeatTooltip(partyName, jurisdiction, props.chamberType)
-          seatIndex += 1
           return {
             key: `${party}-${index}`,
             party,
+            detailIndex,
             color: store.partyMeta[party]?.color || '#9b9a97',
             title,
           }
@@ -226,41 +250,38 @@ export default {
       if (!hoveredSeat.value?.party) return ''
       return store.partyMeta[hoveredSeat.value.party]?.name || hoveredSeat.value.party
     })
+    const hoveredDetailIndex = computed(() => hoveredSeat.value?.detailIndex ?? -1)
+
     const hoveredJurisdiction = computed(() => {
       if (!hoveredSeat.value) return ''
-      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
-      return props.jurisdictionLabels?.[seatIndex] || ''
+      return props.jurisdictionLabels?.[hoveredDetailIndex.value] || ''
     })
 
     const hoveredVoteShare = computed(() => {
       if (!hoveredSeat.value) return null
-      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
-      return computedSeatDetails.value?.[seatIndex]?.voteShare ?? null
+      return computedSeatDetails.value?.[hoveredDetailIndex.value]?.voteShare ?? null
     })
 
     const hoveredSupportMetric = computed(() => {
       if (!hoveredSeat.value) return null
-      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
-      return computedSeatDetails.value?.[seatIndex]?.supportMetric ?? null
+      return computedSeatDetails.value?.[hoveredDetailIndex.value]?.supportMetric ?? null
     })
 
     const hoveredRepresentativeName = computed(() => {
       if (!hoveredSeat.value) return ''
-      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
-      const seat = computedSeatDetails.value?.[seatIndex]
+      const seat = computedSeatDetails.value?.[hoveredDetailIndex.value]
       if (!seat) return ''
       const nameIndex = seat.seatIndex + getSeatOffset(props.scope, props.chamberType)
       return electionStore.getRepresentativeName(seat.party, nameIndex) || ''
     })
 
     const hoveredRepresentativeTitle = computed(() => {
-      return props.chamberType === 'prelates' ? 'Prelate' : 'Assemblyperson'
+      return memberTitle(props.chamberType)
     })
 
     const hoveredRepresentativeIncumbent = computed(() => {
       if (!hoveredSeat.value) return null
-      const seatIndex = seatList.value.findIndex((s) => s.key === hoveredSeat.value.key)
-      const seat = computedSeatDetails.value?.[seatIndex]
+      const seat = computedSeatDetails.value?.[hoveredDetailIndex.value]
       if (!seat) return null
       const nameIndex = seat.seatIndex + getSeatOffset(props.scope, props.chamberType)
       return electionStore.isRepresentativeIncumbent(seat.party, nameIndex)
@@ -296,7 +317,7 @@ export default {
 
       const caucuses = []
 
-      for (const party of PARTIES) {
+      for (const party of seatParties.value) {
         const partySeats = byParty[party]
         if (!partySeats || partySeats.length === 0) continue
 
@@ -364,11 +385,10 @@ export default {
       // Check if we have a custom name
       const customName = electionStore.getRepresentativeName(party, nameIndex)
       if (customName) {
-        const role = type === 'prelates' ? 'Prelate' : 'Assemblyperson'
-        return `${role} ${customName}`
+        return `${memberTitle(type)} ${customName}`
       }
       // Fall back to generic title
-      return type === 'prelates' ? 'Prelate' : 'Assemblyperson'
+      return memberTitle(type)
     }
 
     function onSeatHover(event, seat) {

@@ -10,6 +10,17 @@ export { DEFAULT_PARTIES }
  */
 export const PARTIES = DEFAULT_PARTIES.map((party) => party.id)
 
+/**
+ * Ordered party ids for a party-keyed map (seats, vote shares, partyMeta).
+ * Engine maps are keyed by the world's configured parties in config order, so
+ * this is how views/helpers pick up user-defined parties without threading an
+ * explicit list; an empty/missing map falls back to the bundled defaults.
+ */
+export function partyIdsOf(map) {
+  const keys = map && typeof map === 'object' ? Object.keys(map) : []
+  return keys.length ? keys : PARTIES
+}
+
 const DEFAULT_PARTY_BY_ID = Object.fromEntries(DEFAULT_PARTIES.map((p) => [p.id, p]))
 
 export const PARTY_COLOR_PALETTE = [

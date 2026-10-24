@@ -105,8 +105,18 @@ function number(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback
 }
 
-function emptyPartyMap(value = 0) {
-  return Object.fromEntries(PARTIES.map((party) => [party, value]))
+// The world's configured party ids, in config order. Engine results carry
+// them on `config.partyList`; vote-share keys are the fallback for partial
+// result objects, and the bundled defaults the last resort.
+function partyListFor(results = {}) {
+  const list = results?.config?.partyList
+  if (Array.isArray(list) && list.length) return list
+  const keys = Object.keys(results?.national?.assembly?.vote_shares || {})
+  return keys.length ? keys : PARTIES
+}
+
+function emptyPartyMap(parties, value = 0) {
+  return Object.fromEntries(parties.map((party) => [party, value]))
 }
 
 function sum(values = []) {
@@ -117,72 +127,46 @@ function sumSeats(seats = {}) {
   return sum(Object.values(seats || {}))
 }
 
-function topParty(values = {}) {
-  return [...PARTIES].sort((a, b) => number(values[b]) - number(values[a]) || PARTIES.indexOf(a) - PARTIES.indexOf(b))[0]
+function topParty(parties, values = {}) {
+  return [...parties].sort((a, b) => number(values[b]) - number(values[a]) || parties.indexOf(a) - parties.indexOf(b))[0]
 }
 
-function normalizeShares(shares = {}) {
-  const raw = Object.fromEntries(PARTIES.map((party) => [party, Math.max(0, number(shares?.[party]))]))
+function normalizeShares(parties, shares = {}) {
+  const raw = Object.fromEntries(parties.map((party) => [party, Math.max(0, number(shares?.[party]))]))
   const total = sum(Object.values(raw))
-  if (total <= 0) return Object.fromEntries(PARTIES.map((party) => [party, 1 / PARTIES.length]))
-  return Object.fromEntries(PARTIES.map((party) => [party, raw[party] / total]))
+  if (total <= 0) return Object.fromEntries(parties.map((party) => [party, 1 / parties.length]))
+  return Object.fromEntries(parties.map((party) => [party, raw[party] / total]))
 }
 
 function gaussianish(rng) {
   return (rng() + rng() + rng() + rng() + rng() + rng() - 3) / 3
 }
 
-function climateTrendParty(trends = [], fallbackShares = {}) {
-  const trendScores = emptyPartyMap(0)
-  trends.forEach((trend) => {
-    const party = trend?.party
-    if (!PARTIES.includes(party)) return
-    const magnitude = Math.abs(number(trend?.magnitude, 0.08)) || 0.08
-    trendScores[party] += magnitude
-  })
-  return sum(Object.values(trendScores)) > 0 ? topParty(trendScores) : topParty(fallbackShares)
-}
-
-function localistParty(partyMeta = {}) {
-  const keywords = ['local', 'agrarian', 'rural', 'decentral', 'autonomy', 'regional']
-  const scores = Object.fromEntries(PARTIES.map((party) => {
-    const ideology = String(partyMeta?.[party]?.ideology || '').toLowerCase()
-    const score = keywords.reduce((total, keyword) => total + (ideology.includes(keyword) ? 1 : 0), 0)
-    return [party, score]
-  }))
-  return sum(Object.values(scores)) > 0 ? topParty(scores) : 'red'
-}
-
-function houseSeatLeader(unit = {}) {
-  const seats = unit?.assembly?.seats || {}
-  return sumSeats(seats) > 0 ? topParty(seats) : topParty(unit?.assembly?.vote_shares)
-}
-
-function applyHouseEffect(shares = {}, party, points = 0) {
-  const normalized = normalizeShares(shares)
-  if (!PARTIES.includes(party) || points <= 0) return normalized
+function applyHouseEffect(parties, shares = {}, party, points = 0) {
+  const normalized = normalizeShares(parties, shares)
+  if (!parties.includes(party) || points <= 0) return normalized
   const current = normalized[party]
   const remainingTotal = Math.max(Number.EPSILON, 1 - current)
   const target = Math.min(0.82, current + points)
 
-  return normalizeShares(Object.fromEntries(PARTIES.map((candidate) => {
+  return normalizeShares(parties, Object.fromEntries(parties.map((candidate) => {
     if (candidate === party) return [candidate, target]
     const scaled = normalized[candidate] * ((1 - target) / remainingTotal)
     return [candidate, scaled]
   })))
 }
 
-function addPollingNoise(shares = {}, rng, marginOfError = 0.025, scale = 0.34) {
-  const noisy = Object.fromEntries(PARTIES.map((party) => [
+function addPollingNoise(parties, shares = {}, rng, marginOfError = 0.025, scale = 0.34) {
+  const noisy = Object.fromEntries(parties.map((party) => [
     party,
     number(shares[party]) + gaussianish(rng) * marginOfError * scale,
   ]))
-  return normalizeShares(noisy)
+  return normalizeShares(parties, noisy)
 }
 
-function likelyVoterShares(shares = {}) {
-  const normalized = normalizeShares(shares)
-  return normalizeShares(Object.fromEntries(PARTIES.map((party) => {
+function likelyVoterShares(parties, shares = {}) {
+  const normalized = normalizeShares(parties, shares)
+  return normalizeShares(parties, Object.fromEntries(parties.map((party) => {
     const share = normalized[party]
     const turnoutWeight = 0.9 + Math.sqrt(Math.max(0, share)) * 0.24
     const microPartyPenalty = share < 0.05 ? 0.88 : 1
@@ -190,19 +174,19 @@ function likelyVoterShares(shares = {}) {
   })))
 }
 
-function blendShares(primary = {}, secondary = {}, primaryWeight = 0.7) {
-  const first = normalizeShares(primary)
-  const second = normalizeShares(secondary)
+function blendShares(parties, primary = {}, secondary = {}, primaryWeight = 0.7) {
+  const first = normalizeShares(parties, primary)
+  const second = normalizeShares(parties, secondary)
   const weight = Math.max(0, Math.min(1, number(primaryWeight, 0.7)))
-  return normalizeShares(Object.fromEntries(PARTIES.map((party) => [
+  return normalizeShares(parties, Object.fromEntries(parties.map((party) => [
     party,
     first[party] * weight + second[party] * (1 - weight),
   ])))
 }
 
-function seatEfficiencyShares(unit = {}) {
+function seatEfficiencyShares(parties, unit = {}) {
   const seats = unit?.assembly?.seats || {}
-  return sumSeats(seats) > 0 ? normalizeShares(seats) : normalizeShares(unit?.assembly?.vote_shares)
+  return sumSeats(seats) > 0 ? normalizeShares(parties, seats) : normalizeShares(parties, unit?.assembly?.vote_shares)
 }
 
 function buildScopeUnit(scope, scopeKey, scopeLabel, unit, baselineUnit = null, provinceIndex = null) {
@@ -257,26 +241,25 @@ function apportionPrelates(voteShares, seatCount) {
   })
 }
 
-function baseSharesForPollster(pollsterId, scopeUnit, results) {
+function baseSharesForPollster(parties, pollsterId, scopeUnit) {
   const assembly = scopeUnit.unit?.assembly || {}
-  const pollster = POLLSTERS.find((p) => p.id === pollsterId)
-  
+
   // Segment-based sampling: different pollsters weight different demographic signals
   if (pollsterId === 'imperial-gazette') {
     // Establishment: weight urban and government-aligned signals
-    return blendShares(assembly.vote_shares, assembly.climate_vote_shares || assembly.vote_shares, 0.7)
+    return blendShares(parties, assembly.vote_shares, assembly.climate_vote_shares || assembly.vote_shares, 0.7)
   }
   if (pollsterId === 'rural-voice') {
     // Rural conservative: weight local and traditional signals
-    return blendShares(assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.65)
+    return blendShares(parties, assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.65)
   }
   if (pollsterId === 'workers-council') {
     // Labor: weight economic and urban worker signals
-    return blendShares(assembly.vote_shares, assembly.climate_vote_shares || assembly.vote_shares, 0.6)
+    return blendShares(parties, assembly.vote_shares, assembly.climate_vote_shares || assembly.vote_shares, 0.6)
   }
   if (pollsterId === 'civic-freedom') {
     // Liberal intellectual: weight reform and decentralization signals
-    return blendShares(assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.6)
+    return blendShares(parties, assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.6)
   }
   if (pollsterId === 'american-autonomy') {
     // Regionalist: weight local vote shares heavily
@@ -284,7 +267,7 @@ function baseSharesForPollster(pollsterId, scopeUnit, results) {
   }
   if (pollsterId === 'lotus-institute') {
     // Cultural-religious: blend current with traditional patterns
-    return blendShares(assembly.vote_shares, scopeUnit.baselineUnit?.assembly?.vote_shares || assembly.vote_shares, 0.55)
+    return blendShares(parties, assembly.vote_shares, scopeUnit.baselineUnit?.assembly?.vote_shares || assembly.vote_shares, 0.55)
   }
   if (pollsterId === 'ecology-matters') {
     // Environmental: weight climate signals heavily
@@ -296,21 +279,21 @@ function baseSharesForPollster(pollsterId, scopeUnit, results) {
   }
   if (pollsterId === 'market-dynamics') {
     // Business elite: weight seat efficiency (establishment stability)
-    return blendShares(assembly.vote_shares, seatEfficiencyShares(scopeUnit.unit), 0.68)
+    return blendShares(parties, assembly.vote_shares, seatEfficiencyShares(parties, scopeUnit.unit), 0.68)
   }
   if (pollsterId === 'grassroots-pulse') {
     // Grassroots activist: weight local signals and blend with baseline for change sentiment
-    return blendShares(assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.55)
+    return blendShares(parties, assembly.vote_shares, assembly.local_vote_shares || assembly.vote_shares, 0.55)
   }
   return assembly.vote_shares
 }
 
-function pollsterHouseEffect(pollsterId, scopeUnit, results) {
+function pollsterHouseEffect(parties, pollsterId, scopeUnit) {
   const pollster = POLLSTERS.find((p) => p.id === pollsterId)
   const baseShares = scopeUnit.unit?.assembly?.vote_shares || {}
   
   // If pollster has an explicit bias party, use it with appropriate magnitude
-  if (pollster?.biasParty && PARTIES.includes(pollster.biasParty)) {
+  if (pollster?.biasParty && parties.includes(pollster.biasParty)) {
     // Different segments have different bias strengths
     const biasStrengths = {
       'establishment': 0.015,
@@ -331,20 +314,20 @@ function pollsterHouseEffect(pollsterId, scopeUnit, results) {
   }
   
   // Fallback for pollsters without explicit bias (centrist academic)
-  return { party: topParty(baseShares), points: 0.003 }
+  return { party: topParty(parties, baseShares), points: 0.003 }
 }
 
-function pollsterShares(pollster, scopeUnit, results, pollSeed) {
+function pollsterShares(parties, pollster, scopeUnit, pollSeed) {
   const rng = createSeededRng(`${pollSeed}:${pollster.id}:${scopeUnit.scopeKey}`)
-  const base = normalizeShares(baseSharesForPollster(pollster.id, scopeUnit, results))
-  const effect = pollsterHouseEffect(pollster.id, scopeUnit, results)
+  const base = normalizeShares(parties, baseSharesForPollster(parties, pollster.id, scopeUnit))
+  const effect = pollsterHouseEffect(parties, pollster.id, scopeUnit)
   
   // Apply likely-voter adjustment for establishment and business-elite pollsters
   const adjustedBase = (pollster.id === 'imperial-gazette' || pollster.id === 'market-dynamics') 
-    ? likelyVoterShares(base) 
+    ? likelyVoterShares(parties, base) 
     : base
   
-  const withEffect = applyHouseEffect(adjustedBase, effect.party, effect.points)
+  const withEffect = applyHouseEffect(parties, adjustedBase, effect.party, effect.points)
   
   // Noise scale based on segment: academic/establishment more precise, grassroots/religious less precise
   const noiseScale = pollster.id === 'independent-consensus'
@@ -360,7 +343,7 @@ function pollsterShares(pollster, scopeUnit, results, pollSeed) {
             : 0.18
   
   return {
-    voteShares: addPollingNoise(withEffect, rng, pollster.marginOfError, noiseScale),
+    voteShares: addPollingNoise(parties, withEffect, rng, pollster.marginOfError, noiseScale),
     houseEffect: effect,
   }
 }
@@ -374,10 +357,10 @@ function projectedSeats(scope, voteShares, unit, strictThreshold = false) {
   return { assembly, prelates }
 }
 
-function buildPollsterResult(pollster, scopeUnit, results, pollSeed) {
-  const { voteShares, houseEffect } = pollsterShares(pollster, scopeUnit, results, pollSeed)
+function buildPollsterResult(parties, pollster, scopeUnit, pollSeed) {
+  const { voteShares, houseEffect } = pollsterShares(parties, pollster, scopeUnit, pollSeed)
   const seats = projectedSeats(scopeUnit.scope, voteShares, scopeUnit.unit, false)
-  const leader = topParty(voteShares)
+  const leader = topParty(parties, voteShares)
 
   return {
     id: pollster.id,
@@ -396,32 +379,32 @@ function buildPollsterResult(pollster, scopeUnit, results, pollSeed) {
   }
 }
 
-function aggregatePollsters(scope, unit, pollsters) {
-  const weightedTotals = emptyPartyMap(0)
+function aggregatePollsters(parties, scope, unit, pollsters) {
+  const weightedTotals = emptyPartyMap(parties, 0)
   let weightTotal = 0
 
   pollsters.forEach((pollster) => {
     const weight = 1 / Math.max(0.0001, pollster.marginOfError)
     weightTotal += weight
-    PARTIES.forEach((party) => {
+    parties.forEach((party) => {
       weightedTotals[party] += number(pollster.voteShares[party]) * weight
     })
   })
 
-  const voteShares = normalizeShares(Object.fromEntries(PARTIES.map((party) => [
+  const voteShares = normalizeShares(parties, Object.fromEntries(parties.map((party) => [
     party,
     weightedTotals[party] / Math.max(Number.EPSILON, weightTotal),
   ])))
   const seats = projectedSeats(scope, voteShares, unit)
-  const leader = topParty(voteShares)
-  const voteShareRangePct = Object.fromEntries(PARTIES.map((party) => {
+  const leader = topParty(parties, voteShares)
+  const voteShareRangePct = Object.fromEntries(parties.map((party) => {
     const values = pollsters.map((pollster) => number(pollster.voteShares?.[party]) * 100)
     return [party, {
       min: Number(Math.min(...values).toFixed(1)),
       max: Number(Math.max(...values).toFixed(1)),
     }]
   }))
-  const assemblySeatRange = Object.fromEntries(PARTIES.map((party) => {
+  const assemblySeatRange = Object.fromEntries(parties.map((party) => {
     const values = pollsters.map((pollster) => number(pollster.seats?.assembly?.[party]))
     return [party, { min: Math.min(...values), max: Math.max(...values) }]
   }))
@@ -434,9 +417,9 @@ function aggregatePollsters(scope, unit, pollsters) {
   }
 }
 
-function buildScopeResult(scopeUnit, results, pollSeed) {
-  const pollsters = POLLSTERS.map((pollster) => buildPollsterResult(pollster, scopeUnit, results, pollSeed))
-  const aggregate = aggregatePollsters(scopeUnit.scope, scopeUnit.unit, pollsters)
+function buildScopeResult(parties, scopeUnit, pollSeed) {
+  const pollsters = POLLSTERS.map((pollster) => buildPollsterResult(parties, pollster, scopeUnit, pollSeed))
+  const aggregate = aggregatePollsters(parties, scopeUnit.scope, scopeUnit.unit, pollsters)
 
   return {
     scope: scopeUnit.scope,
@@ -449,17 +432,19 @@ function buildScopeResult(scopeUnit, results, pollSeed) {
 
 export function pollingPromptPayload(scopeResult) {
   if (!scopeResult) return null
+  const shareKeys = Object.keys(scopeResult.aggregate?.voteShares || {})
+  const parties = shareKeys.length ? shareKeys : PARTIES
   return {
     scope: scopeResult.scope,
     scopeLabel: scopeResult.scopeLabel,
     aggregate: {
-      voteSharesPct: Object.fromEntries(PARTIES.map((party) => [
+      voteSharesPct: Object.fromEntries(parties.map((party) => [
         party,
         Number((number(scopeResult.aggregate?.voteShares?.[party]) * 100).toFixed(1)),
       ])),
       projectedSeats: {
-        assembly: scopeResult.aggregate?.seats?.assembly || emptyPartyMap(0),
-        prelates: scopeResult.aggregate?.seats?.prelates || emptyPartyMap(0),
+        assembly: scopeResult.aggregate?.seats?.assembly || emptyPartyMap(parties, 0),
+        prelates: scopeResult.aggregate?.seats?.prelates || emptyPartyMap(parties, 0),
       },
       leader: scopeResult.aggregate?.leader || null,
     },
@@ -470,5 +455,6 @@ export function pollingPromptPayload(scopeResult) {
 }
 
 export function runPolls({ results = {}, baselineResults = {}, pollSeed = 'poll-baseline' } = {}) {
-  return scopeUnits(results, baselineResults).map((scopeUnit) => buildScopeResult(scopeUnit, results, pollSeed))
+  const parties = partyListFor(results)
+  return scopeUnits(results, baselineResults).map((scopeUnit) => buildScopeResult(parties, scopeUnit, pollSeed))
 }

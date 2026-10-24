@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   calcAssemblypeople,
   calcDominantReligion,
@@ -8,16 +8,18 @@ import {
   computeRegionalTotals,
   resetJitterCache,
 } from './calculatedFields'
+import { DEFAULT_CALCULATIONS } from '../domain/elections/constants/defaultConfig'
 
 describe('calculatedFields', () => {
-  it('calculates deterministic values while jitter is cached', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0)
-    resetJitterCache()
-
+  it('calculates deterministic values from the world survey seed', () => {
     const first = calcProvincialPopulation(10, 0)
+    resetJitterCache()
     const second = calcProvincialPopulation(10, 0)
 
     expect(first).toBe(second)
+    const withSeed = (jitterSeed) => ({ provincialPopulation: { ...DEFAULT_CALCULATIONS.provincialPopulation, jitterSeed } })
+    expect(calcProvincialPopulation(10, 0, withSeed('survey-a'))).toBe(calcProvincialPopulation(10, 0, withSeed('survey-a')))
+    expect(calcProvincialPopulation(10, 0, withSeed('survey-a'))).not.toBe(calcProvincialPopulation(10, 0, withSeed('survey-b')))
     expect(calcAssemblypeople('12')).toBe(12)
     expect(calcPrelates(50_000_000)).toBe(11)
   })
@@ -49,8 +51,6 @@ describe('calculatedFields', () => {
   })
 
   it('scales raw followers using the same curve as provincial population', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0)
-    resetJitterCache()
     // Same raw value + same provinceIndex → same scaled output, since both
     // share the per-province jitter.
     expect(calcScaledFollowers(30, 7)).toBe(calcProvincialPopulation(30, 7))

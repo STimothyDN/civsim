@@ -30,7 +30,7 @@
 <script>
 import { computed } from 'vue'
 import PartyBadge from './PartyBadge.vue'
-import { PARTIES } from '../../domain/elections'
+import { partyIdsOf } from '../../domain/elections'
 
 export default {
   name: 'TrendImpactHeatmap',
@@ -41,7 +41,7 @@ export default {
   },
   setup(props) {
     const visibleParties = computed(() =>
-      PARTIES.filter((p) => props.partyMeta[p])
+      partyIdsOf(props.partyMeta).filter((p) => props.partyMeta[p])
     )
 
     function getImpact(trend, party) {

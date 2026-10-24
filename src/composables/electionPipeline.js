@@ -3,8 +3,9 @@ import { getActivePinia } from 'pinia'
 import {
   BASELINE_ELECTION_CONFIG,
   buildElectionConfig,
-  buildProvinceFeatureUnit,
-  buildProvinceResult,
+  buildFeatureContext,
+  buildProvinceFeatureUnitFor,
+  buildProvinceResultFor,
   aggregateRegions,
   addRegionControls,
   calculateNational,
@@ -12,6 +13,7 @@ import {
   provinceNameKey,
 } from '../domain/elections'
 import { calcAssemblypeople, calcPrelates, calcProvincialPopulation } from '../utils/calculatedFields'
+import { plainClone } from '../utils/object'
 import { useFormStore } from '../stores/formStore'
 import { useCivilizationStore } from '../stores/civilizationStore'
 import { useElectionStore } from '../stores/electionStore'
@@ -52,27 +54,73 @@ function buildPipeline() {
     const partyMeta = computed(() => civStore.partyMeta)
     const provinceCount = computed(() => data.value?.provinces?.length || 0)
 
-    // Election configs — depend only on data.election_parties + the relevant
+    // The engine runs on plain snapshots rather than reactive proxies: each
+    // snapshot computed deep-reads (and so tracks) exactly its slice of state
+    // once, then the hot scoring loops touch plain objects only. Reading
+    // trends/voter blocs through proxies per county made a climate change ~7x
+    // slower than the raw engine.
+
+    // Only the config slices buildElectionConfig reads — naming/chamber edits
+    // must not invalidate every province result.
+    const engineConfigData = computed(() => {
+      const d = data.value
+      const config = d?.config
+      return {
+        election_parties: plainClone(d?.election_parties),
+        config: config
+          ? {
+            parties: plainClone(config.parties),
+            voterBlocs: plainClone(config.voterBlocs),
+            elections: plainClone(config.elections),
+            structure: plainClone(config.structure),
+            calculations: plainClone(config.calculations),
+          }
+          : undefined,
+      }
+    })
+
+    // Election configs — depend only on the engine config slices + the relevant
     // electionStore slice. Won't invalidate on per-county edits.
-    const currentConfig = computed(() => buildElectionConfig(data.value, electionStore.electionConfig))
-    const baselineConfig = computed(() => buildElectionConfig(data.value, BASELINE_ELECTION_CONFIG))
+    const currentConfig = computed(() =>
+      buildElectionConfig(engineConfigData.value, plainClone(electionStore.electionConfig))
+    )
+    const baselineConfig = computed(() => buildElectionConfig(engineConfigData.value, BASELINE_ELECTION_CONFIG))
     const previousConfig = computed(() =>
-      buildElectionConfig(data.value, electionStore.previousElectionConfig || BASELINE_ELECTION_CONFIG)
+      buildElectionConfig(
+        engineConfigData.value,
+        plainClone(electionStore.previousElectionConfig || BASELINE_ELECTION_CONFIG)
+      )
     )
 
+    // Empire-wide feature inputs (country, calculation knobs, capital
+    // continent, religion totals), computed once instead of once per province.
+    const featureContext = computed(() => {
+      const d = data.value
+      return plainClone(buildFeatureContext(d || {}))
+    })
+
+    // Per-province plain snapshots, tracking only that province's data.
+    const provinceSnapshots = []
+    function ensureProvinceSnapshot(index) {
+      if (!provinceSnapshots[index]) {
+        provinceSnapshots[index] = computed(() => plainClone(data.value?.provinces?.[index]))
+      }
+      return provinceSnapshots[index]
+    }
+
     // Per-province feature units. Each is a stable computed scoped to its
-    // own province's data via deep proxy tracking; created lazily on first
-    // access and reused across re-evaluations.
+    // own province's snapshot; created lazily on first access and reused
+    // across re-evaluations.
     const featureUnitComputeds = []
     function ensureFeatureUnit(index) {
       if (!featureUnitComputeds[index]) {
         featureUnitComputeds[index] = computed(() => {
-          const d = data.value
-          const province = d?.provinces?.[index]
+          const province = ensureProvinceSnapshot(index).value
           if (!province) return null
-          const row = makeRowForProvince(province, index, d?.config?.calculations)
+          const context = featureContext.value
+          const row = makeRowForProvince(province, index, context.calculations)
           stats.buildUnit++
-          return buildProvinceFeatureUnit(d, row)
+          return buildProvinceFeatureUnitFor(province, row, context)
         })
       }
       return featureUnitComputeds[index]
@@ -94,13 +142,13 @@ function buildPipeline() {
     // Per-province result factory — one per (variant config, province index).
     function makeProvinceResultComputed(index, configRef) {
       return computed(() => {
-        const d = data.value
-        const province = d?.provinces?.[index]
+        const province = ensureProvinceSnapshot(index).value
         if (!province) return null
         const ownUnit = ensureFeatureUnit(index).value
         if (!ownUnit) return null
 
-        const row = makeRowForProvince(province, index, d?.config?.calculations)
+        const context = featureContext.value
+        const row = makeRowForProvince(province, index, context.calculations)
         const units = new Map()
         const ownKey = provinceNameKey(row.name || ownUnit.province.name)
         if (ownKey) units.set(ownKey, ownUnit)
@@ -119,7 +167,7 @@ function buildPipeline() {
         }
 
         stats.buildResult++
-        return buildProvinceResult(d, row, configRef.value, units)
+        return buildProvinceResultFor(province, row, configRef.value, units, context)
       })
     }
 
@@ -176,6 +224,9 @@ function buildPipeline() {
     return {
       pinia,
       stop: () => scope.stop(),
+      // Lets derived singletons (e.g. shared poll scopes) live as long as the
+      // pipeline instead of the component that first asked for them.
+      runInScope: (fn) => scope.run(fn),
       formStore,
       electionStore,
       data,

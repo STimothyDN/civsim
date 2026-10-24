@@ -8,6 +8,7 @@ import {
   toNumber,
 } from '../domain/provinceVisualizations'
 import { useCivilizationStore } from '../stores/civilizationStore'
+import { useChamberLabels } from './useChamberLabels'
 
 function labelForKey(key) {
   if (!key || key === 'none') return 'None'
@@ -79,6 +80,7 @@ function createRegion(name) {
 
 export function useBuilderOverview(store) {
   const civStore = useCivilizationStore()
+  const { lowerHouseMemberTitle, upperHouseMemberTitle } = useChamberLabels()
   const country = computed(() => store.currentData?.country || {})
   const countryInfo = computed(() => country.value.basic_info || {})
   const economy = computed(() => country.value.economy || {})
@@ -182,8 +184,8 @@ export function useBuilderOverview(store) {
         topMetrics: [
           { label: 'Provinces', value: formatNumber(group.provinceCount) },
           { label: 'Raw Pop', value: formatNumber(group.rawPopulation) },
-          { label: 'Assemblypeople', value: formatNumber(group.assemblypeople) },
-          { label: 'Prelates', value: formatNumber(group.prelates) },
+          { label: lowerHouseMemberTitle(true), value: formatNumber(group.assemblypeople) },
+          { label: upperHouseMemberTitle(true), value: formatNumber(group.prelates) },
           { label: 'Total Yield', value: formatNumber(group.totalYield) },
         ],
         civicMetrics: [
@@ -231,8 +233,8 @@ export function useBuilderOverview(store) {
   ])
 
   const representationMetrics = computed(() => [
-    { label: 'Assemblypeople', value: formatNumber(totalAssemblypeople.value) },
-    { label: 'Prelates', value: formatNumber(totalPrelates.value) },
+    { label: lowerHouseMemberTitle(true), value: formatNumber(totalAssemblypeople.value) },
+    { label: upperHouseMemberTitle(true), value: formatNumber(totalPrelates.value) },
     { label: 'Regional Capitals', value: formatNumber(regionalCapitalCount.value) },
     { label: 'Province Groups', value: formatNumber(groupCount.value) },
   ])
@@ -270,8 +272,8 @@ export function useBuilderOverview(store) {
       religionFollowers: religion.followers,
       topMetrics: [
         { label: 'Population', value: formatNumber(row.population) },
-        { label: 'Assemblypeople', value: formatNumber(row.assemblypeople) },
-        { label: 'Prelates', value: formatNumber(row.prelates) },
+        { label: lowerHouseMemberTitle(true), value: formatNumber(row.assemblypeople) },
+        { label: upperHouseMemberTitle(true), value: formatNumber(row.prelates) },
         { label: 'Total Yield', value: formatNumber(row.totalYield) },
       ],
       civicMetrics: [

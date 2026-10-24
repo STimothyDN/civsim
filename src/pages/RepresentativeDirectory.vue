@@ -213,7 +213,7 @@ import IncumbencyBadge from '../components/elections/IncumbencyBadge.vue'
 import PartyCompositionDonut from '../components/elections/PartyCompositionDonut.vue'
 import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionStore } from '../stores/electionStore'
-import { PARTIES } from '../domain/elections/constants/parties'
+import { partyIdsOf } from '../domain/elections/constants/parties'
 import { getSeatOffset } from '../domain/elections/constants/seatOffsets'
 import { generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
 import { useChamberLabels } from '../composables/useChamberLabels'
@@ -223,10 +223,11 @@ export default {
   name: 'RepresentativeDirectory',
   components: { Crown, ElectionPageShell, IncumbencyBadge, Landmark, PartyBadge, PartyCompositionDonut, Swords, Users },
   setup() {
-    const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
+    const { lowerHouseLeaderTitle, upperHouseLeaderTitle, memberTitle } = useChamberLabels()
     const { results, store } = useElectionResults()
     const electionStore = useElectionStore()
     const countryName = computed(() => store.currentData?.country?.basic_info?.name || 'Unnamed Realm')
+    const parties = computed(() => partyIdsOf(store.partyMeta))
 
     const viewMode = ref('table')
     const groupBy = ref('scope')
@@ -291,7 +292,7 @@ export default {
         } else if (isLeader) {
           title = customName ? `Caucus Leader ${customName}` : 'Caucus Leader'
         } else {
-          const role = chamberType === 'prelates' ? 'Prelate' : 'Assemblyperson'
+          const role = memberTitle(chamberType)
           title = customName ? `${role} ${customName}` : role
         }
         return { party: seat.party, scope, chamberType, seatIndex: seat.seatIndex, nameIndex, jurisdiction: seat.jurisdiction, voteShare: seat.voteShare, supportMetric: seat.supportMetric, title, isLeader, isGoverning, isOppositionLeader, regionName, provinceName: province?.name }
@@ -359,7 +360,7 @@ export default {
       const counts = {}
       for (const rep of filteredRepresentatives.value) counts[rep.party] = (counts[rep.party] || 0) + 1
       const total = filteredRepresentatives.value.length || 1
-      return PARTIES.filter((p) => counts[p]).map((p) => ({
+      return parties.value.filter((p) => counts[p]).map((p) => ({
         party: p,
         count: counts[p],
         abbrev: store.partyMeta[p]?.abbreviation || p.slice(0, 3),
@@ -392,7 +393,7 @@ export default {
 
     return {
       countryName, filteredRepresentatives, formatSupport, formatVoteShare, govCount,
-      groupBy, groupedRepresentatives, groupOptions, oppCount, parties: PARTIES,
+      groupBy, groupedRepresentatives, groupOptions, oppCount, parties,
       partyStats, repCardStyle, scopeLabel, scopeOptions, searchQuery, selectedChamber,
       selectedParty, selectedScope, selectedStatus, sortBy, sortDirection, store,
       totalRepresentatives, Users, viewMode,

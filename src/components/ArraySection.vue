@@ -30,12 +30,12 @@
                 </div>
                 <div class="calc-stat">
                   <span class="calc-icon">🏛️</span>
-                  <span class="calc-label">Assemblypeople</span>
+                  <span class="calc-label">{{ lowerHouseMemberTitle(true) }}</span>
                   <span class="calc-value">{{ formatNumber(card.totals.assemblypeople) }}</span>
                 </div>
                 <div class="calc-stat">
                   <span class="calc-icon">⛪</span>
-                  <span class="calc-label">Prelates</span>
+                  <span class="calc-label">{{ upperHouseMemberTitle(true) }}</span>
                   <span class="calc-value">{{ formatNumber(card.totals.prelates) }}</span>
                 </div>
               </div>
@@ -164,12 +164,12 @@
               </div>
               <div class="calc-stat calc-stat--inline">
                 <span class="calc-icon">🏛️</span>
-                <span class="calc-label">Assemblypeople</span>
+                <span class="calc-label">{{ lowerHouseMemberTitle(true) }}</span>
                 <span class="calc-value">{{ calcField(selectedIndex, 'assemblypeople') }}</span>
               </div>
               <div class="calc-stat calc-stat--inline">
                 <span class="calc-icon">⛪</span>
-                <span class="calc-label">Prelates</span>
+                <span class="calc-label">{{ upperHouseMemberTitle(true) }}</span>
                 <span class="calc-value">{{ calcField(selectedIndex, 'prelates') }}</span>
               </div>
               <div class="calc-stat calc-stat--inline">
@@ -212,6 +212,7 @@ import { humanize, getSingularLabel } from '../utils/text'
 import { isObject } from '../utils/object'
 import { groupColor as getGroupColor } from '../domain/colors'
 import { computeRegionalTotals } from '../utils/calculatedFields'
+import { useChamberLabels } from '../composables/useChamberLabels'
 
 export default {
   name: 'ArraySection',
@@ -229,6 +230,7 @@ export default {
   },
   setup(props) {
     const store = useFormStore()
+    const { lowerHouseMemberTitle, upperHouseMemberTitle } = useChamberLabels()
     const contentEl = ref(null)
     const arr = computed(() => store.getValueAtPath(props.path) || [])
     const rawLabel = computed(() => props.label || (props.path.split('.').slice(-1)[0] || 'Array'))
@@ -536,14 +538,16 @@ export default {
         if (!stickyCard) return
         const cardBottom = stickyCard.getBoundingClientRect().bottom
         const elTop = el.getBoundingClientRect().top
-        // Element is in viewport but behind the sticky card
+        // Element is in viewport but behind the sticky card. The app scrolls
+        // inside .view, not the window, so nudge that container.
         if (elTop >= 0 && elTop < cardBottom + 8) {
-          window.scrollBy({ top: elTop - cardBottom - 8 })
+          const scroller = el.closest('.view') || window
+          scroller.scrollBy({ top: elTop - cardBottom - 8 })
         }
       })
     }
 
-    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isReligionsArray, isFixedArray, parentProvinceIndex, religionsParentProvinceIndex, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl, handleFocusIn }
+    return { arr, title, singular, humanize, isObject, itemPath, closestProvinceKey, itemDisplayName, itemSidebarDisplayName, add, remove, isProvincesArray, isCountiesArray, isClosestProvincesArray, isReligionsArray, isFixedArray, parentProvinceIndex, religionsParentProvinceIndex, groupSummary, unassignedProvinces, carouselItems, visibleCards, carouselOffset, slideDirection, VISIBLE_COUNT, carouselPrev, carouselNext, badgeStyle, groupColor, depth: props.depth, calcField, formatNumber, selectedIndex, provinceSidebarGroups, isSidebarGroupCollapsed, toggleSidebarGroup, contentEl, handleFocusIn, lowerHouseMemberTitle, upperHouseMemberTitle }
   }
 }
 </script>

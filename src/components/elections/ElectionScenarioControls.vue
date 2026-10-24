@@ -106,7 +106,7 @@ import { useCivilizationStore } from '../../stores/civilizationStore'
 import { useElectionStore } from '../../stores/electionStore'
 import { useFormStore } from '../../stores/formStore'
 import { useUiStore } from '../../stores/uiStore'
-import { PARTIES } from '../../domain/elections'
+import { partyIdsOf } from '../../domain/elections'
 import { requestElectionClimateSummary } from '../../domain/elections/narrativePlanner'
 import LlmStatusIndicator from './LlmStatusIndicator.vue'
 import { climateLlmStatus } from './llmStatusCopy'
@@ -133,7 +133,7 @@ export default {
     const partyShifts = computed(() => {
       if (electionStore.isBaseline) return []
       const refShares = electionStore.electionNumber > 0 ? props.previousShares : props.baselineShares
-      return PARTIES.map((party) => {
+      return partyIdsOf(civStore.partyMeta).map((party) => {
         const current = Number(props.currentShares?.[party] || 0)
         const baseline = Number(refShares?.[party] || 0)
         const diff = current - baseline

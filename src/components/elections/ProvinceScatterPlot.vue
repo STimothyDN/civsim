@@ -15,7 +15,7 @@
 <script>
 import { computed } from 'vue'
 import ProvinceChart from '../ProvinceChart.vue'
-import { PARTIES, formatShare } from '../../domain/elections'
+import { formatShare, partyIdsOf } from '../../domain/elections'
 import { formatCompactNumber } from '../../domain/formatting'
 import { topParty } from '../../domain/elections/viewHelpers'
 
@@ -30,12 +30,13 @@ export default {
     const scatterOption = computed(() => {
       const seriesMap = {}
 
+      const parties = partyIdsOf(props.partyMeta)
       for (const prov of props.provinces) {
         const shares = prov.assembly?.vote_shares || {}
-        const sorted = PARTIES
+        const sorted = parties
           .map((p) => ({ party: p, share: shares[p] || 0 }))
           .sort((a, b) => b.share - a.share)
-        const winner = sorted[0]?.party || PARTIES[0]
+        const winner = sorted[0]?.party || parties[0]
         const margin = (sorted[0]?.share || 0) - (sorted[1]?.share || 0)
         const pop = prov.provincial_population || 0
         const seats = Object.values(prov.assembly?.seats || {}).reduce((s, v) => s + v, 0)

@@ -38,7 +38,9 @@ import { useElectionStore } from '../stores/electionStore'
 import { useUiStore } from '../stores/uiStore'
 import { useElectionPipeline } from '../composables/electionPipeline'
 import { extractElectionState } from '../domain/templateCodec'
-import exampleData from '../../jayavarman.json'
+// Served as a static asset (not bundled into JS): the example world is ~8MB
+// and only needed when someone actually downloads it.
+import exampleUrl from '../../jayavarman.json?url'
 
 export default {
   name: 'Toolbar',
@@ -73,13 +75,10 @@ export default {
     }
 
     function downloadExample() {
-      const blob = new Blob([JSON.stringify(exampleData, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
+      a.href = exampleUrl
       a.download = 'jayavarman.json'
       a.click()
-      URL.revokeObjectURL(url)
     }
 
     function onFileChange(e) {

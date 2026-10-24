@@ -3,36 +3,44 @@
  *
  * The scaling constants, prelate seat tiers, and election-year cadence are
  * configurable (config.calculations); the defaults below reproduce the original
- * hardcoded behavior. Each province gets a seeded random jitter that stays
- * stable for the lifetime of the data session, keyed on province index.
+ * hardcoded behavior. Each province gets a random jitter seeded from the
+ * world's survey seed (config.calculations.provincialPopulation.jitterSeed)
+ * and its index, so a world's provincial populations — and every seat count
+ * derived from them — are identical across reloads, imports, and world
+ * switches. "Re-survey" rolls a new seed.
  */
 import { DEFAULT_CALCULATIONS } from '../domain/elections/constants/defaultConfig'
+import { createSeededRng } from '../domain/elections/randomness/seededRandom'
 
 const POP = DEFAULT_CALCULATIONS.provincialPopulation
 
-// Store per-province random jitter so it doesn't jump on every keystroke.
+// Seed used by worlds that have never been re-surveyed.
+export const DEFAULT_JITTER_SEED = 'survey-baseline'
+
+// Memo of seeded jitter draws; keyed by everything that determines them.
 const _jitterCache = new Map()
 
-function randomIntInclusive(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
-
 function jitterForProvince(provinceIndex, params = POP) {
-  if (_jitterCache.has(provinceIndex)) return _jitterCache.get(provinceIndex)
-
   const jitterRange = Number(params.jitterRange ?? POP.jitterRange)
   const exponentJitterMax = Number(params.exponentJitter ?? POP.exponentJitter)
+  const seed = params.jitterSeed || DEFAULT_JITTER_SEED
+  const key = `${seed}|${provinceIndex}|${jitterRange}|${exponentJitterMax}`
+  const cached = _jitterCache.get(key)
+  if (cached) return cached
+
+  const rng = createSeededRng(`${seed}:${provinceIndex}`)
   const j = {
-    exponentJitter: Math.random() * exponentJitterMax,
-    basePopRandBetween: randomIntInclusive(-jitterRange, jitterRange),
+    exponentJitter: rng() * exponentJitterMax,
+    basePopRandBetween: Math.floor(rng() * (2 * jitterRange + 1)) - jitterRange,
   }
 
-  _jitterCache.set(provinceIndex, j)
+  _jitterCache.set(key, j)
   return j
 }
 
 /**
- * Clear cached jitter values (e.g. when a new template is loaded).
+ * Drop memoized jitter draws (e.g. when a new template is loaded). Draws are
+ * deterministic, so this only bounds memory.
  */
 export function resetJitterCache() {
   _jitterCache.clear()

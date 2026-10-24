@@ -49,7 +49,7 @@
 <script>
 import { computed } from 'vue'
 import PartyBadge from './PartyBadge.vue'
-import { PARTIES, formatShare } from '../../domain/elections'
+import { formatShare, partyIdsOf } from '../../domain/elections'
 
 export default {
   name: 'VoteDecompositionPanel',
@@ -65,8 +65,9 @@ export default {
     const climatePct = computed(() => formatShare(assembly.value.vote_blend?.climate_weight || 0))
 
     const rows = computed(() => {
+      const parties = partyIdsOf(props.partyMeta)
       const maxShare = Math.max(
-        ...PARTIES.map(p => Math.max(
+        ...parties.map(p => Math.max(
           Number(assembly.value.local_vote_shares?.[p] || 0),
           Number(assembly.value.climate_vote_shares?.[p] || 0),
           Number(assembly.value.vote_shares?.[p] || 0),
@@ -74,7 +75,7 @@ export default {
       )
       const scale = maxShare > 0 ? 100 / maxShare : 1
 
-      return PARTIES.map((party) => {
+      return parties.map((party) => {
         const local = Number(assembly.value.local_vote_shares?.[party] || 0)
         const climate = Number(assembly.value.climate_vote_shares?.[party] || 0)
         const final_ = Number(assembly.value.vote_shares?.[party] || 0)

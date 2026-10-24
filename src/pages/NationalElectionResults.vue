@@ -166,7 +166,7 @@
       <div class="election-panel-heading">
         <div>
           <p class="eyebrow">Council Sources</p>
-          <h3>Prelate Delegation By Province</h3>
+          <h3>{{ upperHouseMemberTitle() }} Delegation By Province</h3>
         </div>
       </div>
       <details class="election-details" :open="prelateDelegationRows.length <= 12">
@@ -253,7 +253,7 @@ import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionFormatters } from '../composables/useElectionFormatters'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
-import { APPORTIONMENT, PARTIES, THRESHOLDS, formatShare } from '../domain/elections'
+import { APPORTIONMENT, THRESHOLDS, formatShare, partyIdsOf } from '../domain/elections'
 import { useChamberLabels } from '../composables/useChamberLabels'
 import { SEAT_OFFSETS } from '../domain/elections/constants/seatOffsets'
 import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
@@ -276,8 +276,9 @@ export default {
     VoteDecompositionPanel,
   },
   setup() {
-    const { lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
+    const { lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle, upperHouseMemberTitle } = useChamberLabels()
     const { baselineResults, previousElectionResults, electionStore, hasData, partyMeta, results, store } = useElectionResults()
+    const parties = computed(() => partyIdsOf(partyMeta.value))
     const {
       controlCardStyle,
       formatListWithOxfordComma,
@@ -349,7 +350,7 @@ export default {
       { key: 'prelateSeats', label: 'Council Seats' },
     ]
 
-    const popularVoteRows = computed(() => PARTIES.map((party) => ({
+    const popularVoteRows = computed(() => parties.value.map((party) => ({
       party,
       voteShare: results.value.national.assembly.vote_shares[party],
       voteCount: popularVoteCount(results.value.national.population, results.value.national.assembly.vote_shares, party),
@@ -357,7 +358,7 @@ export default {
       prelateSeats: results.value.national.prelates.seats[party],
     })))
 
-    const nationalDetailRows = computed(() => PARTIES.map((party) => {
+    const nationalDetailRows = computed(() => parties.value.map((party) => {
       const voteShare = Number(results.value.national.assembly.vote_shares?.[party] || 0)
       const baselineVoteShare = Number(baselineResults.value.national.assembly.vote_shares?.[party] || 0)
       const assemblySeats = Number(results.value.national.assembly.seats?.[party] || 0)
@@ -416,7 +417,7 @@ export default {
       nationalThreshold,
       SEAT_OFFSETS,
       partyMeta,
-      parties: PARTIES,
+      parties,
       partyColumnLabel: (party) => partyMeta.value[party]?.abbreviation || partyMeta.value[party]?.colorLabel || party,
       popularVoteRows,
       prelateDelegationRows,
@@ -436,6 +437,7 @@ export default {
       electionStore,
       lowerHouseLeaderTitle,
       upperHouseLeaderTitle,
+      upperHouseMemberTitle,
     }
   },
 }

@@ -21,6 +21,20 @@ export function upperHouseName(level, placeName = '', chambers = DEFAULT_CHAMBER
   return fillPlace(template, placeName, fallback)
 }
 
+// What a single member of a chamber is called ("Assemblyperson", "Prelate"…).
+export function lowerHouseMemberTitle(plural = false, chambers = DEFAULT_CHAMBERS) {
+  return memberTitle('lower', plural, chambers)
+}
+
+export function upperHouseMemberTitle(plural = false, chambers = DEFAULT_CHAMBERS) {
+  return memberTitle('upper', plural, chambers)
+}
+
+function memberTitle(house, plural, chambers) {
+  const key = plural ? 'memberTitlePlural' : 'memberTitle'
+  return String(chambers?.[house]?.[key] || '').trim() || DEFAULT_CHAMBERS[house][key]
+}
+
 export function lowerHouseLeaderTitle(level, chambers = DEFAULT_CHAMBERS) {
   const titles = chambers?.lower?.leaderTitles || DEFAULT_CHAMBERS.lower.leaderTitles
   return titles[level] || DEFAULT_CHAMBERS.lower.leaderTitles[level] || 'Assembly Leader'

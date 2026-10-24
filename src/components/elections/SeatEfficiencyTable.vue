@@ -34,7 +34,7 @@
 <script>
 import { computed } from 'vue'
 import PartyBadge from './PartyBadge.vue'
-import { PARTIES, formatShare } from '../../domain/elections'
+import { formatShare, partyIdsOf } from '../../domain/elections'
 import { formatCompactNumber } from '../../domain/formatting'
 
 export default {
@@ -50,7 +50,7 @@ export default {
       const totalSeats = Math.max(1, assembly.seat_count)
       const pop = props.results.national.population
 
-      return PARTIES
+      return partyIdsOf(props.partyMeta)
         .map((party) => {
           const voteShare = Number(assembly.vote_shares[party] || 0)
           const seats = assembly.seats[party] || 0

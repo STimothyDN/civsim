@@ -15,7 +15,7 @@
 <script>
 import { computed } from 'vue'
 import ProvinceChart from '../ProvinceChart.vue'
-import { PARTIES, formatShare } from '../../domain/elections'
+import { formatShare, partyIdsOf } from '../../domain/elections'
 import { formatCompactNumber } from '../../domain/formatting'
 import { topParty } from '../../domain/elections/viewHelpers'
 
@@ -49,7 +49,7 @@ export default {
             if (!d.county) return ''
             const pop = formatCompactNumber(d.value)
             const lines = [`<strong>${d.name}</strong>`, `Pop: ${pop}`, '']
-            PARTIES.forEach((p) => {
+            partyIdsOf(props.partyMeta).forEach((p) => {
               const share = d.county.vote_shares?.[p]
               if (share > 0.001) {
                 const label = props.partyMeta[p]?.abbreviation || p

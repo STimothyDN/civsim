@@ -10,7 +10,7 @@
         class="overview-hero-call winner-control-card baseline-leader-card"
         :style="controlCardStyle(province.assembly?.control)"
       >
-        <span>Governor</span>
+        <span>{{ lowerHouseName('provincial', province.name) }}</span>
         <strong>
           {{ governorTitle }} {{ governorName }}
           <IncumbencyBadge
@@ -33,7 +33,7 @@
         class="overview-hero-call winner-control-card baseline-leader-card"
         :style="controlCardStyle(province.prelates?.control)"
       >
-        <span>Chancellor</span>
+        <span>{{ upperHouseName('provincial', province.name) }}</span>
         <strong>
           {{ chancellorTitle }} {{ chancellorName }}
           <IncumbencyBadge
@@ -73,7 +73,7 @@ export default {
     provinceIndex: { type: Number, required: true },
   },
   setup(props) {
-    const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
+    const { lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const { baselineResults, store, electionStore, partyMeta } = useElectionResults()
     const {
       controlCardStyle,
@@ -126,8 +126,8 @@ export default {
       seatCount: computed(() => province.value?.prelates?.seat_count || 0),
     })
 
-    const governorTitle = lowerHouseLeaderTitle('provincial')
-    const chancellorTitle = upperHouseLeaderTitle('provincial')
+    const governorTitle = computed(() => lowerHouseLeaderTitle('provincial'))
+    const chancellorTitle = computed(() => upperHouseLeaderTitle('provincial'))
 
     const governorName = computed(() => {
       if (!governor.value) return ''
@@ -157,6 +157,8 @@ export default {
       chancellor,
       governorTitle,
       chancellorTitle,
+      lowerHouseName,
+      upperHouseName,
       governorName,
       chancellorName,
       governorSupportLeaders,

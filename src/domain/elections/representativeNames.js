@@ -9,6 +9,7 @@ import { SEAT_OFFSETS } from './constants/seatOffsets'
 import { matchesSelector } from './trends/matchTrend'
 import { blocMembership } from './features/voterBlocs'
 import { num } from './normalization/numbers'
+import { plainClone } from '../../utils/object'
 
 // Weight a direct culture→party tie (config.naming.cultures[].parties) adds,
 // and the weight a voter-bloc link contributes per unit of bloc membership.
@@ -443,9 +444,7 @@ function cultureWeightFor(culture, province, party, voterBlocs = []) {
   return w
 }
 
-// Weighted seeded pick of a culture for a seat. The home culture is always in
-// the running; matched/ambient/party-tied and bloc-linked cultures compete.
-function pickCulture(naming, province, party, rng, voterBlocs = []) {
+function cultureEntriesFor(naming, province, party, voterBlocs = []) {
   const home = naming.homeCulture || DEFAULT_NAMING.homeCulture
   const cultures = Array.isArray(naming.cultures) ? naming.cultures : []
   const entries = [{ culture: home, w: 1 }]
@@ -457,6 +456,31 @@ function pickCulture(naming, province, party, rng, voterBlocs = []) {
       total += w
     }
   }
+  return { home, entries, total }
+}
+
+// Culture weights depend only on (province, party) within one naming pass, so
+// a pass caches them instead of re-running selectors/bloc membership per seat.
+function createCulturePicker(naming, voterBlocs = []) {
+  const cache = new Map()
+  return function pick(province, party, rng) {
+    let byParty = cache.get(province)
+    if (!byParty) {
+      byParty = new Map()
+      cache.set(province, byParty)
+    }
+    let weights = byParty.get(party)
+    if (!weights) {
+      weights = cultureEntriesFor(naming, province, party, voterBlocs)
+      byParty.set(party, weights)
+    }
+    return rollCulture(weights, rng)
+  }
+}
+
+// Weighted seeded pick of a culture for a seat. The home culture is always in
+// the running; matched/ambient/party-tied and bloc-linked cultures compete.
+function rollCulture({ home, entries, total }, rng) {
   let roll = rng() * total
   for (const e of entries) {
     roll -= e.w
@@ -470,6 +494,28 @@ function givenPool(culture, gender) {
   const female = culture.givenFemale || []
   if (gender === 'female') return female.length ? female : male
   return male.length ? male : female
+}
+
+// Province lookup for a seat's jurisdiction label (a province or county name):
+// the first province, in order, whose own name or one of whose county names
+// matches. Built once per naming pass instead of scanning every province's
+// counties for every seat.
+function createJurisdictionLookup(provinces) {
+  let index = null
+  return function provinceFor(jurisdiction) {
+    if (!Array.isArray(provinces)) return undefined
+    if (!index) {
+      index = new Map()
+      for (const p of provinces) {
+        if (!index.has(p.name)) index.set(p.name, p)
+        if (!Array.isArray(p.counties)) continue
+        for (const c of p.counties) {
+          if (!index.has(c.name)) index.set(c.name, p)
+        }
+      }
+    }
+    return index.get(jurisdiction)
+  }
 }
 
 function generateNameFromCulture(culture, home, gender, rng) {
@@ -493,13 +539,12 @@ export function generateRepresentativeNames(seatDetails, provinces, seed = 'defa
 
   // Create RNG from seed
   const rng = mulberry32(hashString(seed))
+  const provinceFor = createJurisdictionLookup(provinces)
+  const pick = createCulturePicker(naming, voterBlocs)
 
   for (const seat of seatDetails || []) {
     // Find province for this seat
-    const province = provinces?.find((p) =>
-      p.name === seat.jurisdiction ||
-      p.counties?.some((c) => c.name === seat.jurisdiction)
-    )
+    const province = provinceFor(seat.jurisdiction)
 
     // Alternate gender based on seat index for balance
     const gender = seat.seatIndex % 2 === 0 ? 'male' : 'female'
@@ -508,7 +553,7 @@ export function generateRepresentativeNames(seatDetails, provinces, seed = 'defa
     let name
     let attempts = 0
     do {
-      const culture = pickCulture(naming, province, seat.party, rng, voterBlocs)
+      const culture = pick(province, seat.party, rng)
       name = generateNameFromCulture(culture, home, gender, rng)
       attempts++
     } while (usedNames.has(name) && attempts < 100)
@@ -535,6 +580,8 @@ export function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, 
   const usedNames = new Set()
   const rng = mulberry32(hashString(seed))
   const home = naming.homeCulture || DEFAULT_NAMING.homeCulture
+  const provinceFor = createJurisdictionLookup(provinces)
+  const pick = createCulturePicker(naming, voterBlocs)
 
   for (const seat of seatDetails || []) {
     const key = rosterKey(seat.party, seat.withinPartyIndex ?? 0, scopeKey)
@@ -560,14 +607,11 @@ export function generateScopeBlockNames(seatDetails, provinces, seed, scopeKey, 
     }
 
     if (!name) {
-      const province = provinces?.find((p) =>
-        p.name === seat.jurisdiction ||
-        p.counties?.some((c) => c.name === seat.jurisdiction)
-      )
+      const province = provinceFor(seat.jurisdiction)
       const gender = seat.seatIndex % 2 === 0 ? 'male' : 'female'
       let attempts = 0
       do {
-        const culture = pickCulture(naming, province, seat.party, rng, voterBlocs)
+        const culture = pick(province, seat.party, rng)
         name = generateNameFromCulture(culture, home, gender, rng)
         attempts++
       } while (usedNames.has(name) && attempts < 100)
@@ -615,8 +659,10 @@ export function generateAllScopeNames(results, store, electionStore) {
 
   const resultsValue = results
   const countryName = store?.currentData?.country?.basic_info?.name || 'civilization'
-  const naming = store?.currentData?.config?.naming || DEFAULT_NAMING
-  const voterBlocs = Array.isArray(store?.currentData?.config?.voterBlocs) ? store.currentData.config.voterBlocs : []
+  // Plain copies so the per-seat culture/bloc matching never reads through
+  // reactive proxies.
+  const naming = plainClone(store?.currentData?.config?.naming) || DEFAULT_NAMING
+  const voterBlocs = Array.isArray(store?.currentData?.config?.voterBlocs) ? plainClone(store.currentData.config.voterBlocs) : []
   const seed = resultsValue.config?.seed || 'default'
   const incumbentRoster = electionStore.incumbentRoster || {}
   // The baseline legislature is the sitting government at game start: tag every
@@ -626,6 +672,11 @@ export function generateAllScopeNames(results, store, electionStore) {
   const newRoster = {}
   const newLeaders = {}
   const newLeaderStatuses = {}
+  // Accumulate locally and write the store once at the end: re-spreading the
+  // growing reactive maps once per block was quadratic and re-triggered every
+  // dependent of representativeNames ~100 times per pass.
+  let allNames = null
+  let allIncumbencies = null
 
   function processBlock(rawSeatDetails, chamberType, offset, scopeKey, control) {
     const seatDetails = rawSeatDetails.map((s) => ({ ...s, chamberType, seatIndex: s.seatIndex + offset }))
@@ -633,8 +684,12 @@ export function generateAllScopeNames(results, store, electionStore) {
     const blockKey = `${scopeKey}_${chamberType}`
     const nameSeed = `${countryName}_${seed}-${scopeKey}-${chamberType}`
     const { names, rosterEntries, incumbencies } = generateScopeBlockNames(seatDetails, resultsValue.provinces, nameSeed, blockKey, incumbentRoster, naming, voterBlocs, isBaseline)
-    electionStore.representativeNames = { ...electionStore.representativeNames, ...names }
-    electionStore.representativeIncumbents = { ...electionStore.representativeIncumbents, ...incumbencies }
+    if (!allNames) {
+      allNames = { ...electionStore.representativeNames }
+      allIncumbencies = { ...electionStore.representativeIncumbents }
+    }
+    Object.assign(allNames, names)
+    Object.assign(allIncumbencies, incumbencies)
     Object.assign(newRoster, rosterEntries)
 
     // Track the chamber leader and how it changed from the previous election.
@@ -681,6 +736,10 @@ export function generateAllScopeNames(results, store, electionStore) {
     )
   })
 
+  if (allNames) {
+    electionStore.representativeNames = allNames
+    electionStore.representativeIncumbents = allIncumbencies
+  }
   electionStore.saveCurrentRoster(newRoster)
   electionStore.saveCurrentLeaders(newLeaders, newLeaderStatuses)
 }

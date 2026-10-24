@@ -29,7 +29,7 @@
 <script>
 import { computed, ref } from 'vue'
 import ProvinceChart from '../ProvinceChart.vue'
-import { PARTIES, formatShare } from '../../domain/elections'
+import { formatShare, partyIdsOf } from '../../domain/elections'
 
 const FEATURE_KEYS = [
   'urban_index', 'rural_index', 'industrial_index', 'agricultural_index',
@@ -53,11 +53,11 @@ export default {
   },
   setup(props) {
     const selectedFeature = ref('urban_index')
-    const selectedParty = ref(PARTIES[0])
+    const selectedParty = ref(partyIdsOf(props.partyMeta)[0])
     const featureKeys = FEATURE_KEYS
 
     const partiesWithVotes = computed(() =>
-      PARTIES.filter((p) =>
+      partyIdsOf(props.partyMeta).filter((p) =>
         props.counties.some((c) => (c.vote_shares?.[p] || 0) > 0.001)
       )
     )

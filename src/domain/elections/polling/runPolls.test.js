@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { PARTIES } from '../constants/parties'
 import { POLLSTERS, runPolls } from './runPolls'
 
 function seats(values) {
@@ -126,12 +125,33 @@ describe('runPolls', () => {
     const scopes = runPolls({ results: sampleResults(), baselineResults: sampleResults(), pollSeed: 'fixed-poll' })
 
     scopes.forEach((scope) => {
-      PARTIES.forEach((party) => {
+      Object.keys(scope.aggregate.voteShares).forEach((party) => {
         const values = scope.pollsters.map((pollster) => pollster.voteShares[party])
         const aggregate = scope.aggregate.voteShares[party]
         expect(aggregate).toBeGreaterThanOrEqual(Math.min(...values) - 0.00000001)
         expect(aggregate).toBeLessThanOrEqual(Math.max(...values) + 0.00000001)
       })
+    })
+  })
+
+  it('polls exactly the world\'s configured parties, including custom ones', () => {
+    const results = sampleResults()
+    results.config.partyList = ['yellow', 'orange', 'red', 'blue', 'white', 'purple', 'regional-independents']
+    const withIndependents = (unit) => {
+      unit.assembly.vote_shares = { ...unit.assembly.vote_shares, 'regional-independents': 0.06 }
+      unit.assembly.seats = { ...unit.assembly.seats, 'regional-independents': 0 }
+    }
+    withIndependents(results.national)
+    withIndependents(results.regions['Capital Region'])
+    withIndependents(results.provinces[0])
+
+    const scopes = runPolls({ results, baselineResults: results, pollSeed: 'fixed-poll' })
+
+    scopes.forEach((scope) => {
+      expect(Object.keys(scope.aggregate.voteShares)).toEqual(results.config.partyList)
+      expect(scope.aggregate.voteShares['regional-independents']).toBeGreaterThan(0)
+      expect(scope.aggregate.voteShares).not.toHaveProperty('green')
+      expect(shareTotal(scope.aggregate.voteShares)).toBeCloseTo(1, 8)
     })
   })
 })

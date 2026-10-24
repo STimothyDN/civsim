@@ -72,8 +72,27 @@ function rawProvinceFor(data, row) {
   return data?.provinces?.[row.index] || {}
 }
 
-function createProvinceInput(data, row) {
-  const raw = rawProvinceFor(data, row)
+function nationalCapitalContinentOf(data) {
+  return (data?.provinces || []).find(p => p.is_national_capital)?.continent ?? null
+}
+
+/**
+ * Empire-wide inputs every province's feature pass needs. Computing them once
+ * per simulation (instead of once per province) keeps the feature pass linear
+ * in province count; the reactive pipeline builds the same shape from plain
+ * snapshots so it can cache it independently of per-province edits.
+ */
+function buildFeatureContext(data) {
+  const calculations = data?.config?.calculations
+  return {
+    country: data?.country || {},
+    calculations,
+    nationalCapitalContinent: nationalCapitalContinentOf(data),
+    empireReligionTotals: buildEmpireReligionTotals(data, calculations),
+  }
+}
+
+function createProvinceInput(raw, row) {
   const provincialPopulation = Math.max(0, Math.round(num(row.provincialPopulation ?? raw.provincial_population)))
   const assemblypeople = Math.max(0, Math.round(num(row.assemblypeople ?? raw.assemblypeople)))
   const prelates = Math.max(0, Math.round(num(row.prelates ?? raw.prelates)))
@@ -277,12 +296,14 @@ function calculateProvincePrelatesCouncil(counties, config, priorControl = null)
   }
 }
 
-function buildProvinceFeatureUnit(data, row) {
-  const nationalCapitalContinent = (data?.provinces || []).find(p => p.is_national_capital)?.continent ?? null
-  const country = { ...(data?.country || {}), national_capital_continent: nationalCapitalContinent }
-  const provinceInput = createProvinceInput(data, row)
-  const calculations = data?.config?.calculations
-  const empireReligionTotals = buildEmpireReligionTotals(data, calculations)
+function buildProvinceFeatureUnit(data, row, context = buildFeatureContext(data)) {
+  return buildProvinceFeatureUnitFor(rawProvinceFor(data, row), row, context)
+}
+
+function buildProvinceFeatureUnitFor(raw, row, context) {
+  const { calculations, empireReligionTotals, nationalCapitalContinent } = context
+  const country = { ...(context.country || {}), national_capital_continent: nationalCapitalContinent }
+  const provinceInput = createProvinceInput(raw, row)
   const featureOptions = { provinceIndex: provinceInput.provinceIndex, empireReligionTotals, calculations }
   const baseFeatures = calculateProvinceBaseFeatures(provinceInput, country, featureOptions)
   const allocatedCounties = allocateCountyPopulations(provinceInput, provinceInput.provincial_population)
@@ -345,14 +366,14 @@ function adjacentProvinceUnitsFromCache(province = {}, featureUnitsByName = new 
     .filter(Boolean)
 }
 
-function buildFeatureUnitsByName(data, rows) {
+function buildFeatureUnitsByName(data, rows, context = buildFeatureContext(data)) {
   const map = new Map()
   rows.forEach((row) => {
     const raw = rawProvinceFor(data, row)
     const name = row?.name || raw?.name
     const key = provinceNameKey(name)
     if (!key) return
-    map.set(key, buildProvinceFeatureUnit(data, row))
+    map.set(key, buildProvinceFeatureUnitFor(raw, row, context))
   })
   return map
 }
@@ -365,17 +386,27 @@ function federalistUpperSeatsForProvince(province, config) {
   return Math.max(0, Math.round(num(upper.seatsPerProvince, 2)))
 }
 
-function buildProvinceResult(data, row, config, featureUnitsByName = null) {
+function buildProvinceResult(data, row, config, featureUnitsByName = null, context = null) {
   const raw = rawProvinceFor(data, row)
   const ownKey = provinceNameKey(row?.name || raw?.name)
   const cachedUnit = featureUnitsByName ? featureUnitsByName.get(ownKey) : null
-  const { province: provinceBase, counties: preliminaryCountyUnits } = cachedUnit || buildProvinceFeatureUnit(data, row)
+  const resolvedContext = context
+    || (cachedUnit ? { nationalCapitalContinent: nationalCapitalContinentOf(data) } : buildFeatureContext(data))
+  return buildProvinceResultFor(raw, row, config, featureUnitsByName, resolvedContext)
+}
+
+// `context` needs `nationalCapitalContinent`, plus the full feature context
+// when no cached feature unit exists for this province.
+function buildProvinceResultFor(raw, row, config, featureUnitsByName, context) {
+  const ownKey = provinceNameKey(row?.name || raw?.name)
+  const cachedUnit = featureUnitsByName ? featureUnitsByName.get(ownKey) : null
+  const { province: provinceBase, counties: preliminaryCountyUnits } = cachedUnit || buildProvinceFeatureUnitFor(raw, row, context)
   const unitsByName = featureUnitsByName || new Map([[ownKey, { province: provinceBase, counties: preliminaryCountyUnits }]])
   const province = {
     ...provinceBase,
     adjacent_provinces: adjacentProvinceUnitsFromCache(provinceBase, unitsByName),
   }
-  const nationalCapitalContinent = (data?.provinces || []).find(p => p.is_national_capital)?.continent ?? null
+  const nationalCapitalContinent = context.nationalCapitalContinent ?? null
   const isCrossContinental = !!nationalCapitalContinent && !!province.continent && province.continent !== nationalCapitalContinent
   const provinceConfig = isCrossContinental ? {
     ...config,
@@ -635,9 +666,12 @@ function validateResults(provinces, national) {
 // every keystroke.
 export {
   mergeConfig,
+  buildFeatureContext,
   buildProvinceFeatureUnit,
+  buildProvinceFeatureUnitFor,
   buildFeatureUnitsByName,
   buildProvinceResult,
+  buildProvinceResultFor,
   aggregateRegions,
   addRegionControls,
   calculateNational,
@@ -672,8 +706,9 @@ export function simulateElection({ data, provinceRows = [], electionConfig = {} 
   const config = buildElectionConfig(data, electionConfig)
   const { partyMeta, partyList, coalitionPartners } = config
   const rows = Array.isArray(provinceRows) ? provinceRows : []
-  const featureUnitsByName = buildFeatureUnitsByName(data || {}, rows)
-  const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, featureUnitsByName))
+  const featureContext = buildFeatureContext(data || {})
+  const featureUnitsByName = buildFeatureUnitsByName(data || {}, rows, featureContext)
+  const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, featureUnitsByName, featureContext))
   const regions = config.structure?.hasRegionTier
     ? addRegionControls(aggregateRegions(provinces, partyList), config.trends, config.partyNames, coalitionPartners)
     : {}

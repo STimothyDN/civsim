@@ -127,7 +127,7 @@ export default {
     compact: { type: Boolean, default: false },
   },
   setup(props) {
-    const { lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
+    const { lowerHouseLeaderTitle, upperHouseLeaderTitle, memberTitle } = useChamberLabels()
     const electionStore = useElectionStore()
     const expandedCaucuses = ref(new Set())
 
@@ -261,10 +261,9 @@ export default {
 
       // Regular representative
       if (customName) {
-        const role = type === 'prelates' ? 'Prelate' : 'Assemblyperson'
-        return `${role} ${customName}`
+        return `${memberTitle(type)} ${customName}`
       }
-      return type === 'prelates' ? 'Prelate' : 'Assemblyperson'
+      return memberTitle(type)
     }
 
     return {

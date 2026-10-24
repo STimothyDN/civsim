@@ -5,6 +5,8 @@ import {
   upperHouseName as baseUpperHouseName,
   lowerHouseLeaderTitle as baseLowerHouseLeaderTitle,
   upperHouseLeaderTitle as baseUpperHouseLeaderTitle,
+  lowerHouseMemberTitle as baseLowerHouseMemberTitle,
+  upperHouseMemberTitle as baseUpperHouseMemberTitle,
 } from '../domain/elections/chambers/names'
 
 /**
@@ -21,5 +23,11 @@ export function useChamberLabels() {
     upperHouseName: (level, placeName = '') => baseUpperHouseName(level, placeName, chambers.value),
     lowerHouseLeaderTitle: (level) => baseLowerHouseLeaderTitle(level, chambers.value),
     upperHouseLeaderTitle: (level) => baseUpperHouseLeaderTitle(level, chambers.value),
+    lowerHouseMemberTitle: (plural = false) => baseLowerHouseMemberTitle(plural, chambers.value),
+    upperHouseMemberTitle: (plural = false) => baseUpperHouseMemberTitle(plural, chambers.value),
+    // Member title by engine chamber key ('assembly' = lower, 'prelates' = upper).
+    memberTitle: (chamberType, plural = false) => (chamberType === 'prelates'
+      ? baseUpperHouseMemberTitle(plural, chambers.value)
+      : baseLowerHouseMemberTitle(plural, chambers.value)),
   }
 }

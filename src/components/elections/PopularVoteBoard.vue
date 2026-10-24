@@ -56,7 +56,7 @@
 
 <script>
 import { computed } from 'vue'
-import { PARTIES, formatShare } from '../../domain/elections'
+import { formatShare, partyIdsOf } from '../../domain/elections'
 import { formatCompactNumber, formatNumber } from '../../domain/formatting'
 import { useFormStore } from '../../stores/formStore'
 import PartyBadge from './PartyBadge.vue'
@@ -73,9 +73,12 @@ export default {
   },
   setup(props) {
     const store = useFormStore()
-    const sortedRows = computed(() => [...props.rows].sort((a, b) => {
-      return Number(b.voteCount || 0) - Number(a.voteCount || 0) || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party)
-    }))
+    const sortedRows = computed(() => {
+      const parties = partyIdsOf(store.partyMeta)
+      return [...props.rows].sort((a, b) => (
+        Number(b.voteCount || 0) - Number(a.voteCount || 0) || parties.indexOf(a.party) - parties.indexOf(b.party)
+      ))
+    })
     const maxVote = computed(() => Math.max(1, ...sortedRows.value.map((row) => Number(row.voteCount || 0))))
 
     function partyColor(party) {

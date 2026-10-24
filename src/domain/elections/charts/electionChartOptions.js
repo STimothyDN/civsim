@@ -1,4 +1,4 @@
-import { PARTIES, PARTY_COLORS, PARTY_NAMES, PARTY_META } from '../constants/parties'
+import { PARTY_COLORS, PARTY_NAMES, PARTY_META, partyIdsOf } from '../constants/parties'
 import { num } from '../normalization/numbers'
 
 const TEXT_COLOR = '#e8e6e1'
@@ -19,7 +19,7 @@ function metaAbbreviation(party, partyMeta = PARTY_META) {
 }
 
 function partyColors(partyMeta = PARTY_META) {
-  return PARTIES.map((party) => metaColor(party, partyMeta))
+  return partyIdsOf(partyMeta).map((party) => metaColor(party, partyMeta))
 }
 
 function emptyOption(text) {
@@ -35,7 +35,8 @@ function emptyOption(text) {
 }
 
 export function partySeatBarOption(seats = {}, title = 'Seats', partyMeta = PARTY_META) {
-  const values = PARTIES.map((party) => num(seats[party]))
+  const parties = partyIdsOf(partyMeta)
+  const values = parties.map((party) => num(seats[party]))
   if (!values.some(Boolean)) return emptyOption('No seats allocated')
 
   return {
@@ -46,7 +47,7 @@ export function partySeatBarOption(seats = {}, title = 'Seats', partyMeta = PART
     grid: { left: 42, right: 18, top: 32, bottom: 78, containLabel: true },
     xAxis: {
       type: 'category',
-      data: PARTIES.map((party) => metaAbbreviation(party, partyMeta)),
+      data: parties.map((party) => metaAbbreviation(party, partyMeta)),
       axisLabel: { color: AXIS_COLOR, rotate: 24 },
       axisTick: { show: false },
       axisLine: { lineStyle: { color: GRID_COLOR } },
@@ -62,7 +63,7 @@ export function partySeatBarOption(seats = {}, title = 'Seats', partyMeta = PART
         name: title,
         type: 'bar',
         barMaxWidth: 42,
-        data: PARTIES.map((party) => ({ value: num(seats[party]), itemStyle: { color: metaColor(party, partyMeta) } })),
+        data: parties.map((party) => ({ value: num(seats[party]), itemStyle: { color: metaColor(party, partyMeta) } })),
         itemStyle: { borderRadius: [3, 3, 0, 0] },
       },
     ],
@@ -98,7 +99,7 @@ export function regionalStackedSeatOption(regions = {}, chamber = 'assembly', pa
       axisLabel: { color: AXIS_COLOR },
       splitLine: { lineStyle: { color: GRID_COLOR } },
     },
-    series: PARTIES.map((party) => ({
+    series: partyIdsOf(partyMeta).map((party) => ({
       name: metaAbbreviation(party, partyMeta),
       type: 'bar',
       stack: chamber,

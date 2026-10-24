@@ -203,4 +203,39 @@ describe('formStore', () => {
     expect(store.currentData.country.basic_info.name).toBe('Khmer Empire')
     expect(store.activeWorldId).toBe(first)
   })
+
+  it('keeps county suggestion lists in sync with edits', () => {
+    const store = useFormStore()
+    const template = sampleTemplate()
+    template.provinces[0].counties = [{ name: 'Old Quarter', terrain: 'Plains' }]
+    store.loadTemplate(template, { silent: true })
+    expect(store.uniqueTerrains).toEqual(['Plains'])
+
+    // An unrelated edit used to leave the cached list untracked, so the next
+    // terrain edit never showed up in suggestions.
+    store.setValueAtPath('provinces[0].population', 11)
+    expect(store.uniqueTerrains).toEqual(['Plains'])
+    store.setValueAtPath('provinces[0].counties[0].terrain', 'Tundra')
+    expect(store.uniqueTerrains).toEqual(['Tundra'])
+  })
+
+  it('keeps provincial populations stable across world switches until re-surveyed', () => {
+    const store = useFormStore()
+    store.loadTemplate(sampleTemplate(), { silent: true })
+    const first = store.activeWorldId
+    const surveyed = store.provinceCalcs.map((calc) => calc.provincialPopulation)
+    expect(surveyed.every((value) => value > 0)).toBe(true)
+
+    store.addWorld({ country: { basic_info: { name: 'Mauryan Realm' } }, provinces: [] }, { silent: true })
+    store.switchWorld(first)
+    expect(store.provinceCalcs.map((calc) => calc.provincialPopulation)).toEqual(surveyed)
+
+    // Reloading the same world (e.g. re-importing its export) reproduces it too.
+    store.loadTemplate(sampleTemplate(), { silent: true })
+    expect(store.provinceCalcs.map((calc) => calc.provincialPopulation)).toEqual(surveyed)
+
+    store.recalculate()
+    expect(store.currentData.config.calculations.provincialPopulation.jitterSeed).toMatch(/^survey-/)
+    expect(store.provinceCalcs.map((calc) => calc.provincialPopulation)).not.toEqual(surveyed)
+  })
 })

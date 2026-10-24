@@ -232,7 +232,7 @@ import { computed, watch } from 'vue'
 import { BrainCircuit, GitCompare, Info, Radio, RefreshCcw } from 'lucide-vue-next'
 import { usePolls } from '../../composables/usePolls'
 import { useElectionResults } from '../../composables/useElectionResults'
-import { PARTIES, formatShare, determineHouseControl, winnerControlStyle, getStructure } from '../../domain/elections'
+import { formatShare, determineHouseControl, partyIdsOf, winnerControlStyle, getStructure } from '../../domain/elections'
 import { useChamberLabels } from '../../composables/useChamberLabels'
 import { generateSeatDetails } from '../../domain/elections/chambers/jurisdictionLabels'
 import { formatNumber } from '../../domain/formatting'
@@ -539,13 +539,16 @@ export default {
       return civStore.partyMeta[party]?.color || '#9b9a97'
     }
 
+    const parties = computed(() => partyIdsOf(civStore.partyMeta))
+
     function pollsterParties(pollster = {}) {
       const shares = pollster.voteShares || {}
       const seats = pollster.seats?.assembly || {}
-      return [...PARTIES].sort((a, b) => (
+      const order = parties.value
+      return [...order].sort((a, b) => (
         Number(shares[b] || 0) - Number(shares[a] || 0) ||
         Number(seats[b] || 0) - Number(seats[a] || 0) ||
-        PARTIES.indexOf(a) - PARTIES.indexOf(b)
+        order.indexOf(a) - order.indexOf(b)
       ))
     }
 
@@ -617,7 +620,7 @@ export default {
       houseEffectLabel,
       leaderSpreadLabel,
       lowerHouseLeaderTitle,
-      parties: PARTIES,
+      parties,
       partyColor,
       partyWinnerStyle: (party) => partyWinnerStyle(party, civStore.partyMeta),
       pollingStore,

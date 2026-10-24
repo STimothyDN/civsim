@@ -1,5 +1,5 @@
 import { DEFAULT_VOLATILITY } from './constants/apportionmentRules'
-import { PARTIES, PARTY_META, partyMetaFromConfig } from './constants/parties'
+import { PARTY_META, partyIdsOf, partyMetaFromConfig } from './constants/parties'
 import { DEFAULT_PARTIES } from './constants/defaultParties'
 import { RANDOM_TREND_TEMPLATES, generateTrendPackageFromSelections } from './trends/randomizeTrends'
 import { lowerHouseLeaderTitle, upperHouseLeaderTitle, lowerHouseName, upperHouseName } from './chambers/names'
@@ -22,6 +22,7 @@ const MAX_TOP_CONTEXT_VALUES = 6
 const CLIMATE_SUMMARY_TOKEN_BUDGETS = [480, 900, 1800]
 const NARRATIVE_PLAN_TOKEN_BUDGETS = [1700, 2400, 3600]
 const POLITICAL_WEIGHTS_TOKEN_BUDGETS = [2200, 3400]
+const VOTER_BLOCS_TOKEN_BUDGETS = [2000, 3200]
 const REPRESENTATIVE_NAMING_TOKEN_BUDGET = 2000
 const REPRESENTATIVE_NAMING_TOKEN_BUDGETS = [REPRESENTATIVE_NAMING_TOKEN_BUDGET, 3200]
 const BROADCAST_TOKEN_BUDGETS = [3500, 4800]
@@ -249,6 +250,13 @@ function slug(value, fallback = 'custom') {
 }
 
 function partyMetaForContext(source = null) {
+  // Prefer the canonical party arrays — template data carries config.parties,
+  // engine results carry config.partyDefs. Id-keyed meta maps go through the
+  // legacy-map path, which re-expands to the bundled defaults (so a world's
+  // own party names and set were replaced by the Khmer defaults in prompts).
+  const partyArray = [source?.config?.partyDefs, source?.config?.parties]
+    .find((list) => Array.isArray(list) && list.length)
+  if (partyArray) return partyMetaFromConfig(partyArray)
   return partyMetaFromConfig(
     source?.config?.partyMeta ||
     source?.parties ||
@@ -258,7 +266,7 @@ function partyMetaForContext(source = null) {
 }
 
 function partyLegend(partyMeta = PARTY_META) {
-  return PARTIES.map((id) => {
+  return partyIdsOf(partyMeta).map((id) => {
     const meta = partyMeta[id] || PARTY_META[id]
     const aliases = uniqueList([
       id,
@@ -846,7 +854,7 @@ function pollBreakdownSystemPrompt() {
 function pollingVotePctMap(values = {}) {
   const rawValues = Object.values(values || {}).map((value) => numberOrNull(value)).filter((value) => value !== null)
   const alreadyPct = rawValues.some((value) => value > 1)
-  return compactObject(Object.fromEntries(PARTIES.map((party) => {
+  return compactObject(Object.fromEntries(partyIdsOf(values).map((party) => {
     const value = numberOrNull(values?.[party])
     if (value === null) return [party, undefined]
     return [party, roundNumber(alreadyPct ? value : value * 100, 1)]
@@ -922,13 +930,14 @@ function pollingSeatContext(projectedSeats = null) {
 
 function strongestPollingSwing(voteSharesPct = {}, baselineVoteShares = {}, partyMeta = PARTY_META) {
   if (!baselineVoteShares || Object.keys(baselineVoteShares).length === 0) return null
-  const strongest = PARTIES
+  const parties = partyIdsOf(partyMeta)
+  const strongest = parties
     .map((party) => ({
       party,
       name: partyMeta[party]?.name || PARTY_META[party]?.name || party,
       points: roundNumber((numberOrNull(voteSharesPct?.[party]) ?? 0) - ((numberOrNull(baselineVoteShares?.[party]) ?? 0) * 100), 1),
     }))
-    .sort((a, b) => Math.abs(b.points) - Math.abs(a.points) || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party))[0]
+    .sort((a, b) => Math.abs(b.points) - Math.abs(a.points) || parties.indexOf(a.party) - parties.indexOf(b.party))[0]
 
   return strongest || null
 }
@@ -964,7 +973,7 @@ function pollAggregateContext(polling = null, baselineUnit = null, partyMeta = P
     }),
     priorElection: priorElectionPollingContext(baselineUnit, partyMeta),
     changeFromPriorElectionPct: baselineUnit?.assembly?.vote_shares ? getSwings(
-      Object.fromEntries(PARTIES.map((party) => [party, (numberOrNull(voteSharesPct?.[party]) ?? 0) / 100])),
+      Object.fromEntries(partyIdsOf(partyMeta).map((party) => [party, (numberOrNull(voteSharesPct?.[party]) ?? 0) / 100])),
       baselineUnit.assembly.vote_shares
     ) : undefined,
     strongestChangeFromPriorElection: strongestPollingSwing(voteSharesPct, baselineUnit?.assembly?.vote_shares, partyMeta),
@@ -1004,7 +1013,7 @@ function pollBreakdownPollingContext(polling = null, partyMeta = PARTY_META, bas
     ...pollingContext(polling),
     priorElection: priorElectionPollingContext(baselineUnit, partyMeta),
     changeFromPriorElectionPct: baselineUnit?.assembly?.vote_shares ? getSwings(
-      Object.fromEntries(PARTIES.map((party) => [party, (numberOrNull(voteSharesPct?.[party]) ?? 0) / 100])),
+      Object.fromEntries(partyIdsOf(partyMeta).map((party) => [party, (numberOrNull(voteSharesPct?.[party]) ?? 0) / 100])),
       baselineUnit.assembly.vote_shares
     ) : undefined,
     strongestChangeFromPriorElection: strongestPollingSwing(voteSharesPct, baselineUnit?.assembly?.vote_shares, partyMeta),
@@ -1029,7 +1038,7 @@ function sumSeats(seats = {}) {
 function seatMap(seats = {}) {
   return compactObject(
     Object.fromEntries(
-      PARTIES.map((party) => [party, integerOrNull(seats?.[party]) ?? 0])
+      partyIdsOf(seats).map((party) => [party, integerOrNull(seats?.[party]) ?? 0])
     )
   )
 }
@@ -1037,16 +1046,16 @@ function seatMap(seats = {}) {
 function voteShareMap(shares = {}) {
   return compactObject(
     Object.fromEntries(
-      PARTIES.map((party) => [party, roundNumber((numberOrNull(shares?.[party]) ?? 0) * 100, 1)])
+      partyIdsOf(shares).map((party) => [party, roundNumber((numberOrNull(shares?.[party]) ?? 0) * 100, 1)])
     )
   )
 }
 
 function topPartiesFromShares(shares = {}, max = 3, partyMeta = PARTY_META) {
-  return PARTIES
+  return partyIdsOf(partyMeta)
     .map((party) => ({
       party,
-      name: partyMeta[party]?.name || PARTY_META[party].name,
+      name: partyMeta[party]?.name || PARTY_META[party]?.name || party,
       votePct: roundNumber((numberOrNull(shares?.[party]) ?? 0) * 100, 1),
     }))
     .filter((row) => row.votePct > 0)
@@ -1199,10 +1208,11 @@ function controlMath(chamber = {}, partyMeta = PARTY_META) {
   const leaderSeats = integerOrNull(seats?.[leaderParty]) ?? 0
   const leaderName = partyMeta[leaderParty]?.name || PARTY_META[leaderParty]?.name || leaderParty
 
-  const runnerUpParty = PARTIES
+  const seatParties = partyIdsOf(seats)
+  const runnerUpParty = seatParties
     .filter((party) => party !== leaderParty)
     .map((party) => ({ party, seats: integerOrNull(seats?.[party]) ?? 0 }))
-    .sort((a, b) => b.seats - a.seats || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party))[0]
+    .sort((a, b) => b.seats - a.seats || seatParties.indexOf(a.party) - seatParties.indexOf(b.party))[0]
     ?.party || null
   const runnerUpSeats = runnerUpParty ? integerOrNull(seats?.[runnerUpParty]) ?? 0 : null
 
@@ -1628,20 +1638,22 @@ function unitForPollingScope(results = {}, polling = {}) {
 }
 
 function topPollingParties(voteSharesPct = {}, max = 2, partyMeta = PARTY_META) {
-  return PARTIES
+  const parties = partyIdsOf(voteSharesPct)
+  return parties
     .map((party) => ({
       party,
       name: partyMeta[party]?.name || PARTY_META[party]?.name || party,
       votePct: numberOrNull(voteSharesPct?.[party]) ?? 0,
     }))
-    .sort((a, b) => b.votePct - a.votePct || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party))
+    .sort((a, b) => b.votePct - a.votePct || parties.indexOf(a.party) - parties.indexOf(b.party))
     .slice(0, max)
 }
 
 function topPartyFromValues(values = {}) {
-  return [...PARTIES].sort((a, b) => (
+  const parties = partyIdsOf(values)
+  return [...parties].sort((a, b) => (
     (numberOrNull(values?.[b]) ?? 0) - (numberOrNull(values?.[a]) ?? 0) ||
-    PARTIES.indexOf(a) - PARTIES.indexOf(b)
+    parties.indexOf(a) - parties.indexOf(b)
   ))[0]
 }
 
@@ -1757,7 +1769,7 @@ function pollingVsResultContext(polling = null, resultChamber = null, partyMeta 
   const projectedSeats = aggregate.projectedSeats?.assembly || aggregate.seats?.assembly || aggregate.projectedSeats || null
   const resultSeats = resultChamber.seats || {}
 
-  const parties = PARTIES
+  const parties = [...new Set([...partyIdsOf(pollPct), ...Object.keys(resultPct || {})])]
     .map((party) => {
       const poll = numberOrNull(pollPct?.[party])
       const actual = numberOrNull(resultPct?.[party])
@@ -2698,7 +2710,7 @@ function customTrendGrammar(partyMeta = PARTY_META) {
       effectLevels: CUSTOM_EFFECT_LEVELS,
       maxMagnitudeByLevel: CUSTOM_MAGNITUDE_LIMITS,
     },
-    allowedPartyIds: PARTIES.map((id) => (partyMeta[id] || PARTY_META[id]).abbreviation ? id : id),
+    allowedPartyIds: partyIdsOf(partyMeta),
     allowedModes: CUSTOM_MODES,
     allowedSelectorShortcuts: SELECTOR_SHORTCUTS,
     allowedFeatureNames: FEATURE_ALLOWLIST,
@@ -2708,10 +2720,11 @@ function customTrendGrammar(partyMeta = PARTY_META) {
 
 function partyIdFromValue(value, partyMeta = PARTY_META) {
   const text = String(value || '').trim()
-  if (Object.prototype.hasOwnProperty.call(PARTY_META, text)) return text
+  const parties = partyIdsOf(partyMeta)
+  if (parties.includes(text)) return text
 
   const normalized = normalizedKey(text)
-  const match = PARTIES.map((id) => [id, partyMeta[id] || PARTY_META[id]]).find(([id, meta]) => (
+  const match = parties.map((id) => [id, partyMeta[id] || PARTY_META[id] || {}]).find(([id, meta]) => (
     normalizedKey(id) === normalized || normalizedKey(meta.name) === normalized
   ))
 
@@ -4306,5 +4319,470 @@ export async function requestPoliticalModelWeights({
     summary,
     plan,
     model: compiledModel,
+  }
+}
+
+function buildEmpireVoterBlocContext(data = {}) {
+  const provinces = Array.isArray(data?.provinces) ? data.provinces : []
+  const stateReligion = String(data?.country?.state_religion || '').trim() || null
+
+  // 1. Origin countries present in provinces
+  const originsMap = new Map()
+  for (const province of provinces) {
+    const origin = String(province?.original_country || '').trim()
+    if (!origin) continue
+    if (!originsMap.has(origin)) {
+      originsMap.set(origin, {
+        originalCountry: origin,
+        provinceCount: 0,
+        conqueredCount: 0,
+        sampleProvinces: [],
+      })
+    }
+    const entry = originsMap.get(origin)
+    entry.provinceCount += 1
+    if (province?.is_conquered) entry.conqueredCount += 1
+    if (province?.name && entry.sampleProvinces.length < 4) {
+      entry.sampleProvinces.push(province.name)
+    }
+  }
+  const availableOriginCountries = [...originsMap.values()]
+    .sort((a, b) => b.provinceCount - a.provinceCount || a.originalCountry.localeCompare(b.originalCountry))
+
+  // 2. Religions present in global_religions, state_religion, and province.religions
+  const religionsMap = new Map()
+  const ensureReligion = (rawName) => {
+    const name = String(rawName || '').trim()
+    if (!name) return null
+    if (!religionsMap.has(name)) {
+      religionsMap.set(name, {
+        name,
+        isStateReligion: Boolean(stateReligion && name.toLowerCase() === stateReligion.toLowerCase()),
+        provinceCount: 0,
+        totalFollowers: 0,
+        topProvinces: [],
+      })
+    }
+    return religionsMap.get(name)
+  }
+
+  if (stateReligion) ensureReligion(stateReligion)
+  for (const rel of data?.global_religions || []) {
+    ensureReligion(typeof rel === 'object' ? rel?.name : rel)
+  }
+  for (const province of provinces) {
+    for (const rel of province?.religions || []) {
+      const entry = ensureReligion(rel?.name)
+      if (!entry) continue
+      const followers = numberOrNull(rel?.followers) ?? 0
+      if (followers > 0) {
+        entry.provinceCount += 1
+        entry.totalFollowers += followers
+        if (province?.name && entry.topProvinces.length < 4) {
+          entry.topProvinces.push(province.name)
+        }
+      }
+    }
+  }
+  const availableReligions = [...religionsMap.values()]
+    .sort((a, b) => b.totalFollowers - a.totalFollowers || b.provinceCount - a.provinceCount || a.name.localeCompare(b.name))
+
+  // 3. Naming cultures configured in data.config.naming.cultures
+  const rawCultures = Array.isArray(data?.config?.naming?.cultures) ? data.config.naming.cultures : []
+  const availableNamingCultures = rawCultures.map((culture) => compactObject({
+    id: culture?.id,
+    label: culture?.label,
+    selector: culture?.selector || undefined,
+    parties: Array.isArray(culture?.parties) && culture.parties.length ? culture.parties : undefined,
+  }))
+
+  return {
+    availableOriginCountries,
+    availableProvinceGroups: provinceGroupSummaries(data),
+    availableReligions,
+    availableNamingCultures,
+    currentVoterBlocs: voterBlocSummariesForWeights(data),
+  }
+}
+
+function resolvePartyIdForBloc(rawParty, parties = []) {
+  const norm = normalizedKey(rawParty)
+  if (!norm) return parties[0]?.id || 'yellow'
+
+  for (const party of parties) {
+    const aliases = [
+      party.id,
+      party.name,
+      party.abbreviation,
+      party.colorName,
+      party.colorName ? `${party.colorName} Party` : '',
+    ]
+      .filter(Boolean)
+      .map(normalizedKey)
+    if (aliases.includes(norm)) return party.id
+  }
+
+  return parties[0]?.id || 'yellow'
+}
+
+function resolveCultureIdForBloc(rawCulture, cultures = []) {
+  const norm = normalizedKey(rawCulture)
+  if (!norm || norm === 'none' || norm === 'null') return null
+
+  const match = cultures.find((c) => (
+    normalizedKey(c?.id) === norm ||
+    normalizedKey(c?.label) === norm
+  ))
+  return match ? String(match.id) : null
+}
+
+function normalizeMatchStringList(rawValues) {
+  if (Array.isArray(rawValues)) {
+    return rawValues
+      .flatMap((v) => String(v || '').split(','))
+      .map((v) => v.trim())
+      .filter(Boolean)
+  }
+  if (typeof rawValues === 'string') {
+    return rawValues
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
+function extractNestedSelectorTerms(selector = {}, field) {
+  if (!selector || typeof selector !== 'object') return []
+  const direct = normalizeMatchStringList(selector[field])
+  if (direct.length) return direct
+
+  for (const key of ['any', 'all']) {
+    if (Array.isArray(selector[key])) {
+      const collected = selector[key].flatMap((child) => extractNestedSelectorTerms(child, field))
+      if (collected.length) return collected
+    }
+  }
+  return []
+}
+
+export function compileNarrativeVoterBlocs(plan, data = {}, parties = data?.config?.parties || DEFAULT_PARTIES) {
+  const partyList = Array.isArray(parties) && parties.length ? parties : DEFAULT_PARTIES
+  const cultures = Array.isArray(data?.config?.naming?.cultures) ? data.config.naming.cultures : []
+  const blocContext = buildEmpireVoterBlocContext(data)
+  const knownReligionNames = blocContext.availableReligions.map((r) => r.name)
+
+  let rawBlocs = pickField(plan, ['voterBlocs', 'blocs', 'voter_blocs', 'rules', 'items'])
+  if (rawBlocs && typeof rawBlocs === 'object' && !Array.isArray(rawBlocs)) {
+    rawBlocs = Object.entries(rawBlocs).map(([id, value]) => (
+      value && typeof value === 'object' ? { id, ...value } : null
+    )).filter(Boolean)
+  }
+  if (!Array.isArray(rawBlocs)) return []
+
+  const usedIds = new Set()
+  const compiled = []
+
+  rawBlocs.slice(0, 12).forEach((rawBloc, index) => {
+    if (!rawBloc || typeof rawBloc !== 'object') return
+
+    const partyId = resolvePartyIdForBloc(
+      rawBloc.party || rawBloc.partyId || rawBloc.targetParty,
+      partyList,
+    )
+    const partyObj = partyList.find((p) => p.id === partyId) || partyList[0] || { id: partyId, name: partyId }
+    const cultureId = resolveCultureIdForBloc(
+      rawBloc.cultureId ?? rawBloc.culture ?? rawBloc.namingCulture,
+      cultures,
+    )
+
+    const rawMatchBy = normalizedKey(rawBloc.matchBy || rawBloc.match_by || rawBloc.kind || rawBloc.type || '')
+    const rawSelector = rawBloc.source?.selector || rawBloc.selector || {}
+    // An explicit matchBy is authoritative. Small local models tend to fill
+    // every field from requiredOutputFormat (e.g. echoing the `religion`
+    // placeholder on an originalCountry bloc), which must not hijack the rule.
+    const matchKind = rawMatchBy === 'religion'
+      ? 'religion'
+      : ['group', 'provincegroup', 'region'].includes(rawMatchBy)
+        ? 'group'
+        : ['originalcountry', 'origincountry', 'origin'].includes(rawMatchBy)
+          ? 'origin'
+          : null
+
+    const rawReligion = matchKind && matchKind !== 'religion' ? '' : String(
+      rawBloc.religion ||
+      rawBloc.source?.religion ||
+      (matchKind === 'religion'
+        ? (Array.isArray(rawBloc.matchValues) ? rawBloc.matchValues[0] : (rawBloc.matchValues || rawBloc.contains || ''))
+        : ''),
+    ).trim()
+
+    const groupTerms = matchKind && matchKind !== 'group' ? [] : uniqueList([
+      ...normalizeMatchStringList(rawBloc.groupIncludes),
+      ...extractNestedSelectorTerms(rawSelector, 'groupIncludes'),
+      ...(matchKind === 'group'
+        ? normalizeMatchStringList(rawBloc.matchValues ?? rawBloc.contains ?? rawBloc.values)
+        : []),
+    ])
+
+    const originTerms = matchKind && matchKind !== 'origin' ? [] : uniqueList([
+      ...normalizeMatchStringList(rawBloc.originalCountryIncludes ?? rawBloc.originCountryIncludes),
+      ...extractNestedSelectorTerms(rawSelector, 'originalCountryIncludes'),
+      ...(matchKind === 'origin' || (!rawReligion && !groupTerms.length)
+        ? normalizeMatchStringList(rawBloc.matchValues ?? rawBloc.contains ?? rawBloc.values)
+        : []),
+    ])
+
+    let source = null
+    if (rawReligion) {
+      const matchedReligion = knownReligionNames.find(
+        (name) => name.toLowerCase() === rawReligion.toLowerCase(),
+      ) || rawReligion
+      source = { religion: matchedReligion }
+    } else if (groupTerms.length) {
+      source = { selector: { groupIncludes: groupTerms } }
+    } else if (originTerms.length) {
+      source = { selector: { originalCountryIncludes: originTerms } }
+    }
+
+    if (!source) return
+
+    const rawStrength = rawBloc.strength
+    let strength
+    if (typeof rawStrength === 'number' || typeof rawStrength === 'string') {
+      const val = roundNumber(clampNumber(rawStrength, 0, 1, 0.15), 3) ?? 0.15
+      strength = { county: val, province: val, national: val }
+    } else if (rawStrength && typeof rawStrength === 'object') {
+      strength = {
+        county: roundNumber(clampNumber(rawStrength.county ?? rawStrength.province ?? 0.15, 0, 1, 0.15), 3) ?? 0.15,
+        province: roundNumber(clampNumber(rawStrength.province ?? rawStrength.county ?? 0.15, 0, 1, 0.15), 3) ?? 0.15,
+        national: roundNumber(clampNumber(rawStrength.national ?? 0.12, 0, 1, 0.12), 3) ?? 0.12,
+      }
+    } else {
+      strength = { county: 0.15, province: 0.15, national: 0.12 }
+    }
+
+    if (strength.county === 0 && strength.province === 0 && strength.national === 0) {
+      strength = { county: 0.15, province: 0.15, national: 0.12 }
+    }
+
+    const label = cleanScenarioText(
+      rawBloc.label || rawBloc.name || `${partyObj.name} Voter Bloc`,
+      `${partyObj.name} Voter Bloc`,
+      MAX_SCENARIO_NAME,
+    )
+
+    let id = slug(rawBloc.id || label, `bloc-${index + 1}`).replace(/-/g, '_')
+    let suffix = 2
+    const baseId = id
+    while (usedIds.has(id)) {
+      id = `${baseId}_${suffix}`
+      suffix += 1
+    }
+    usedIds.add(id)
+
+    const rationale = String(rawBloc.rationale || rawBloc.reason || rawBloc.description || '').trim()
+
+    compiled.push({
+      id,
+      label,
+      party: partyId,
+      cultureId,
+      source,
+      strength,
+      ...(rationale ? { rationale } : {}),
+    })
+  })
+
+  return compiled
+}
+
+function voterBlocsSystemPrompt() {
+  return [
+    'You are the electoral demographer for a Civilization-style political simulator.',
+    'Your job is to translate a user narrative and the empire’s actual origin countries, province groups, religions, naming cultures, and parties into targeted Voter Blocs.',
+    'YOUR ENTIRE RESPONSE MUST BE A SINGLE RAW JSON OBJECT — nothing before the opening { and nothing after the closing }.',
+    'Do not include markdown, code fences, commentary, tool calls, or <think> blocks.',
+    'Each Voter Bloc targets a constituency using one of three match rules (matchBy):',
+    '1. "originalCountry": provinces whose original_country contains any substring in matchValues (e.g., ["American", "United States"] or ["Roman"]).',
+    '2. "group": provinces whose province group/region contains any substring in matchValues (e.g., ["Capital Region", "Frontier"]).',
+    '3. "religion": graded by that religion’s follower share in each province (e.g., religion: "Taoism").',
+    'Strength values per scope ({ county, province, national }) typically range from 0.05 to 0.35 for originalCountry/group blocs, and 0.15 to 0.70 for religion blocs (since religion strength is multiplied by the religion’s share of the province).',
+    'When a bloc aligns with one of AVAILABLE_NAMING_CULTURES, set cultureId to that culture’s id; otherwise set cultureId to null.',
+  ].join(' ')
+}
+
+function voterBlocsUserPrompt(narrative, data, parties = []) {
+  const partyList = (Array.isArray(parties) && parties.length ? parties : DEFAULT_PARTIES).map((party) => compactObject({
+    id: party.id,
+    name: party.name,
+    abbreviation: party.abbreviation,
+    colorName: party.colorName,
+    tier: party.tier || 'major',
+    ideology: party.ideology || null,
+  }))
+
+  const blocContext = buildEmpireVoterBlocContext(data || {})
+
+  return JSON.stringify({
+    task: 'Generate 2 to 8 targeted voterBlocs that match USER_NARRATIVE and CURRENT_WORLD (using real origin countries, province groups, religions, naming cultures, and parties from the supplied context).',
+    USER_NARRATIVE: narrative,
+    CURRENT_WORLD: worldContext(data || {}),
+    DEMOGRAPHIC_BLOC_OPTIONS: {
+      availableOriginCountries: blocContext.availableOriginCountries,
+      availableProvinceGroups: blocContext.availableProvinceGroups,
+      availableReligions: blocContext.availableReligions,
+      availableNamingCultures: blocContext.availableNamingCultures,
+      currentVoterBlocs: blocContext.currentVoterBlocs,
+    },
+    PARTIES: partyList,
+    rules: [
+      'Return a single JSON object with top-level keys: title, summary, voterBlocs.',
+      'voterBlocs must be an array of 2 to 8 bloc objects.',
+      `Each bloc's party field MUST be a valid party id from PARTIES (${partyList.map((p) => p.id).join(', ')}).`,
+      'Each bloc must specify matchBy as one of: "originalCountry", "group", or "religion".',
+      'If matchBy is "originalCountry" or "group", provide matchValues as a non-empty array of substring strings drawn from DEMOGRAPHIC_BLOC_OPTIONS.',
+      'If matchBy is "religion", provide religion as the exact religion name string from DEMOGRAPHIC_BLOC_OPTIONS.availableReligions.',
+      'Provide strength as { county, province, national } with numbers between 0 and 0.8.',
+      'Provide rationale as one short sentence explaining how this bloc reflects the narrative.',
+      'STOP immediately after the closing brace of the top-level JSON object.',
+    ],
+    requiredOutputFormat: {
+      title: 'short descriptive name for this voter bloc configuration',
+      summary: 'one sentence explaining how the generated voter blocs reflect the narrative and empire demographics',
+      voterBlocs: [
+        {
+          id: 'snake_case_id',
+          label: 'Human-readable bloc label',
+          party: 'party id from PARTIES',
+          cultureId: 'optional id from availableNamingCultures or null',
+          matchBy: 'originalCountry | group | religion',
+          matchValues: ['substring1', 'substring2'],
+          religion: 'Religion name when matchBy is religion',
+          strength: { county: 0.2, province: 0.2, national: 0.18 },
+          rationale: 'one short sentence explaining this voter bloc',
+        },
+      ],
+    },
+    exampleOutput: {
+      title: 'Autonomous Borderlands & Temple Minorities',
+      summary: 'American home-rule provinces rally behind Solidarity Americana while Taoist and Roman communities anchor the Lotus Restorationists.',
+      voterBlocs: [
+        {
+          id: 'american_home_rule',
+          label: 'American home-rule provinces',
+          party: 'white',
+          cultureId: 'american',
+          matchBy: 'originalCountry',
+          matchValues: ['American', 'United States'],
+          strength: { county: 0.22, province: 0.2, national: 0.25 },
+          rationale: 'Former American provinces vote as a cohesive autonomy bloc for Solidarity Americana.',
+        },
+        {
+          id: 'taoist_minority',
+          label: 'Taoist religious minority',
+          party: 'purple',
+          cultureId: null,
+          matchBy: 'religion',
+          religion: 'Taoism',
+          strength: { county: 0.55, province: 0.65, national: 0.22 },
+          rationale: 'Taoist congregations organize across provinces for the Lotus Restorationists.',
+        },
+      ],
+    },
+  })
+}
+
+export async function requestNarrativeVoterBlocs({
+  narrative,
+  data,
+  parties = data?.config?.parties || DEFAULT_PARTIES,
+  endpoint = import.meta.env.VITE_LMSTUDIO_ENDPOINT || DEFAULT_ENDPOINT,
+  model = import.meta.env.VITE_LMSTUDIO_MODEL || DEFAULT_MODEL,
+  onStatus,
+} = {}) {
+  const partyList = Array.isArray(parties) && parties.length ? parties : DEFAULT_PARTIES
+
+  emitLlmStatus(onStatus, {
+    phase: 'preparing',
+    progress: 0.08,
+    message: 'Surveying empire demographics and constituencies.',
+    detail: `Scanning ${data?.provinces?.length || 0} provinces for origin countries, regional groups, religions, and naming cultures.`,
+  })
+
+  const messages = [
+    { role: 'system', content: voterBlocsSystemPrompt() },
+    { role: 'user', content: voterBlocsUserPrompt(narrative, data, partyList) },
+  ]
+
+  let lastError = null
+  let plan = null
+  let compiledBlocs = []
+
+  for (const max_tokens of VOTER_BLOCS_TOKEN_BUDGETS) {
+    try {
+      const content = await requestChatCompletion({
+        endpoint,
+        model,
+        temperature: 0.35,
+        max_tokens,
+        messages,
+        onStatus,
+      })
+
+      emitLlmStatus(onStatus, {
+        phase: 'parsing',
+        progress: 0.84,
+        message: 'Parsing narrative voter blocs.',
+        detail: 'Extracting constituency rules, party links, and scope strengths.',
+      })
+
+      plan = extractJsonObject(stripThinkBlocks(content))
+
+      emitLlmStatus(onStatus, {
+        phase: 'compiling',
+        progress: 0.94,
+        message: 'Validating voter blocs against empire data.',
+        detail: 'Normalizing origin country, province group, and religion selectors.',
+      })
+
+      compiledBlocs = compileNarrativeVoterBlocs(plan, data, partyList)
+      if (!compiledBlocs.length) {
+        throw new ModelOutputError('The model did not return any usable voter blocs.', 'empty')
+      }
+      break
+    } catch (error) {
+      lastError = error
+      if (!RETRYABLE_JSON_ERROR_CODES.includes(error.code)) throw error
+    }
+  }
+
+  if (!compiledBlocs.length) {
+    throw lastError || new Error('Voter blocs could not be generated.')
+  }
+
+  const title = cleanScenarioText(
+    pickField(plan, ['title', 'name', 'blocTitle']),
+    'Narrative Voter Blocs',
+    MAX_SCENARIO_NAME,
+  )
+  const summary = cleanScenarioText(
+    pickField(plan, ['summary', 'description', 'overview']),
+    'Targeted voter blocs aligned with the narrative and empire demographics.',
+    MAX_SCENARIO_DESCRIPTION,
+  )
+
+  emitLlmStatus(onStatus, {
+    phase: 'complete',
+    progress: 1,
+    message: 'Narrative voter blocs ready.',
+    detail: `${compiledBlocs.length} voter bloc(s) configured.`,
+  })
+
+  return {
+    title,
+    summary,
+    plan,
+    voterBlocs: compiledBlocs,
   }
 }

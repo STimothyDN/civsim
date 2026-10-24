@@ -13,12 +13,16 @@ export const DEFAULT_CHAMBERS = {
     nationalName: 'Assembly of the Empire',
     regionalTemplate: 'Assembly of {place}',
     provincialTemplate: 'Assembly of {place}',
+    memberTitle: 'Assemblyperson',
+    memberTitlePlural: 'Assemblypeople',
     leaderTitles: { national: 'Prime Minister', regional: 'Premier', provincial: 'Governor' },
   },
   upper: {
     nationalName: 'Council of Prelates',
     regionalTemplate: 'Council of Prelates of {place}',
     provincialTemplate: 'Council of Prelates of {place}',
+    memberTitle: 'Prelate',
+    memberTitlePlural: 'Prelates',
     leaderTitles: { national: 'Principal Chancellor', regional: 'Head Chancellor', provincial: 'Chancellor' },
   },
 }

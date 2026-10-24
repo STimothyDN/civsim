@@ -15,7 +15,7 @@
 <script>
 import { computed } from 'vue'
 import ProvinceChart from '../ProvinceChart.vue'
-import { PARTIES, formatShare } from '../../domain/elections'
+import { formatShare, partyIdsOf } from '../../domain/elections'
 
 export default {
   name: 'VoteTrajectoryChart',
@@ -37,7 +37,7 @@ export default {
       }
       years.push('Current Preview')
 
-      const series = PARTIES
+      const series = partyIdsOf(props.partyMeta)
         .filter((p) => (props.currentShares[p] || 0) > 0.01)
         .map((party) => {
           const data = [Number(props.baselineShares[party] || 0) * 100]

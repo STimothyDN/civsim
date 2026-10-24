@@ -245,6 +245,84 @@
         <p>Targeted support: voters matching a rule (origin country, province group, or religion) lean toward a party. Replaces the old hardcoded identity voters.</p>
       </header>
 
+      <div class="generators">
+        <div class="generators__buttons">
+          <button
+            type="button"
+            class="btn-generate btn-generate--llm"
+            :class="{ 'btn-generate--active': narrativeBlocsOpen }"
+            :disabled="Boolean(generatingKey)"
+            @click="handleNarrativeBlocsButtonClick"
+          >
+            <Sparkles :size="14" />
+            {{ generatingKey === 'narrative-blocs' ? 'Generating Voter Blocs…' : 'AI Narrative Driven Voter Blocs' }}
+            <InfoTip :text="TIPS.genNarrativeBlocs" />
+          </button>
+        </div>
+        <p class="generators__note">Generates targeted voter blocs from your narrative combined with your empire's origin countries, province groups, religions, and naming cultures.</p>
+
+        <div v-if="narrativeBlocsOpen" class="narrative-weights-panel">
+          <label class="narrative-weights-field">
+            <span class="narrative-weights-field__label">
+              Describe the identity blocs, regional loyalties, religious constituencies, or conquered populations in your empire
+            </span>
+            <textarea
+              ref="narrativeBlocsInputRef"
+              v-model="narrativeBlocsPrompt"
+              rows="3"
+              :disabled="generatingKey === 'narrative-blocs'"
+              placeholder="Example: Former Maya and Inca provinces vote loyally for Pachacuti's People's Party, devout Solfollowers rally behind Divinus Sol, and the industrialized Heartland provinces back the United Workers Congress."
+              @keydown.enter.exact.prevent="generateNarrativeVoterBlocs"
+            ></textarea>
+          </label>
+          <div class="narrative-weights-actions">
+            <LlmStatusIndicator
+              v-if="generatingKey === 'narrative-blocs' && llmStatus"
+              :status="llmStatus"
+              title="AI Narrative Driven Voter Blocs"
+              variant="compact"
+            />
+            <div class="narrative-weights-buttons">
+              <button
+                type="button"
+                class="btn-generate"
+                :disabled="Boolean(generatingKey) || !narrativeBlocsPrompt.trim()"
+                @click="generateNarrativeVoterBlocs"
+              >
+                <Sparkles :size="14" />
+                {{ generatingKey === 'narrative-blocs' ? 'Synthesizing…' : 'Apply Narrative Voter Blocs' }}
+              </button>
+              <button
+                type="button"
+                class="btn-secondary-quiet"
+                :disabled="generatingKey === 'narrative-blocs'"
+                @click="narrativeBlocsOpen = false"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+          <div v-if="appliedNarrativeBlocs" class="narrative-weights-summary">
+            <div class="narrative-weights-summary__head">
+              <strong>{{ appliedNarrativeBlocs.title }}</strong>
+              <p>{{ appliedNarrativeBlocs.summary }}</p>
+            </div>
+            <div v-if="appliedNarrativeBlocs.rationales.length" class="narrative-weights-rationales">
+              <div
+                v-for="item in appliedNarrativeBlocs.rationales"
+                :key="item.id"
+                class="narrative-rationale-chip"
+                :style="{ '--party-color': item.color }"
+              >
+                <span class="narrative-rationale-chip__swatch" :style="{ background: item.color }"></span>
+                <strong>{{ item.label }} ({{ item.abbreviation }}):</strong>
+                <span>{{ item.rationale }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div v-for="(bloc, i) in voterBlocs" :key="i" class="bloc-card">
         <div class="bloc-row">
           <label>Label <InfoTip :text="TIPS.blocLabel" /><input :value="bloc.label" @input="setText(`config.voterBlocs[${i}].label`, $event)" /></label>
@@ -299,6 +377,8 @@
           <label>National name <InfoTip :text="TIPS.chamberNationalName" /><input :value="chambers.lower?.nationalName" @input="setText('config.chambers.lower.nationalName', $event)" /></label>
           <label>Regional template <InfoTip :text="TIPS.chamberTemplate" /><input :value="chambers.lower?.regionalTemplate" @input="setText('config.chambers.lower.regionalTemplate', $event)" /></label>
           <label>Provincial template <InfoTip :text="TIPS.chamberTemplate" /><input :value="chambers.lower?.provincialTemplate" @input="setText('config.chambers.lower.provincialTemplate', $event)" /></label>
+          <label>Member title <InfoTip :text="TIPS.memberTitle" /><input :value="chambers.lower?.memberTitle" @input="setText('config.chambers.lower.memberTitle', $event)" /></label>
+          <label>Member title (plural) <input :value="chambers.lower?.memberTitlePlural" @input="setText('config.chambers.lower.memberTitlePlural', $event)" /></label>
           <label>National leader title <InfoTip :text="TIPS.leaderTitle" /><input :value="chambers.lower?.leaderTitles?.national" @input="setText('config.chambers.lower.leaderTitles.national', $event)" /></label>
           <label>Regional leader title <input :value="chambers.lower?.leaderTitles?.regional" @input="setText('config.chambers.lower.leaderTitles.regional', $event)" /></label>
           <label>Provincial leader title <input :value="chambers.lower?.leaderTitles?.provincial" @input="setText('config.chambers.lower.leaderTitles.provincial', $event)" /></label>
@@ -308,6 +388,8 @@
           <label>National name <InfoTip :text="TIPS.chamberNationalName" /><input :value="chambers.upper?.nationalName" @input="setText('config.chambers.upper.nationalName', $event)" /></label>
           <label>Regional template <InfoTip :text="TIPS.chamberTemplate" /><input :value="chambers.upper?.regionalTemplate" @input="setText('config.chambers.upper.regionalTemplate', $event)" /></label>
           <label>Provincial template <InfoTip :text="TIPS.chamberTemplate" /><input :value="chambers.upper?.provincialTemplate" @input="setText('config.chambers.upper.provincialTemplate', $event)" /></label>
+          <label>Member title <InfoTip :text="TIPS.memberTitle" /><input :value="chambers.upper?.memberTitle" @input="setText('config.chambers.upper.memberTitle', $event)" /></label>
+          <label>Member title (plural) <input :value="chambers.upper?.memberTitlePlural" @input="setText('config.chambers.upper.memberTitlePlural', $event)" /></label>
           <label>National leader title <InfoTip :text="TIPS.leaderTitle" /><input :value="chambers.upper?.leaderTitles?.national" @input="setText('config.chambers.upper.leaderTitles.national', $event)" /></label>
           <label>Regional leader title <input :value="chambers.upper?.leaderTitles?.regional" @input="setText('config.chambers.upper.leaderTitles.regional', $event)" /></label>
           <label>Provincial leader title <input :value="chambers.upper?.leaderTitles?.provincial" @input="setText('config.chambers.upper.leaderTitles.provincial', $event)" /></label>
@@ -500,9 +582,9 @@ import { useCivilizationStore } from '../../stores/civilizationStore'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { FEATURE_GROUPS, featuresForScope } from '../../domain/elections/features/featureCatalog'
 import { generatePoliticalModel } from '../../domain/elections/weightGenerators'
-import { requestCultureNames, requestPoliticalModelWeights } from '../../domain/elections/narrativePlanner'
+import { requestCultureNames, requestNarrativeVoterBlocs, requestPoliticalModelWeights } from '../../domain/elections/narrativePlanner'
 import LlmStatusIndicator from '../elections/LlmStatusIndicator.vue'
-import { namingLlmStatus, weightsLlmStatus } from '../elections/llmStatusCopy'
+import { namingLlmStatus, voterBlocsLlmStatus, weightsLlmStatus } from '../elections/llmStatusCopy'
 import PowerBalanceStrip from '../elections/PowerBalanceStrip.vue'
 import StructureSettings from './StructureSettings.vue'
 import InfoTip from './InfoTip.vue'
@@ -528,6 +610,7 @@ const TIPS = {
   chamberNationalName: 'Name shown for this chamber at the national level.',
   chamberTemplate: 'Name for a region\'s or province\'s chamber. Use {place} where the region/province name should appear.',
   leaderTitle: 'Title given to the leader/head of this chamber at this level.',
+  memberTitle: 'What one seat-holder in this chamber is called (e.g. Assemblyperson, Prelate, Elder). Used across seat tooltips, rosters, and builder cards.',
   yearBase: 'The calendar year of the first (baseline) election.',
   yearIncrement: 'Number of years that pass between elections.',
   popScaling: 'Converts a province\'s raw Civ population into a simulated population used for seats and religion shares. Defaults reproduce the original curve.',
@@ -543,6 +626,7 @@ const TIPS = {
   genDataDriven: 'Pre-fills the matrix from the data\'s real cleavages: features that vary most across your provinces get the most weight, so the election mirrors the underlying data distribution.',
   genRandom: 'Pre-fills the matrix with sparse random weights within sane bounds — a quick way to get an unpredictable but playable starting point.',
   genNarrative: 'Uses your local LM Studio model to calibrate party base support and feature affinities across County, Province, and National scopes from a written narrative combined with your empire\'s data.',
+  genNarrativeBlocs: 'Uses your local LM Studio model to generate targeted voter blocs (matched by origin country, province group, or religion, with county/province/national strengths) from a written narrative combined with your empire\'s data.',
   tier: 'Major parties are meant for wide appeal; Minor parties are focused niche parties. The Balanced generator keeps minors smaller than majors.',
   homeCulture: 'The default culture your representatives are named from. Most reps use these names unless a minority/foreign culture applies.',
   givenNames: 'One given name per line. Male/female pools alternate by seat so chambers are mixed.',
@@ -571,6 +655,10 @@ export default {
     const narrativePrompt = ref('')
     const narrativeInputRef = ref(null)
     const appliedNarrativeModel = ref(null)
+    const narrativeBlocsOpen = ref(false)
+    const narrativeBlocsPrompt = ref('')
+    const narrativeBlocsInputRef = ref(null)
+    const appliedNarrativeBlocs = ref(null)
 
     const parties = computed(() => civStore.parties)
     const voterBlocs = computed(() => civStore.voterBlocs)
@@ -668,6 +756,75 @@ export default {
         store.showToast(`AI narrative weights applied: ${result.title}`, 'success')
       } catch (err) {
         store.showToast(`LM Studio weight generation failed: ${err?.message || err}`, 'error')
+      } finally {
+        generatingKey.value = null
+        llmStatus.value = null
+      }
+    }
+
+    async function handleNarrativeBlocsButtonClick() {
+      if (generatingKey.value) return
+      if (!narrativeBlocsOpen.value) {
+        narrativeBlocsOpen.value = true
+        await nextTick()
+        narrativeBlocsInputRef.value?.focus()
+        return
+      }
+      if (narrativeBlocsPrompt.value.trim()) {
+        await generateNarrativeVoterBlocs()
+      } else {
+        await nextTick()
+        narrativeBlocsInputRef.value?.focus()
+      }
+    }
+
+    async function generateNarrativeVoterBlocs() {
+      if (generatingKey.value) return
+      const prompt = narrativeBlocsPrompt.value.trim()
+      if (!prompt) {
+        store.showToast('Enter a narrative to generate voter blocs.', 'error')
+        return
+      }
+      const partyList = parties.value
+      if (!store.currentData || !partyList.length) return
+      if (!Array.isArray(store.currentData.provinces) || !store.currentData.provinces.length) {
+        store.showToast('Add province data first to generate voter blocs from it.', 'error')
+        return
+      }
+
+      generatingKey.value = 'narrative-blocs'
+      llmStatus.value = null
+      store.showToast('Generating narrative-driven voter blocs with LM Studio…', 'info')
+      try {
+        const result = await requestNarrativeVoterBlocs({
+          narrative: prompt,
+          data: store.currentData,
+          parties: partyList,
+          onStatus: (status) => {
+            llmStatus.value = voterBlocsLlmStatus(status)
+          },
+        })
+        store.applyVoterBlocs(result.voterBlocs)
+        const byId = new Map(partyList.map((p) => [p.id, p]))
+        appliedNarrativeBlocs.value = {
+          title: result.title,
+          summary: result.summary,
+          rationales: result.voterBlocs
+            .filter((bloc) => bloc.rationale)
+            .map((bloc) => {
+              const p = byId.get(bloc.party) || {}
+              return {
+                id: bloc.id,
+                label: bloc.label,
+                abbreviation: p.abbreviation || String(bloc.party || '').toUpperCase(),
+                color: p.color || '#818cf8',
+                rationale: bloc.rationale,
+              }
+            }),
+        }
+        store.showToast(`AI narrative voter blocs applied: ${result.title}`, 'success')
+      } catch (err) {
+        store.showToast(`LM Studio voter bloc generation failed: ${err?.message || err}`, 'error')
       } finally {
         generatingKey.value = null
         llmStatus.value = null
@@ -832,6 +989,8 @@ export default {
       generateNames, generatingKey, llmStatus,
       narrativeWeightsOpen, narrativePrompt, narrativeInputRef, appliedNarrativeModel,
       handleNarrativeWeightsButtonClick, generateNarrativeWeights,
+      narrativeBlocsOpen, narrativeBlocsPrompt, narrativeBlocsInputRef, appliedNarrativeBlocs,
+      handleNarrativeBlocsButtonClick, generateNarrativeVoterBlocs,
       featureTip, clampBias, applyWeights,
       TIPS, BIAS_MIN, BIAS_MAX, BIAS_TIP: 'The party\'s starting score before any feature weighting. Raise it to strengthen the party everywhere; lower it to weaken it. Slider covers the usual range; type any value in the box.',
     }

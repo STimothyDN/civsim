@@ -15,7 +15,7 @@
 <script>
 import { computed } from 'vue'
 import ProvinceChart from '../ProvinceChart.vue'
-import { PARTIES } from '../../domain/elections'
+import { partyIdsOf } from '../../domain/elections'
 
 export default {
   name: 'PartyCompositionDonut',
@@ -31,7 +31,7 @@ export default {
         counts[rep.party] = (counts[rep.party] || 0) + 1
       }
 
-      const data = PARTIES
+      const data = partyIdsOf(props.partyMeta)
         .filter((p) => counts[p] > 0)
         .map((p) => ({
           name: props.partyMeta[p]?.name || p,

@@ -40,14 +40,15 @@
 <script>
 import { computed } from 'vue'
 import PartyBadge from './PartyBadge.vue'
-import { PARTIES, formatShare } from '../../domain/elections'
+import { formatShare, partyIdsOf } from '../../domain/elections'
 import { formatCompactNumber } from '../../domain/formatting'
 import { topParty } from '../../domain/elections/viewHelpers'
 
 function buildProvData(prov, partyMeta, isCurrent) {
   const voteShares = prov.assembly?.vote_shares || prov.political_features || {}
-  const controlParty = topParty(voteShares)
-  const partyBars = PARTIES
+  const parties = partyIdsOf(partyMeta)
+  const controlParty = topParty(voteShares, parties)
+  const partyBars = parties
     .filter((p) => (voteShares[p] || 0) > 0.005)
     .map((p) => ({
       party: p,

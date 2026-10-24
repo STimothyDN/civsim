@@ -1,12 +1,12 @@
-import { PARTIES } from './constants/parties'
+import { partyIdsOf } from './constants/parties'
 import { winnerControlStyle } from './chambers/controlStyles'
 
 export function sumSeats(seats) {
   return Object.values(seats || {}).reduce((sum, value) => sum + Number(value || 0), 0)
 }
 
-export function topParty(values) {
-  return [...PARTIES].sort((a, b) => Number(values?.[b] || 0) - Number(values?.[a] || 0))[0]
+export function topParty(values, parties = partyIdsOf(values)) {
+  return [...parties].sort((a, b) => Number(values?.[b] || 0) - Number(values?.[a] || 0))[0]
 }
 
 export function popularVoteCount(population, shares, party) {

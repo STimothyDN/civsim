@@ -265,7 +265,7 @@ import { useElectionResults } from '../composables/useElectionResults'
 import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionFormatters } from '../composables/useElectionFormatters'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
-import { PARTIES, formatShare, trendHasMatchingEffect } from '../domain/elections'
+import { formatShare, partyIdsOf, trendHasMatchingEffect } from '../domain/elections'
 import { useChamberLabels } from '../composables/useChamberLabels'
 import { SEAT_OFFSETS } from '../domain/elections/constants/seatOffsets'
 import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
@@ -285,6 +285,7 @@ export default {
     const { lowerHouseName, upperHouseName, lowerHouseLeaderTitle, upperHouseLeaderTitle } = useChamberLabels()
     const selectedIndex = ref(0)
     const { baselineResults, previousElectionResults, electionStore, partyMeta, results, store } = useElectionResults()
+    const parties = computed(() => partyIdsOf(partyMeta.value))
     const {
       controlCardStyle,
       formatListWithOxfordComma,
@@ -364,7 +365,7 @@ export default {
       { key: 'assemblySeats', label: 'Assembly Seats' },
       { key: 'prelateSeats', label: 'Council Seats' },
     ]
-    const selectedPopularVoteRows = computed(() => PARTIES.map((party) => ({
+    const selectedPopularVoteRows = computed(() => parties.value.map((party) => ({
       party,
       voteShare: selectedProvince.value?.assembly?.vote_shares?.[party] || 0,
       voteCount: popularVoteCount(selectedProvince.value?.provincial_population, selectedProvince.value?.assembly?.vote_shares, party),
@@ -375,7 +376,7 @@ export default {
       ...county,
       name: county.name || county.tile_id || 'Unnamed county',
       topParty: topParty(county.vote_shares),
-      popularVotes: Object.fromEntries(PARTIES.map((party) => [
+      popularVotes: Object.fromEntries(parties.value.map((party) => [
         party,
         popularVoteCount(county.county_population, county.vote_shares, party),
       ])),
@@ -417,7 +418,7 @@ export default {
       formatSupportPartyWithColor,
       lowerHouseLeaderTitle,
       partyMeta,
-      parties: PARTIES,
+      parties,
       partyColumnLabel: (party) => partyMeta.value[party]?.abbreviation || partyMeta.value[party]?.colorLabel || party,
       partyStyle,
       provinceOptions,

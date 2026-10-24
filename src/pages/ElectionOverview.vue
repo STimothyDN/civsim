@@ -22,7 +22,7 @@
 
     <div class="election-data-grid">
       <ChamberComposition
-        title="Assembly of the Empire"
+        :title="lowerHouseName('national')"
         eyebrow="National Lower House"
         :seats="results.national.assembly.seats"
         :control="results.national.assembly.control"
@@ -32,7 +32,7 @@
         :jurisdiction-labels="overviewAssemblyJurisdictionLabels"
       />
       <ChamberComposition
-        title="Council of Prelates"
+        :title="upperHouseName('national')"
         eyebrow="National Upper House"
         :seats="results.national.prelates.seats"
         :control="results.national.prelates.control"
@@ -220,7 +220,7 @@ import { useElectionFormatters } from '../composables/useElectionFormatters'
 import { useElectionLeaders } from '../composables/useElectionLeaders'
 import { useElectionStore } from '../stores/electionStore'
 import { formatCompactNumber, formatNumber } from '../domain/formatting'
-import { PARTIES, formatShare } from '../domain/elections'
+import { formatShare, partyIdsOf } from '../domain/elections'
 import { useChamberLabels } from '../composables/useChamberLabels'
 import { SEAT_OFFSETS } from '../domain/elections/constants/seatOffsets'
 import { generateJurisdictionLabels, generateSeatDetails } from '../domain/elections/chambers/jurisdictionLabels'
@@ -228,12 +228,13 @@ import { regionalStackedSeatOption } from '../domain/elections/charts/electionCh
 import { orderRegionsByReference } from '../domain/elections/viewHelpers'
 
 function leaderFromShares(shares) {
-  return [...PARTIES].sort((a, b) => Number(shares?.[b] || 0) - Number(shares?.[a] || 0))[0]
+  return [...partyIdsOf(shares)].sort((a, b) => Number(shares?.[b] || 0) - Number(shares?.[a] || 0))[0]
 }
 
 function countControlLeaders(units, chamber, partyMeta) {
   const total = Math.max(1, units.length)
-  return PARTIES
+  const parties = partyIdsOf(partyMeta)
+  return parties
     .map((party) => {
       const count = units.filter((unit) => unit[chamber]?.control?.leaderParty === party).length
       return {
@@ -244,7 +245,7 @@ function countControlLeaders(units, chamber, partyMeta) {
       }
     })
     .filter((row) => row.count > 0)
-    .sort((a, b) => b.count - a.count || PARTIES.indexOf(a.party) - PARTIES.indexOf(b.party))
+    .sort((a, b) => b.count - a.count || parties.indexOf(a.party) - parties.indexOf(b.party))
 }
 
 export default {
@@ -361,7 +362,7 @@ export default {
     ])
     const partyRows = computed(() => {
       const totalAssemblySeats = Math.max(1, results.value.national.assembly.seat_count)
-      return PARTIES.map((party) => ({
+      return partyIdsOf(partyMeta.value).map((party) => ({
         party,
         color: partyMeta.value[party]?.color,
         voteShare: formatShare(results.value.national.assembly.vote_shares[party]),
@@ -395,6 +396,7 @@ export default {
       hasData,
       hasRegions,
       LayoutDashboard,
+      lowerHouseName,
       lowerHouseNameFor,
       mergedControlBoards,
       partyMeta,
@@ -407,6 +409,7 @@ export default {
       store,
       topProvinceRows,
       topRegionRows,
+      upperHouseName,
       upperHouseNameFor,
       overviewAssemblyJurisdictionLabels,
       overviewCouncilJurisdictionLabels,

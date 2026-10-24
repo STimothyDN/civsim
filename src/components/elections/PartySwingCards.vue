@@ -10,7 +10,7 @@
 <script>
 import { computed } from 'vue'
 import { useCivilizationStore } from '../../stores/civilizationStore'
-import { PARTIES } from '../../domain/elections'
+import { partyIdsOf } from '../../domain/elections'
 import PartyBadge from './PartyBadge.vue'
 
 export default {
@@ -24,7 +24,7 @@ export default {
     const civStore = useCivilizationStore()
 
     const partyShifts = computed(() => {
-      return PARTIES.map((party) => {
+      return partyIdsOf(civStore.partyMeta).map((party) => {
         const current = Number(props.currentShares?.[party] || 0)
         const baseline = Number(props.baselineShares?.[party] || 0)
         const diff = current - baseline

@@ -3,6 +3,7 @@ import { watch } from 'vue'
 import { defaultTemplate, normalizeIds, createBlankArrayItem, sortClosestProvinces } from '../utils/schema'
 import { getValueAtPath, setValueAtPath, removeValueAtPath } from '../utils/path'
 import { deepClone } from '../utils/object'
+import { makeSeed } from '../domain/elections/randomness/seededRandom'
 import { computeAllProvinceCalcs, computeRegionalTotals, resetJitterCache } from '../utils/calculatedFields'
 import { clearAutosavedTemplate, readAutosavedState, writeAutosavedState } from '../domain/autosave'
 import { partyMetaFromConfig, partyPaletteOption } from '../domain/elections/constants/parties'
@@ -90,42 +91,6 @@ const AUTOSAVE_DELAY = 350
 let autosaveStop = null
 let autosaveTimer = null
 
-// Memoization cache for unique value collections
-const uniqueValueCache = new Map()
-const cacheVersions = {
-  terrains: 0,
-  resources: 0,
-  rivers: 0,
-  improvementNames: 0,
-  features: 0,
-  buildings: 0,
-  greatWorks: 0,
-}
-
-function invalidateCacheForKey(key) {
-  if (cacheVersions.hasOwnProperty(key)) {
-    cacheVersions[key]++
-  }
-}
-
-function invalidateUniqueValueCache() {
-  // Invalidate all caches (fallback for bulk operations)
-  Object.keys(cacheVersions).forEach(key => {
-    cacheVersions[key]++
-  })
-}
-
-function getMemoizedUniqueValue(key, computeFn) {
-  const version = cacheVersions[key] || 0
-  const cacheKey = `${key}-${version}`
-  if (uniqueValueCache.has(cacheKey)) {
-    return uniqueValueCache.get(cacheKey)
-  }
-  const value = computeFn()
-  uniqueValueCache.set(cacheKey, value)
-  return value
-}
-
 function clearPendingAutosave() {
   if (autosaveTimer) {
     clearTimeout(autosaveTimer)
@@ -167,33 +132,28 @@ export const useFormStore = defineStore('form', {
       return computeAllProvinceCalcs(state.currentData?.provinces, state.currentData?.config?.calculations)
     },
 
+    // Suggestion lists. Getters are computed, so each tracks exactly the
+    // county fields it reads and recomputes only when one of them changes.
     uniqueTerrains(state) {
-      void state._recalcVersion
-      return getMemoizedUniqueValue('terrains', () => collectUniqueCountyField(state.currentData, 'terrain'))
+      return collectUniqueCountyField(state.currentData, 'terrain')
     },
     uniqueResources(state) {
-      void state._recalcVersion
-      return getMemoizedUniqueValue('resources', () => collectUniqueCountyField(state.currentData, 'resource'))
+      return collectUniqueCountyField(state.currentData, 'resource')
     },
     uniqueRivers(state) {
-      void state._recalcVersion
-      return getMemoizedUniqueValue('rivers', () => collectUniqueCountyField(state.currentData, 'river'))
+      return collectUniqueCountyField(state.currentData, 'river')
     },
     uniqueImprovementNames(state) {
-      void state._recalcVersion
-      return getMemoizedUniqueValue('improvementNames', () => collectUniqueCountyField(state.currentData, 'improvement.name'))
+      return collectUniqueCountyField(state.currentData, 'improvement.name')
     },
     uniqueFeatures(state) {
-      void state._recalcVersion
-      return getMemoizedUniqueValue('features', () => collectUniqueCountyKeys(state.currentData, 'features'))
+      return collectUniqueCountyKeys(state.currentData, 'features')
     },
     uniqueBuildings(state) {
-      void state._recalcVersion
-      return getMemoizedUniqueValue('buildings', () => collectUniqueCountyKeys(state.currentData, 'improvement.buildings'))
+      return collectUniqueCountyKeys(state.currentData, 'improvement.buildings')
     },
     uniqueGreatWorks(state) {
-      void state._recalcVersion
-      return getMemoizedUniqueValue('greatWorks', () => collectUniqueCountyKeys(state.currentData, 'improvement.great_works'))
+      return collectUniqueCountyKeys(state.currentData, 'improvement.great_works')
     },
     /** @deprecated Use civilizationStore.partyMeta instead. Kept for backward compatibility. */
     partyMeta(state) {
@@ -207,7 +167,6 @@ export const useFormStore = defineStore('form', {
     },
     loadTemplate(template, options = {}) {
       resetJitterCache()
-      invalidateUniqueValueCache()
       const data = normalizeTemplateInput(template || defaultTemplate)
       this.currentData = data
       this._registerActiveWorld(data, options)
@@ -265,7 +224,6 @@ export const useFormStore = defineStore('form', {
       if (!target) return false
       this._snapshotActiveWorld()
       resetJitterCache()
-      invalidateUniqueValueCache()
       this.currentData = target.data
       this.activeWorldId = id
       this._applyWorldSideState(target)
@@ -279,7 +237,6 @@ export const useFormStore = defineStore('form', {
     addWorld(template, options = {}) {
       this._snapshotActiveWorld()
       resetJitterCache()
-      invalidateUniqueValueCache()
       const data = normalizeTemplateInput(template || defaultTemplate)
       const record = {
         id: makeWorldId(),
@@ -309,7 +266,6 @@ export const useFormStore = defineStore('form', {
       if (wasActive) {
         const next = this.worlds[0] || null
         resetJitterCache()
-        invalidateUniqueValueCache()
         this.currentData = next ? next.data : null
         this.activeWorldId = next ? next.id : null
         this._applyWorldSideState(next)
@@ -329,30 +285,6 @@ export const useFormStore = defineStore('form', {
       }
 
       setValueAtPath(this.currentData, path, value)
-
-      // Selective cache invalidation based on what changed
-      if (path.includes('.counties[')) {
-        if (path.endsWith('.terrain')) {
-          invalidateCacheForKey('terrains')
-        } else if (path.endsWith('.resource')) {
-          invalidateCacheForKey('resources')
-          invalidateCacheForKey('features')
-        } else if (path.endsWith('.river')) {
-          invalidateCacheForKey('rivers')
-        } else if (path.endsWith('.improvement.name')) {
-          invalidateCacheForKey('improvementNames')
-          invalidateCacheForKey('buildings')
-        } else if (path.includes('.improvement.buildings')) {
-          invalidateCacheForKey('buildings')
-        } else if (path.includes('.improvement.great_works')) {
-          invalidateCacheForKey('greatWorks')
-        } else if (path.includes('.features')) {
-          invalidateCacheForKey('features')
-        } else {
-          // For other county fields, invalidate all as fallback
-          invalidateUniqueValueCache()
-        }
-      }
 
       const improvementMatch = path.match(/^(provinces\[\d+\]\.counties\[\d+\])\.improvement\.name$/)
       if (improvementMatch) {
@@ -402,13 +334,6 @@ export const useFormStore = defineStore('form', {
       const blank = createBlankArrayItem(path) || (arr.length > 0 ? deepClone(arr[0]) : null)
       arr.push(blank)
       normalizeIds(this.currentData)
-
-      // Selective cache invalidation when counties are added
-      if (path.includes('.counties')) {
-        // Adding/removing counties affects all unique value collections
-        invalidateUniqueValueCache()
-      }
-
       this.scheduleAutosave()
     },
     removeArrayItem(path, index) {
@@ -417,32 +342,11 @@ export const useFormStore = defineStore('form', {
       if (!Array.isArray(arr)) return
       arr.splice(index, 1)
       normalizeIds(this.currentData)
-
-      // Selective cache invalidation when counties are removed
-      if (path.includes('.counties')) {
-        // Adding/removing counties affects all unique value collections
-        invalidateUniqueValueCache()
-      }
-
       this.scheduleAutosave()
     },
     removeObjectKey(path) {
       if (!this.currentData) return
       removeValueAtPath(this.currentData, path)
-
-      // Selective cache invalidation for removed keys
-      if (path.includes('.counties[')) {
-        if (path.includes('.features')) {
-          invalidateCacheForKey('features')
-        } else if (path.includes('.improvement.buildings')) {
-          invalidateCacheForKey('buildings')
-        } else if (path.includes('.improvement.great_works')) {
-          invalidateCacheForKey('greatWorks')
-        } else {
-          invalidateUniqueValueCache()
-        }
-      }
-
       this.scheduleAutosave()
     },
     exportTemplate() {
@@ -717,6 +621,29 @@ export const useFormStore = defineStore('form', {
       this._recalcVersion++
       this.scheduleAutosave()
     },
+    /**
+     * Replace the configured voter blocs in bulk.
+     */
+    applyVoterBlocs(newBlocs) {
+      if (!this.currentData || !Array.isArray(newBlocs)) return
+      if (!this.currentData.config) this.currentData.config = {}
+      this.currentData.config.voterBlocs = newBlocs.map((bloc, index) => ({
+        id: String(bloc.id || `bloc-${index + 1}`),
+        label: String(bloc.label || `Voter bloc ${index + 1}`),
+        party: String(bloc.party || ''),
+        cultureId: bloc.cultureId ? String(bloc.cultureId) : null,
+        source: bloc.source && typeof bloc.source === 'object'
+          ? deepClone(bloc.source)
+          : { selector: { originalCountryIncludes: [] } },
+        strength: {
+          county: Number(bloc.strength?.county) || 0,
+          province: Number(bloc.strength?.province) || 0,
+          national: Number(bloc.strength?.national) || 0,
+        },
+      }))
+      this._recalcVersion++
+      this.scheduleAutosave()
+    },
     setNationalCapital(provinceIndex) {
       setNationalCapital(this.currentData, provinceIndex)
       this.scheduleAutosave()
@@ -739,6 +666,13 @@ export const useFormStore = defineStore('form', {
     },
     recalculate() {
       resetJitterCache()
+      // A re-survey rolls a fresh population-jitter seed. It is stored on the
+      // world, so the new survey persists across reloads and world switches.
+      const pop = this.currentData?.config?.calculations?.provincialPopulation
+      if (pop && typeof pop === 'object') {
+        pop.jitterSeed = makeSeed('survey')
+        this.scheduleAutosave()
+      }
       this._recalcVersion++
       this.showToast('The realm has been re-surveyed', 'success')
     },
@@ -751,7 +685,6 @@ export const useFormStore = defineStore('form', {
       if (!worlds || !worlds.length) return false
 
       resetJitterCache()
-      invalidateUniqueValueCache()
       this.worlds = worlds
       const active = worlds.find((w) => w.id === activeWorldId) || worlds[0]
       this.activeWorldId = active.id

@@ -45,7 +45,7 @@
 <script>
 import { computed, ref } from 'vue'
 import PartyBadge from './PartyBadge.vue'
-import { PARTIES } from '../../domain/elections'
+import { partyIdsOf } from '../../domain/elections'
 
 export default {
   name: 'CoalitionArithmeticPanel',
@@ -77,7 +77,7 @@ export default {
 
     const coalitions = computed(() => {
       const seats = chamberData.value.seats
-      const partiesWithSeats = PARTIES.filter(p => (seats[p] || 0) > 0)
+      const partiesWithSeats = partyIdsOf(props.partyMeta).filter(p => (seats[p] || 0) > 0)
         .sort((a, b) => (seats[b] || 0) - (seats[a] || 0))
 
       const results = []

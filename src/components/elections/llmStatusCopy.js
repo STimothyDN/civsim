@@ -597,6 +597,114 @@ const WEIGHTS_COPY = {
   },
 }
 
+const VOTER_BLOCS_COPY = {
+  'app.preparing': {
+    label: 'Survey',
+    message: 'Surveying origin countries, province groups, and religions.',
+    detail: (status) => status.detail || 'Packing empire demographics, naming cultures, and party identities.',
+  },
+  'app.connecting': {
+    label: 'Signal',
+    message: 'Opening the voter bloc channel.',
+    detail: (status) => status.detail || 'Linking the voter bloc builder to LM Studio.',
+  },
+  'chat.start': {
+    label: 'Demographer',
+    message: 'Electoral demographer is live.',
+    detail: 'The local model has accepted the voter bloc brief.',
+  },
+  'model_load.start': {
+    label: 'Model Load',
+    message: 'Loading the local model.',
+    detail: 'LM Studio is loading the requested model.',
+  },
+  'model_load.progress': {
+    label: 'Model Load',
+    message: 'Loading the local model.',
+    detail: (status) => progressDetail(status, 'Model load progress'),
+  },
+  'model_load.end': {
+    label: 'Model Load',
+    message: 'Local model is ready.',
+    detail: 'The model is loaded for voter bloc generation.',
+  },
+  'prompt_processing.start': {
+    label: 'Prompt',
+    message: 'Reading empire origins, regions, and religions.',
+    detail: 'Processing narrative, naming cultures, and party identities.',
+  },
+  'prompt_processing.progress': {
+    label: 'Prompt',
+    message: 'Reading empire origins, regions, and religions.',
+    detail: (status) => progressDetail(status, 'Prompt processing progress'),
+  },
+  'prompt_processing.end': {
+    label: 'Prompt',
+    message: 'Demographic context locked.',
+    detail: 'Ready to design targeted voter blocs.',
+  },
+  'reasoning.start': {
+    label: 'Coalitions',
+    message: 'Mapping narrative constituencies to empire groups.',
+    detail: 'The model is matching origin countries, province groups, and religions to parties.',
+  },
+  'reasoning.delta': {
+    label: 'Coalitions',
+    message: 'Mapping narrative constituencies to empire groups.',
+    detail: (status) => status.detail || 'Evaluating voter bloc selectors and scope strengths.',
+  },
+  'reasoning.end': {
+    label: 'Coalitions',
+    message: 'Constituency rules selected.',
+    detail: 'Moving to voter bloc output.',
+  },
+  'message.start': {
+    label: 'Blocs',
+    message: 'Streaming voter bloc rules.',
+    detail: 'Voter bloc definitions are streaming from LM Studio.',
+  },
+  'message.delta': {
+    label: 'Blocs',
+    message: 'Streaming voter bloc rules.',
+    detail: (status) => status.detail || 'Voter bloc JSON is streaming from LM Studio.',
+  },
+  'message.end': {
+    label: 'Blocs',
+    message: 'Voter bloc definitions received.',
+    detail: 'Validating selectors, naming cultures, and scope strengths.',
+  },
+  'chat.end': {
+    label: 'Packet',
+    message: 'Voter bloc packet received.',
+    detail: (status) => status.detail || 'Final LM Studio result received.',
+  },
+  'app.parsing': {
+    label: 'Parsing',
+    message: 'Reading generated voter blocs.',
+    detail: (status) => status.detail || 'Extracting bloc selectors, target parties, and strengths.',
+  },
+  'app.compiling': {
+    label: 'Compiling',
+    message: 'Validating voter blocs against empire data.',
+    detail: (status) => status.detail || 'Normalizing origin, group, and religion selectors.',
+  },
+  'app.complete': {
+    label: 'Complete',
+    message: 'Narrative voter blocs applied.',
+    detail: (status) => status.detail || 'Voter blocs updated.',
+  },
+  error: {
+    label: 'Fault',
+    message: 'Voter bloc generation failed.',
+    detail: (status) => status.detail || 'LM Studio returned an error.',
+  },
+  default: {
+    label: 'Demographer',
+    message: 'Designing narrative voter blocs.',
+    detail: 'Waiting for the local model.',
+  },
+}
+
 export function broadcastLlmStatus(status) {
   return mapStatus(status, BROADCAST_COPY)
 }
@@ -619,4 +727,8 @@ export function namingLlmStatus(status) {
 
 export function weightsLlmStatus(status) {
   return mapStatus(status, WEIGHTS_COPY)
+}
+
+export function voterBlocsLlmStatus(status) {
+  return mapStatus(status, VOTER_BLOCS_COPY)
 }

@@ -7,6 +7,8 @@ import {
   requestElectionClimateSummary,
   requestElectionTicker,
   requestElectionNarrativePlan,
+  requestNarrativeVoterBlocs,
+  compileNarrativeVoterBlocs,
   requestPoliticalModelWeights,
   requestPollBreakdown,
   requestRepresentativeNames,
@@ -1055,5 +1057,100 @@ describe('narrativePlanner LLM prompts', () => {
     expect(orange.affinities.province.industrial_index).toBe(0.34)
     expect(orange.affinities.county.urban_index).toBe(0.22)
     expect(statuses.at(-1)).toMatchObject({ phase: 'complete', progress: 1 })
+  })
+
+  it('requests narrative-driven voter blocs with empire demographic context and compiles originCountry, group, and religion blocs', async () => {
+    mockChatResponse(JSON.stringify({
+      title: 'Temple & Frontier Identity Coalitions',
+      summary: 'Zoroastrian faithful rally behind Divinus Sol while Capital Region rail guilds lean toward UWC.',
+      voterBlocs: [
+        {
+          id: 'zoroastrian_faithful',
+          label: 'Zoroastrian Faithful',
+          party: 'Divinus Sol',
+          matchBy: 'religion',
+          religion: 'Zoroastrianism',
+          strength: { county: 0.25, province: 0.35, national: 0.18 },
+          rationale: 'Devout followers of the state religion form the core Divinus Sol constituency.',
+        },
+        {
+          id: 'capital_rail_guilds',
+          label: 'Capital Rail Guilds',
+          party: 'UWC',
+          matchBy: 'group',
+          contains: 'Capital Region',
+          strength: { county: 0.45, province: 0.3, national: 0.12 },
+          rationale: 'Organized industrial workers in the Capital Region mobilize for UWC.',
+        },
+      ],
+    }))
+
+    const statuses = []
+    const result = await requestNarrativeVoterBlocs({
+      narrative: 'Zoroastrian faithful back Divinus Sol while Capital Region workers organize for UWC.',
+      data: sampleWorld(),
+      onStatus: (status) => statuses.push(status),
+    })
+
+    const fetchCall = globalThis.fetch.mock.calls.at(-1)
+    const body = lastRequestBody()
+    const userPayload = JSON.parse(body.input)
+
+    expect(fetchCall[0]).toBe(DEFAULT_ENDPOINT)
+    expect(body.model).toBe('google/gemma-4-e4b')
+    expect(body.max_output_tokens).toBe(2000)
+    expect(userPayload.USER_NARRATIVE).toContain('Zoroastrian faithful back Divinus Sol')
+    expect(userPayload.CURRENT_WORLD.country).toMatchObject({ name: 'Khmer Empire', leader: 'Jayavarman VII' })
+    expect(userPayload.DEMOGRAPHIC_BLOC_OPTIONS.availableReligions[0]).toMatchObject({
+      name: 'Zoroastrianism',
+      isStateReligion: true,
+    })
+    expect(userPayload.DEMOGRAPHIC_BLOC_OPTIONS.availableProvinceGroups[0]).toMatchObject({
+      name: 'Capital Region',
+    })
+    expect(result.title).toBe('Temple & Frontier Identity Coalitions')
+    expect(result.voterBlocs).toHaveLength(2)
+    expect(result.voterBlocs[0]).toMatchObject({
+      id: 'zoroastrian_faithful',
+      label: 'Zoroastrian Faithful',
+      party: 'yellow',
+      source: { religion: 'Zoroastrianism' },
+      strength: { county: 0.25, province: 0.35, national: 0.18 },
+    })
+    expect(result.voterBlocs[1]).toMatchObject({
+      id: 'capital_rail_guilds',
+      label: 'Capital Rail Guilds',
+      party: 'orange',
+      source: { selector: { groupIncludes: ['Capital Region'] } },
+      strength: { county: 0.45, province: 0.3, national: 0.12 },
+    })
+    expect(statuses.at(-1)).toMatchObject({ phase: 'complete', progress: 1 })
+  })
+
+  it('honors an explicit matchBy when the model echoes placeholder fields from the output format', () => {
+    const blocs = compileNarrativeVoterBlocs({
+      voterBlocs: [
+        {
+          id: 'maya_homeland',
+          party: 'purple',
+          matchBy: 'originalCountry',
+          matchValues: ['Maya'],
+          religion: 'Religion name when matchBy is religion',
+          strength: { county: 0.3, province: 0.3, national: 0.1 },
+        },
+        {
+          id: 'capital_guilds',
+          party: 'orange',
+          matchBy: 'group',
+          matchValues: ['Capital Region'],
+          religion: 'Zoroastrianism',
+          originalCountryIncludes: ['Khmer'],
+          strength: 0.2,
+        },
+      ],
+    }, sampleWorld())
+
+    expect(blocs[0].source).toEqual({ selector: { originalCountryIncludes: ['Maya'] } })
+    expect(blocs[1].source).toEqual({ selector: { groupIncludes: ['Capital Region'] } })
   })
 })

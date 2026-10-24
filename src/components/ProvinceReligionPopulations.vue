@@ -76,14 +76,17 @@ export default {
     const store = useFormStore()
     const data = computed(() => store.currentData)
     const province = computed(() => data.value?.provinces?.[props.provinceIndex] || null)
+    // The engine scales with the world's calculation knobs (and survey seed);
+    // mirror it so this breakdown matches the election features.
+    const calculations = computed(() => data.value?.config?.calculations)
 
     const scaledProvincePop = computed(() => {
       const pop = num(province.value?.population)
       if (pop <= 0) return 0
-      return Math.max(1, num(calcProvincialPopulation(pop, props.provinceIndex), 1))
+      return Math.max(1, num(calcProvincialPopulation(pop, props.provinceIndex, calculations.value), 1))
     })
 
-    const empireTotals = computed(() => buildEmpireReligionTotals(data.value))
+    const empireTotals = computed(() => buildEmpireReligionTotals(data.value, calculations.value))
 
     const affinity = computed(() => {
       const p = province.value
@@ -100,7 +103,7 @@ export default {
     const rows = computed(() => {
       const p = province.value
       if (!p) return []
-      const listedBefore = buildScaledFollowerMap(p, props.provinceIndex)
+      const listedBefore = buildScaledFollowerMap(p, props.provinceIndex, calculations.value)
       const listedNames = new Set(Object.keys(listedBefore))
       const merged = { ...listedBefore }
       applyReligionGlobalization(merged, empireTotals.value, affinity.value)
