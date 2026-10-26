@@ -70,6 +70,9 @@
       <!-- WEIGHT GENERATORS -->
       <div class="generators">
         <div class="generators__buttons">
+          <button type="button" class="btn-generate" :disabled="Boolean(generatingKey)" @click="applyWeights('defaults')">
+            Default Weights <InfoTip :text="TIPS.genDefaults" />
+          </button>
           <button type="button" class="btn-generate" :disabled="Boolean(generatingKey)" @click="applyWeights('balanced')">
             Balanced Weights <InfoTip :text="TIPS.genBalanced" />
           </button>
@@ -257,6 +260,9 @@
             <Sparkles :size="14" />
             {{ generatingKey === 'narrative-blocs' ? 'Generating Voter Blocs…' : 'AI Narrative Driven Voter Blocs' }}
             <InfoTip :text="TIPS.genNarrativeBlocs" />
+          </button>
+          <button type="button" class="btn-generate" :disabled="Boolean(generatingKey)" @click="applyDefaultBlocs">
+            Default Blocs <InfoTip :text="TIPS.genDefaultBlocs" />
           </button>
         </div>
         <p class="generators__note">Generates targeted voter blocs from your narrative combined with your empire's origin countries, province groups, religions, and naming cultures.</p>
@@ -546,7 +552,7 @@
     <section v-else-if="activeTab === 'rules'" class="setup-panel">
       <header class="setup-panel__head">
         <h3>Election Rules</h3>
-        <p>Seat apportionment method and entry thresholds per chamber, plus how strongly local results blend with the national climate.</p>
+        <p>Seat apportionment method and entry thresholds per chamber, how strongly local results blend with the national climate, and how decisive each level's vote is.</p>
       </header>
 
       <h4>Apportionment Method <InfoTip :text="TIPS.apportionment" /></h4>
@@ -570,6 +576,13 @@
           <input type="number" step="0.05" min="0" max="1" :value="elections.voteBlend?.nationalAssemblyLocalWeight" @input="setNum('config.elections.voteBlend.nationalAssemblyLocalWeight', $event)" />
         </label>
       </div>
+
+      <h4>Vote Decisiveness (strongholds) <InfoTip :text="TIPS.decisiveness" /></h4>
+      <div class="field-grid">
+        <label v-for="level in ['county', 'province', 'national']" :key="level">{{ humanize(level) }}
+          <input type="number" step="0.25" min="0.5" max="4" :value="elections.decisiveness?.[level] ?? 2" @input="setNum(`config.elections.decisiveness.${level}`, $event)" />
+        </label>
+      </div>
     </section>
   </div>
 </template>
@@ -582,6 +595,7 @@ import { useCivilizationStore } from '../../stores/civilizationStore'
 import { useElectionResults } from '../../composables/useElectionResults'
 import { FEATURE_GROUPS, featuresForScope } from '../../domain/elections/features/featureCatalog'
 import { generatePoliticalModel } from '../../domain/elections/weightGenerators'
+import { DEFAULT_VOTER_BLOCS } from '../../domain/elections/constants/defaultVoterBlocs'
 import { requestCultureNames, requestNarrativeVoterBlocs, requestPoliticalModelWeights } from '../../domain/elections/narrativePlanner'
 import LlmStatusIndicator from '../elections/LlmStatusIndicator.vue'
 import { namingLlmStatus, voterBlocsLlmStatus, weightsLlmStatus } from '../elections/llmStatusCopy'
@@ -622,6 +636,9 @@ const TIPS = {
   prelateTiers: 'Council (prelate) seats awarded by province size: a province at or above a tier\'s threshold gets that many seats.',
   apportionment: 'Seat-allocation formula per chamber. D\'Hondt favors larger parties; Sainte-Laguë is friendlier to smaller parties; Modified Sainte-Laguë raises the first-seat bar slightly.',
   voteBlend: 'How much a result leans on local outcomes vs. the broader national climate. 1 = fully local, 0 = fully climate.',
+  decisiveness: 'How strongly a place\'s political make-up decides its vote. 1 = votes proportional to party scores (close, mixed results everywhere). 2 (default) = where a party polls above its usual strength it wins by much more, and where it polls below it fades, giving parties real strongholds. The default party weights are balanced at 2.',
+  genDefaults: 'Restores the bundled default weights and base support for every party that has a default (custom parties keep theirs). The defaults are balanced together with the Default Blocs on the Voter Blocs tab.',
+  genDefaultBlocs: 'Replaces this world\'s voter blocs with the bundled defaults (American identity, Roman restoration, Taoist minority) for the parties that exist here. Pairs with Default Weights.',
   genBalanced: 'Pre-fills the matrix so parties come out as evenly matched as the data allows — without exaggerated weights. Major-tier parties target wide, equal support; Minor-tier parties stay focused and smaller.',
   genDataDriven: 'Pre-fills the matrix from the data\'s real cleavages: features that vary most across your provinces get the most weight, so the election mirrors the underlying data distribution.',
   genRandom: 'Pre-fills the matrix with sparse random weights within sane bounds — a quick way to get an unpredictable but playable starting point.',
@@ -680,11 +697,11 @@ export default {
       return Number.isFinite(n) ? `${(n * 100).toFixed(1)}%` : '—'
     }
 
-    const GENERATOR_LABELS = { balanced: 'Balanced weights', 'data-driven': 'Data-driven weights', random: 'Randomized weights' }
+    const GENERATOR_LABELS = { defaults: 'Default weights', balanced: 'Balanced weights', 'data-driven': 'Data-driven weights', random: 'Randomized weights' }
     function applyWeights(mode) {
       const partyList = parties.value
       if (!store.currentData || !partyList.length) return
-      if (!Array.isArray(store.currentData.provinces) || !store.currentData.provinces.length) {
+      if (mode !== 'defaults' && (!Array.isArray(store.currentData.provinces) || !store.currentData.provinces.length)) {
         store.showToast('Add province data first to generate weights from it.', 'error')
         return
       }
@@ -692,6 +709,15 @@ export default {
       const withIds = model.map((m, i) => ({ id: partyList[i].id, ...m }))
       store.applyPoliticalModel(withIds)
       store.showToast(`${GENERATOR_LABELS[mode] || 'Weights'} applied`, 'success')
+    }
+
+    function applyDefaultBlocs() {
+      if (!store.currentData) return
+      const partyIds = new Set(parties.value.map((party) => party.id))
+      const blocs = DEFAULT_VOTER_BLOCS.filter((bloc) => partyIds.has(bloc.party))
+      if (!window.confirm(`Replace this world's ${voterBlocs.value.length} voter bloc(s) with the ${blocs.length} default bloc(s)?`)) return
+      store.applyVoterBlocs(blocs)
+      store.showToast('Default voter blocs applied', 'success')
     }
 
     async function handleNarrativeWeightsButtonClick() {
@@ -991,7 +1017,7 @@ export default {
       handleNarrativeWeightsButtonClick, generateNarrativeWeights,
       narrativeBlocsOpen, narrativeBlocsPrompt, narrativeBlocsInputRef, appliedNarrativeBlocs,
       handleNarrativeBlocsButtonClick, generateNarrativeVoterBlocs,
-      featureTip, clampBias, applyWeights,
+      featureTip, clampBias, applyWeights, applyDefaultBlocs,
       TIPS, BIAS_MIN, BIAS_MAX, BIAS_TIP: 'The party\'s starting score before any feature weighting. Raise it to strengthen the party everywhere; lower it to weaken it. Slider covers the usual range; type any value in the box.',
     }
   },

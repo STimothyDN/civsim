@@ -10,15 +10,15 @@
 
 const AMERICAN_SELECTOR = {
   any: [
-    { groupIncludes: ['American'] },
-    { originalCountryIncludes: ['American', 'United States'] },
+    { groupIncludes: ['America'] },
+    { originalCountryIncludes: ['America', 'United States'] },
   ],
 }
 
 const ROMAN_SELECTOR = {
   any: [
-    { groupIncludes: ['Roman'] },
-    { originalCountryIncludes: ['Roman'] },
+    { groupIncludes: ['Rome', 'Roman', 'Romaioi'] },
+    { originalCountryIncludes: ['Rome', 'Roman', 'Romaioi'] },
   ],
 }
 
@@ -29,7 +29,7 @@ export const DEFAULT_VOTER_BLOCS = [
     party: 'white',
     cultureId: 'american',
     source: { selector: AMERICAN_SELECTOR },
-    strength: { county: 0.22, province: 0.20, national: 0.28 },
+    strength: { county: 0.22, province: 0.2, national: 0.2 },
   },
   {
     id: 'american_conquered',
@@ -37,7 +37,7 @@ export const DEFAULT_VOTER_BLOCS = [
     party: 'white',
     cultureId: 'american',
     source: { selector: { all: [AMERICAN_SELECTOR, { isConquered: true }] } },
-    strength: { county: 0.056, province: 0.06, national: 0 },
+    strength: { county: 0.05, province: 0.05, national: 0 },
   },
   {
     id: 'taoist_minority',
@@ -52,6 +52,6 @@ export const DEFAULT_VOTER_BLOCS = [
     party: 'purple',
     cultureId: 'roman',
     source: { selector: ROMAN_SELECTOR },
-    strength: { county: 0.14, province: 0.13, national: 0.1 },
+    strength: { county: 0.2, province: 0.18, national: 0.15 },
   },
 ]

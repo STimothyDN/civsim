@@ -18,6 +18,26 @@ export function scoresToVoteShares(scores, parties) {
   )
 }
 
+/**
+ * Make a unit's vote more decisive where parties over- or under-perform:
+ * each score is multiplied by (score / norm)^(decisiveness − 1), where `norm`
+ * is the party's typical score at this level across the world. A party polling
+ * its usual everywhere is unaffected; in its heartland its lead grows, and
+ * where it is weak it shrinks — strongholds without favoring whichever party
+ * happens to lead an average unit. Without a norm the party is sharpened
+ * against the unit's own average score. 1 leaves scores untouched.
+ */
+export function sharpenScores(scores, decisiveness = 1, norms = null) {
+  const power = num(decisiveness, 1)
+  if (power === 1) return scores
+  const entries = Object.entries(scores || {}).map(([party, score]) => [party, Math.max(num(score), 0.0001)])
+  const unitAverage = entries.reduce((sum, [, score]) => sum + score, 0) / (entries.length || 1)
+  return Object.fromEntries(entries.map(([party, score]) => {
+    const norm = Math.max(num(norms?.[party], unitAverage), 0.0001)
+    return [party, score * Math.pow(score / norm, power - 1)]
+  }))
+}
+
 export function emptyPartyMap(value = 0, parties = PARTIES) {
   return Object.fromEntries(parties.map((party) => [party, value]))
 }

@@ -20,6 +20,8 @@ export {
   formatShare,
   buildElectionConfig,
   buildFeatureContext,
+  calculateScoreNorms,
+  sameScoreNorms,
   buildProvinceFeatureUnit,
   buildProvinceFeatureUnitFor,
   buildFeatureUnitsByName,

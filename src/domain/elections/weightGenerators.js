@@ -2,7 +2,11 @@ import { buildProvinceComparisonRows } from '../provinceVisualizations'
 import { buildFeatureUnitsByName } from './simulateElection'
 import { buildProvinceFeatureVector } from './scoring/provinceScores'
 import { buildCountyFeatureVector } from './scoring/countyScores'
-import { FEATURE_CATALOG, currentFeatureKey, featuresForScope } from './features/featureCatalog'
+import { COUNTY_SCALE, FEATURE_CATALOG, currentFeatureKey, featuresForScope } from './features/featureCatalog'
+import { DEFAULT_PARTIES } from './constants/defaultParties'
+import { deepClone } from '../../utils/object'
+
+const DEFAULT_PARTY_BY_ID = Object.fromEntries(DEFAULT_PARTIES.map((party) => [party.id, party]))
 
 /**
  * Deterministic generators that pre-populate the political-model weight matrix
@@ -176,8 +180,21 @@ function generateRandom(parties, samplesByScope, rng = Math.random) {
   return result
 }
 
+/**
+ * The bundled default weights for every party that has a default (matched by
+ * id); parties without one keep their current weights.
+ */
+export function defaultPoliticalModel(parties = []) {
+  return parties.map((party) => {
+    const preset = DEFAULT_PARTY_BY_ID[party.id]
+    const source = preset || party
+    return { affinities: deepClone(source.affinities || emptyScoped()), bias: { ...(source.bias || {}) } }
+  })
+}
+
 export function generatePoliticalModel(mode, data, parties, rng = Math.random) {
   if (!Array.isArray(parties) || !parties.length) return []
+  if (mode === 'defaults') return defaultPoliticalModel(parties)
   const samples = gatherFeatureSamples(data)
   if (mode === 'balanced') return generateBalanced(parties, samples)
   if (mode === 'data-driven') return generateDataDriven(parties, samples)
@@ -310,7 +327,17 @@ function findPartySpecInPlan(plan, party) {
   return null
 }
 
-function assignFeatureAcrossScopes(scopedAffinities, allowedByScope, rawKey, rawWeight, targetScopes = SCOPES) {
+// A weight written for one scope, carried to another so it pulls equally hard
+// there (province readings of some features run higher; see COUNTY_SCALE).
+function weightForScope(key, weight, fromScope, toScope) {
+  const scale = COUNTY_SCALE[key] ?? 1
+  const fromCounty = fromScope === 'county'
+  const toCounty = toScope === 'county'
+  if (fromCounty === toCounty) return weight
+  return fromCounty ? weight * scale : weight / scale
+}
+
+function assignFeatureAcrossScopes(scopedAffinities, allowedByScope, rawKey, rawWeight, targetScopes = SCOPES, sourceScope = 'county') {
   const key = resolveFeatureKey(rawKey)
   if (!key) return
   const weight = clampWeight(rawWeight)
@@ -318,7 +345,7 @@ function assignFeatureAcrossScopes(scopedAffinities, allowedByScope, rawKey, raw
 
   for (const scope of targetScopes) {
     if (allowedByScope[scope].has(key) && scopedAffinities[scope][key] === undefined) {
-      scopedAffinities[scope][key] = weight
+      scopedAffinities[scope][key] = clampWeight(weightForScope(key, weight, sourceScope, scope))
     }
   }
 }
@@ -340,13 +367,13 @@ function extractScopedAffinities(spec, allowedByScope) {
       const scopeMap = rawAffinities[scope]
       if (!scopeMap || typeof scopeMap !== 'object') continue
       for (const [featKey, weight] of Object.entries(scopeMap)) {
-        assignFeatureAcrossScopes(scopedAffinities, allowedByScope, featKey, weight, [scope])
+        assignFeatureAcrossScopes(scopedAffinities, allowedByScope, featKey, weight, [scope], scope)
       }
     }
     // 2. Project any populated scope keys onto the scopes that didn't set them.
     for (const sourceScope of ['province', 'county', 'national']) {
       for (const [featKey, weight] of Object.entries(scopedAffinities[sourceScope])) {
-        assignFeatureAcrossScopes(scopedAffinities, allowedByScope, featKey, weight, SCOPES)
+        assignFeatureAcrossScopes(scopedAffinities, allowedByScope, featKey, weight, SCOPES, sourceScope)
       }
     }
   } else {

@@ -3,6 +3,7 @@ import { DEFAULT_VOTER_BLOCS } from './defaultVoterBlocs'
 import { DEFAULT_STRUCTURE } from './politicalStructures'
 import { DEFAULT_NAMING } from '../representativeNames'
 import { deepClone } from '../../../utils/object'
+import { DEFAULT_DECISIVENESS } from './apportionmentRules'
 
 /**
  * Default chamber & leader naming. Region/province names use a "{place}" token.
@@ -71,6 +72,7 @@ export const DEFAULT_ELECTION_RULES = {
   },
   volatility: { national: 0.05, region: 0.08, province: 0.12, county: 0.20 },
   voteBlend: { provincialAssemblyLocalWeight: 0.65, nationalAssemblyLocalWeight: 0.7 },
+  decisiveness: { ...DEFAULT_DECISIVENESS },
 }
 
 /** A fresh, deep-cloned default config block for a new template. */

@@ -47,7 +47,7 @@ describe('political model', () => {
     const fromBlank = calculateProvinceFeatures(province, {}, [blank], 100, { baseFeatures: base })
     const fromDescribed = calculateProvinceFeatures(province, {}, [described], 100, { baseFeatures: base })
     expect(fromBlank.county_coverage).toBe(0)
-    expect(fromBlank.industrial_index).toBeCloseTo(0.63, 5)
+    expect(fromBlank.industrial_index).toBeCloseTo(0.48 * 0.9, 5)
     expect(fromDescribed.industrial_index).toBe(0)
   })
 

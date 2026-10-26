@@ -13,13 +13,11 @@ export function attitudeFeatures(f, remote) {
   const remoteLand = Math.max(v('mountain_index'), v('hardship_index'), v('wilderness_index'))
 
   return {
-    traditionalist_index: clamp01(
-      0.3 * v('rural_index') +
-      0.2 * v('agrarian_index') +
-      0.15 * v('military_index') +
-      0.2 * v('state_religion_share') +
-      0.15 * (1 - Math.max(v('urban_index'), v('intellectual_index')))
-    ),
+    // Conservative country life against modern urban life, centered on 0.5.
+    traditionalist_index: clamp01(0.5 + 0.5 * (
+      (v('rural_index') + v('agrarian_index') + v('military_index') + v('state_religion_share')) / 4 -
+      (v('urban_index') + v('intellectual_index') + v('middle_class_index') + v('development_index')) / 4
+    )),
     localist_index: clamp01(
       0.25 * clamp01(remote) +
       0.2 * v('foreign_origin_index') +

@@ -7,6 +7,7 @@ import {
   provinceReligionAffinity,
 } from './religionDistribution'
 import { attitudeFeatures } from './attitudes'
+import { COUNTY_SCALE } from './featureCatalog'
 
 // Province distance scaling constants - creates drastic effect where remote provinces are frontier/isolated
 const MIN_PROVINCE_DISTANCE = 3
@@ -14,6 +15,8 @@ const MAX_PROVINCE_DISTANCE = 15
 const PROVINCE_DISTANCE_EXPONENT = 1.8
 // Population at which a province reads as fully urban when its counties are blank.
 const URBAN_POPULATION_REFERENCE = 30
+// Yield evenness below which a province counts as fully specialized.
+const DIVERSITY_FLOOR = 0.8
 
 // How a province reads its counties, by kind of feature:
 //   population — economy and class: what most of its people do
@@ -242,20 +245,45 @@ function countyCoverage(counties, totalPopulation) {
 }
 
 /**
- * Where counties are blank, the province's own yields stand in for what its
- * counties would have shown.
+ * What a blank county is taken to be made of: the province's own yields and
+ * size standing in for the detail the player hasn't entered.
+ *   scope 'province' — for the blank share of the province's own reading
+ *   scope 'county'   — for a blank county's vote: an average county of the
+ *                      province (scaled by COUNTY_SCALE), yields included
  */
-function yieldStandIns(base, province) {
+export function blankCountyStandIns(base, province, scope = 'province') {
+  const standIns = provinceStandIns(base, province)
+  if (scope !== 'county') return standIns
+  for (const key of ['food_index', 'production_index', 'gold_index', 'culture_index', 'science_index', 'faith_index']) {
+    standIns[key] = num(base[key])
+  }
+  for (const key of Object.keys(standIns)) standIns[key] = clamp01(standIns[key] * (COUNTY_SCALE[key] ?? 1))
+  return standIns
+}
+
+// Each stand-in is the matching yield (or size) times how strongly that yield
+// shows up in the feature across the fully described provinces of the bundled
+// Khmer world, so a blank county reads like a described one with its yields.
+function provinceStandIns(base, province) {
+  const size = norm(province?.population, URBAN_POPULATION_REFERENCE)
   return {
-    urban_index: clamp01(norm(province?.population, URBAN_POPULATION_REFERENCE) * 0.7),
-    agrarian_index: base.food_index,
-    industrial_index: 0.7 * base.production_index,
-    extractive_index: 0.5 * base.production_index,
-    worker_index: 0.7 * base.production_index,
-    commercial_index: base.gold_index,
-    intellectual_index: base.science_index,
-    spiritual_index: base.faith_index,
-    cultural_elite_index: base.culture_index,
+    urban_index: clamp01(0.2 + 0.5 * size),
+    rural_index: clamp01(0.45 - 0.25 * size),
+    agrarian_index: clamp01(base.food_index),
+    industrial_index: clamp01(0.48 * base.production_index),
+    extractive_index: clamp01(0.16 * base.production_index),
+    worker_index: clamp01(0.34 * base.production_index),
+    commercial_index: clamp01(0.63 * base.gold_index),
+    // Shopkeepers and comfortable townsfolk follow trade and contentment.
+    middle_class_index: clamp01(1.2 * base.gold_index * (0.5 + 0.5 * base.happiness_index)),
+    development_index: num(base.provincial_development ?? base.development_index),
+    // Every province has a City Center (and usually its palace or monuments);
+    // described provinces read about this much state presence.
+    civic_monument_index: 0.6,
+    infrastructure_index: clamp01(0.5 * num(base.provincial_development ?? base.development_index)),
+    intellectual_index: clamp01(1.3 * base.science_index),
+    spiritual_index: clamp01(1.7 * base.faith_index),
+    cultural_elite_index: clamp01(1.37 * base.culture_index),
   }
 }
 
@@ -263,14 +291,25 @@ export function calculateProvinceFeatures(province, country = {}, counties = [],
   const base = options.baseFeatures || calculateProvinceBaseFeatures(province, country, options)
   const totalPopulation = counties.reduce((sum, county) => sum + num(county.county_population), 0) || num(provincialPopulation)
   const coverage = countyCoverage(counties, totalPopulation)
-  const standIns = yieldStandIns(base, province)
+  const standIns = blankCountyStandIns(base, province)
+  const described = counties.filter((county) => county.has_details)
+  const describedPopulation = described.reduce((sum, county) => sum + num(county.county_population), 0)
 
   const composition = {}
   for (const key of [...POPULATION_FEATURES, ...LAND_FEATURES, ...PRESENCE_FEATURES]) {
-    const fromCounties = aggregateCounties(counties, key, totalPopulation)
-    composition[key] = clamp01(key in standIns ? coverage * fromCounties + (1 - coverage) * standIns[key] : fromCounties)
+    // Stand-in features: described counties for their share, stand-ins for the
+    // blank share. Others (the land, mostly) read blank counties as having none.
+    composition[key] = clamp01(key in standIns
+      ? coverage * aggregateCounties(described, key, describedPopulation) + (1 - coverage) * standIns[key]
+      : aggregateCounties(counties, key, totalPopulation))
   }
   composition.development_index = clamp01(0.5 * composition.development_index + 0.5 * base.provincial_development)
+  // Per-citizen yields are always fairly even, so the province's own reading is
+  // stretched to separate specialized provinces from mixed ones.
+  composition.economic_diversity_index = clamp01(
+    coverage * populationWeighted(described, 'economic_diversity_index', describedPopulation) +
+    (1 - coverage) * clamp01((base.economic_diversity_index - DIVERSITY_FLOOR) / (1 - DIVERSITY_FLOOR))
+  )
 
   const { provincial_development, ...baseFeatures } = base
   const features = { ...baseFeatures, ...composition }

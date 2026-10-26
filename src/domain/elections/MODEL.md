@@ -72,8 +72,9 @@ province's identity features (below).
 The same formulas at every scope, from that scope's features. *Remote* is
 county remoteness, or `frontier_index` for a province.
 
-- **traditionalist** = 0.30 rural + 0.20 agrarian + 0.15 military + 0.20 state
-  religion + 0.15 (1 − max(urban, intellectual))
+- **traditionalist** = 0.5 + 0.5 × (mean of rural, agrarian, military, state
+  religion − mean of urban, intellectual, middle class, development): country
+  conservatism against modern urban life
 - **localist** = 0.25 remote + 0.20 foreign origin + 0.15 conquered + 0.15
   minority religion + 0.15 (1 − imperial core) + 0.10 max(mountain, hardship,
   wilderness)
@@ -109,16 +110,53 @@ localism; a Kurgan raises traditionalism).
   intellectual, spiritual, arts, state institutions, leisure, heritage —
   `1 − (1 − population-weighted)(1 − 0.6 × strongest county)`
 
-**Blank counties.** `county_coverage` is the share of the province's population
-in counties with any terrain, feature, resource, improvement, building or yield.
-For the uncovered share, province yields per citizen stand in: agrarian ← food,
-industrial ← 0.7 production, extractive ← 0.5 production, worker ← 0.7
-production, commercial ← gold, intellectual ← science, spiritual ← faith, arts ←
-culture, urban ← 0.7 × population/30.
+**Blank counties.** A county is *described* if it has any terrain, feature,
+resource, improvement, building or yield; `county_coverage` is the population
+share living in described counties. `blankCountyStandIns` says what a blank
+county is taken to be made of, from the province's yields per citizen and size
+(coefficients fitted to the fully described Khmer provinces):
+
+| Feature | Stand-in |
+| --- | --- |
+| urban / rural | 0.2 + 0.5·size / 0.45 − 0.25·size (size = population / 30) |
+| agrarian | food |
+| industrial / worker / extractive | 0.48 / 0.34 / 0.16 × production |
+| commercial | 0.63 × gold |
+| middle class | 1.2 × gold × (0.5 + 0.5 happiness) |
+| academia / religious life / arts | 1.3 × science / 1.7 × faith / 1.37 × culture |
+| development | the province's own development reading |
+| state institutions | 0.6 (every province has a City Center) |
+| infrastructure | 0.5 × development |
+
+A province reads stand-in features as `coverage × (described counties) +
+(1 − coverage) × stand-in`. A blank county *votes* as its province's average
+voter: the stand-ins times `COUNTY_SCALE` (below), yields included — so an
+unknown county votes like its province's economy, not like empty countryside.
 
 **development** is half the counties' and half the province's own (culture,
-science, gold per citizen, happiness). **Attitudes** are half the province's own
-reading and half its counties'. **Yields** are per citizen.
+science, gold per citizen, happiness). **economic_diversity** blends described
+counties with the province's yield evenness stretched from 0.8–1 to 0–1.
+**Attitudes** are half the province's own reading and half its counties'.
+**Yields** are per citizen.
+
+## Scope scale — `COUNTY_SCALE` in `featureCatalog.js`
+
+Every feature means the same thing at every scope, but some *read* differently:
+a province has academia or a navy when one county is a Campus or Harbor
+(presence), its yields are per citizen not per tile, and its land is read by
+area while people cluster on rivers and rails and away from coasts and wilds.
+`COUNTY_SCALE[f]` is the typical county reading as a share of the province
+reading (1 for every economy and class feature). It is used to
+
+- read a blank county as its province's average voter, and
+- carry a party's county weights to province and national scope so they pull
+  equally hard there (default parties, and the narrative weight generator).
+
+Measured on the fully described Khmer provinces: academia/navy 0.1, religious
+life/heritage 0.15, military 0.2, arts 0.25, leisure 0.3, state institutions
+0.4, restorationism 0.7; yields 0.1 (culture, science) to 0.6 (food); coast 0.2,
+wilds/ecology 0.3, highlands 0.7, harsh land 0.85, river valley 1.5, pollution
+1.8, infrastructure 2.
 
 ## National features — `features/nationalFeatures.js`
 
@@ -132,10 +170,85 @@ a weight on `imperial_origin_index` becomes a negative weight on
 `foreign_origin_index` plus bias); trend selectors, voter-bloc feature sources
 and LLM output read old keys through `readFeature`.
 
+## Vote decisiveness — `decisiveness` in election rules
+
+Scores become votes through one more step, at every level (county, province,
+national), before trends and random swings:
+
+```
+vote(party) ∝ score × (score / norm)^(decisiveness − 1) × trends × swings
+```
+
+`norm` is the party's typical score at that level across the whole world
+(population-weighted, rounded to two significant digits — `calculateScoreNorms`).
+Where a party polls its usual strength nothing changes; where it out-polls its
+usual (its heartland) its lead grows, and where it under-polls it fades. That
+gives parties strongholds without favoring whichever party happens to lead an
+average place. 1 is proportional voting (the earlier behavior); the default is
+2 at every level (Advanced Setup → Election Rules). Trends and random swings are
+multiplicative and applied afterwards, so they keep their designed strength.
+
+## Balance
+
+The default parties (`constants/defaultParties.js`) and voter blocs
+(`constants/defaultVoterBlocs.js`) are balanced on the bundled Khmer world at
+decisiveness 2. Each party is one map of county weights, written from its
+ideology, with concentrated weight on its core features (broad, near-universal
+features such as state-religion share act like a fixed base and blunt
+strongholds); province/national weights follow from `COUNTY_SCALE`. Negative
+weights are kept small.
+
+**Biases** are fitted by `balance/calibrateBiases.js`: in an *expected*
+election (every random swing at zero), each level's bias is tuned until the
+party hits its national target — the four majors 19.5% each, white 7.5%,
+purple 6.5%, green 8% (`DEFAULT_BALANCE_TARGETS`). Shares barely move when every
+bias rises together but results flatten, so each round the level's biases shift
+down together until the lowest sits on the floor: base support stays as low as
+the targets allow and heartlands carry the vote. (An identity party that
+over-shoots its target even at the floor props everyone else's base up; that is
+why the default bloc strengths are moderate.) Random swings then move each
+major about ±2.5 points per election.
+
+What that gives on the Khmer world (30 seeded elections):
+
+| Party | Vote | Assembly seats | Council seats | Provinces won | Safe provinces | Largest in assembly |
+| --- | --- | --- | --- | --- | --- | --- |
+| Yellow | 19.6% | 126 | 18 | 9.1 | 1.5 | 4 / 30 |
+| Orange | 19.3% | 133 | 22 | 7.1 | 0.9 | 8 / 30 |
+| Red | 19.4% | 136 | 27 | 15.6 | 4.6 | 12 / 30 |
+| Blue | 19.6% | 134 | 21 | 9.2 | 1.7 | 6 / 30 |
+| White | 7.7% | 42 | 7 | 4.9 of 5 American | 3.5 | — |
+| Purple | 6.5% | 39 | 15 | 9.1 of 13 Roman | 5.0 | — |
+| Green | 8.0% | 37 | 0 | — | — | — |
+
+Per election about 18 provinces are safe (winning margin ≥ 12 points), 18 likely
+and 19 toss-ups; province winners take a median 31% (top ~52%). Counties are
+decisive: rebuilt in the capital, a farm votes 65% red, an industrial zone 81%
+orange, a commercial hub 55% blue, a government plaza 65% yellow, a national
+park 70% green. Each party's county vote tracks its core feature (imperial
+core, working class, traditionalism, middle class, ecology, foreign origin,
+restorationism). `balance.test.js` holds these properties; if an engine or
+catalog change trips it, re-run the calibration rather than loosening the
+bounds.
+
+Known leans: strongholds reward support spread over many provinces, so red —
+the party of the many small agrarian stub provinces — is the largest party
+more often than the others, and leads the council (two seats per province in
+the Khmer world's federalist structure) most of the time. Yellow's vote is
+concentrated in the imperial core and wins the fewest council seats. Rich,
+mixed provinces (many district types) stay competitive; homogeneous ones —
+identity homelands, agrarian stubs — become strongholds.
+
+Existing worlds keep their own weights. Advanced Setup's **Default Weights**
+(Political Model) and **Default Blocs** (Voter Blocs) apply this balance to a
+world; the two are calibrated together, at decisiveness 2.
+
 ## Tuning
 
 - What a game element means politically: its `profile` in `src/domain/civ6`.
   `civ6/catalog.test.js` keeps every pickable entry meaningful.
 - How context and aggregation work: the formulas above.
 - How parties respond: affinities and biases (defaults, Advanced Setup, or the
-  balanced / data-driven / narrative generators in `weightGenerators.js`).
+  default / balanced / data-driven / narrative generators in
+  `weightGenerators.js`); `calibrateBiases` re-fits biases to any world.
+- How decisive results are: election rules `decisiveness` (per level).

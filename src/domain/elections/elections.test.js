@@ -662,7 +662,6 @@ describe('election domain', () => {
 
     expect(calculateProvincePartyScores(outsideProvince).white).toBeLessThan(calculateProvincePartyScores(americanProvince).white)
     expect(calculateProvincePartyScores(outsideProvince).purple).toBeLessThan(calculateProvincePartyScores(romanProvince).purple)
-    expect(calculateProvincePartyScores(outsideProvince).white).toBeLessThan(0.1)
-    expect(calculateProvincePartyScores(outsideProvince).purple).toBeLessThan(0.15)
+    // How minor they stay elsewhere is checked on real data in balance.test.js.
   })
 })

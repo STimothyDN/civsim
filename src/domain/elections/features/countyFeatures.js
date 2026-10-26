@@ -45,6 +45,23 @@ function countyYieldIndices(county) {
   }
 }
 
+/**
+ * Whether the player described what the county is made of (a name alone
+ * doesn't count). Blank counties take their province's stand-ins instead.
+ */
+export function countyHasComposition(county = {}) {
+  const hasEnabled = (value) => value && typeof value === 'object' && Object.values(value).some(Boolean)
+  const yieldTotal = Object.values(county?.yields || {}).reduce((sum, value) => sum + num(value), 0)
+  return Boolean(
+    String(county?.terrain || '').trim() ||
+    String(county?.resource || '').trim() ||
+    improvementName(county) ||
+    hasEnabled(county?.features) ||
+    hasEnabled(county?.improvement?.buildings) ||
+    yieldTotal > 0
+  )
+}
+
 function provinceIdentity(provinceContext = {}) {
   const identity = {}
   for (const key of PROVINCE_IDENTITY_FEATURES) identity[key] = clamp01(provinceContext[key])
@@ -60,8 +77,12 @@ function provinceIdentity(provinceContext = {}) {
  * combined with diminishing returns. The formulas below add the context the
  * catalog can't know (distance from the center, yields, railroad, river, great
  * works, appeal) and the province's identity, which the county inherits.
+ *
+ * `options.standIns` (provinceFeatures.blankCountyStandIns) is what a blank
+ * county is taken to be made of, so an unknown county votes like its
+ * province's economy rather than like empty countryside.
  */
-export function calculateCountyFeatures(county, provinceContext = {}) {
+export function calculateCountyFeatures(county, provinceContext = {}, options = {}) {
   const { remain, damp } = collectCountyProfile(county)
   const lift = (dim, ...context) => clamp01(softOr(1 - remain[dim], ...context) * damp[dim])
 
@@ -113,6 +134,7 @@ export function calculateCountyFeatures(county, provinceContext = {}) {
     pollution_index: pollution,
     ...yields,
   }
+  if (options.standIns && !countyHasComposition(county)) Object.assign(composition, options.standIns)
 
   const identity = provinceIdentity(provinceContext)
   const attitudes = attitudeFeatures({ ...composition, ...identity }, remote)

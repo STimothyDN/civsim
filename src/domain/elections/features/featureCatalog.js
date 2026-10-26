@@ -98,6 +98,44 @@ export const PROVINCE_IDENTITY_FEATURES = [
   'frontier_index',
 ]
 
+/**
+ * Typical county reading as a share of the province reading, per feature,
+ * weighting counties by population (so 1 for every economy and class feature,
+ * which provinces read population-weighted). Other features differ by
+ * construction: a province *has* academia or a navy when one of its counties is
+ * a Campus or Harbor (presence), its yields are per citizen rather than per
+ * tile, and its land is read by area while people cluster on rivers and rails
+ * and away from coasts and wilds.
+ * Used to read a blank county as its province's average voter, and to carry a
+ * party's county weights to province scope so they pull equally hard there.
+ * Measured on the fully described provinces of the bundled Khmer world.
+ */
+export const COUNTY_SCALE = {
+  maritime_index: 0.1,
+  intellectual_index: 0.1,
+  spiritual_index: 0.15,
+  heritage_index: 0.15,
+  military_index: 0.2,
+  cultural_elite_index: 0.25,
+  leisure_tourism_index: 0.3,
+  civic_monument_index: 0.4,
+  restorationist_index: 0.7,
+  culture_index: 0.1,
+  science_index: 0.1,
+  faith_index: 0.2,
+  gold_index: 0.3,
+  production_index: 0.35,
+  food_index: 0.6,
+  coastal_index: 0.2,
+  wilderness_index: 0.3,
+  ecology_index: 0.3,
+  mountain_index: 0.7,
+  hardship_index: 0.85,
+  watershed_index: 1.5,
+  pollution_index: 1.8,
+  infrastructure_index: 2,
+}
+
 const CATALOG_BY_KEY = new Map(FEATURE_CATALOG.map((entry) => [entry.key, entry]))
 
 /** Features available at a given scope, in catalog order. */

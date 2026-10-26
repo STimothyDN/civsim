@@ -1,17 +1,17 @@
-import { THRESHOLDS, APPORTIONMENT, DEFAULT_VOLATILITY, DEFAULT_VOTE_BLEND, BASELINE_ELECTION_CONFIG } from './constants/apportionmentRules'
+import { THRESHOLDS, APPORTIONMENT, DEFAULT_VOLATILITY, resolveDecisiveness, DEFAULT_VOTE_BLEND, BASELINE_ELECTION_CONFIG } from './constants/apportionmentRules'
 import { PARTIES, normalizePartyConfig, partyMetaFromConfig, partyNamesFromConfig } from './constants/parties'
 import { DEFAULT_VOTER_BLOCS } from './constants/defaultVoterBlocs'
 import { aggregateNationalBlocMembership } from './features/voterBlocs'
 import { apportionDHondt, apportionModifiedSainteLague, apportionSainteLague, createEmptySeats } from './apportionment/highestAverages'
 import { allocateCountyPopulations } from './population/allocateCountyPopulations'
-import { calculateCountyFeatures } from './features/countyFeatures'
+import { calculateCountyFeatures, countyHasComposition } from './features/countyFeatures'
 import { calculateNationalFeatures } from './features/nationalFeatures'
-import { calculateProvinceBaseFeatures, calculateProvinceFeatures } from './features/provinceFeatures'
+import { blankCountyStandIns, calculateProvinceBaseFeatures, calculateProvinceFeatures } from './features/provinceFeatures'
 import { buildEmpireReligionTotals } from './features/religionDistribution'
 import { calculateCountyPartyScores } from './scoring/countyScores'
 import { calculateNationalPartyScores } from './scoring/nationalScores'
 import { calculateProvincePartyScores } from './scoring/provinceScores'
-import { emptyPartyMap, scoresToVoteShares, sumPartyMaps, weightedVoteShares } from './scoring/normalizeScores'
+import { emptyPartyMap, scoresToVoteShares, sharpenScores, sumPartyMaps, weightedVoteShares } from './scoring/normalizeScores'
 import { applyJitter } from './randomness/jitter'
 import { applyTrends } from './trends/applyTrends'
 import { clamp, num, roundTo, sumObjectValues } from './normalization/numbers'
@@ -36,6 +36,7 @@ function mergeConfig(electionConfig = {}, rules = {}) {
       ...voteBlendBase,
       ...(electionConfig.voteBlend || {}),
     },
+    decisiveness: resolveDecisiveness(rules.decisiveness, electionConfig.decisiveness),
     trends: Array.isArray(electionConfig.trends) ? electionConfig.trends : [],
   }
 }
@@ -123,20 +124,6 @@ function makeCountyUnit(county, index, province) {
   }
 }
 
-// Whether the player described what the county is made of (a name alone
-// doesn't count). Blank counties let province yields stand in for them.
-function countyHasComposition(county = {}) {
-  const hasEnabled = (value) => value && typeof value === 'object' && Object.values(value).some(Boolean)
-  return Boolean(
-    String(county?.terrain || '').trim() ||
-    String(county?.resource || '').trim() ||
-    String(county?.improvement?.name || '').trim() ||
-    hasEnabled(county?.features) ||
-    hasEnabled(county?.improvement?.buildings) ||
-    sumObjectValues(county?.yields || {}) > 0
-  )
-}
-
 function countyHasMeaningfulDetails(county = {}) {
   const improvementName = String(county?.improvement?.name || '').trim()
   const hasEnabledObjectValue = (value) =>
@@ -174,7 +161,7 @@ function countyDataQuality(province = {}, row = {}) {
 
 function calculateCountyVote(county, province, config) {
   const rawScores = calculateCountyPartyScores(county, province, { parties: config.partyDefs, voterBlocs: config.voterBlocs })
-  const trendScores = applyTrends(rawScores, county, 'county', config.trends)
+  const trendScores = applyTrends(sharpenScores(rawScores, config.decisiveness.county, config.scoreNorms?.county), county, 'county', config.trends)
   const adjustedScores = applyJitter(trendScores, {
     national: 'national',
     region: province.group || 'Unassigned',
@@ -194,7 +181,7 @@ function calculateCountyVote(county, province, config) {
 function calculateProvinceAssembly(province, counties, config) {
   const scoringOptions = { parties: config.partyDefs, voterBlocs: config.voterBlocs }
   const rawScores = applyNeighborInfluence(calculateProvincePartyScores(province, scoringOptions), province, scoringOptions)
-  const trendScores = applyTrends(rawScores, province, 'province', config.trends)
+  const trendScores = applyTrends(sharpenScores(rawScores, config.decisiveness.province, config.scoreNorms?.province), province, 'province', config.trends)
   const adjustedScores = applyJitter(trendScores, {
     national: 'national',
     region: province.group || 'Unassigned',
@@ -287,6 +274,7 @@ function buildProvinceFeatureUnitFor(raw, row, context) {
   const featureOptions = { provinceIndex: provinceInput.provinceIndex, empireReligionTotals, calculations }
   const baseFeatures = calculateProvinceBaseFeatures(provinceInput, country, featureOptions)
   const allocatedCounties = allocateCountyPopulations(provinceInput, provinceInput.provincial_population)
+  const standIns = blankCountyStandIns(baseFeatures, provinceInput, 'county')
   const preliminaryCountyUnits = allocatedCounties.map((county, index) => {
     const countyUnit = makeCountyUnit(county, index, provinceInput)
     return {
@@ -294,7 +282,7 @@ function buildProvinceFeatureUnitFor(raw, row, context) {
       political_features: calculateCountyFeatures(county, {
         ...baseFeatures,
         is_conquered: provinceInput.is_conquered,
-      }),
+      }, { standIns }),
     }
   })
   const provinceFeatures = calculateProvinceFeatures(
@@ -390,11 +378,12 @@ function buildProvinceResultFor(raw, row, config, featureUnitsByName, context) {
     voteBlend: { ...config.voteBlend, provincialAssemblyLocalWeight: 0.75 },
     volatility: { ...config.volatility, province: (config.volatility?.province ?? 0.12) * 1.3 },
   } : config
+  const standIns = blankCountyStandIns(province.political_features, province, 'county')
   const counties = preliminaryCountyUnits.map((county) => {
     const features = calculateCountyFeatures(county, {
       ...province.political_features,
       is_conquered: province.is_conquered,
-    })
+    }, { standIns })
     return calculateCountyVote({ ...county, political_features: features }, province, provinceConfig)
   })
   const assembly = calculateProvinceAssembly(province, counties, provinceConfig)
@@ -536,7 +525,7 @@ function calculateNationalDecentralized(provinces, config) {
     voterBlocs: config.voterBlocs,
     blocMembership,
   })
-  const trendScores = applyTrends(rawScores, unit, 'national', config.trends)
+  const trendScores = applyTrends(sharpenScores(rawScores, config.decisiveness.national, config.scoreNorms?.province), unit, 'national', config.trends)
   const adjustedScores = applyJitter(trendScores, { national: 'national' }, config)
   const climateVoteShares = scoresToVoteShares(adjustedScores)
   const localVoteShares = weightedVoteShares(
@@ -677,11 +666,12 @@ export function buildElectionConfig(data, electionConfig = {}) {
 }
 
 export function simulateElection({ data, provinceRows = [], electionConfig = {} } = {}) {
-  const config = buildElectionConfig(data, electionConfig)
-  const { partyMeta, partyList, coalitionPartners } = config
+  const baseConfig = buildElectionConfig(data, electionConfig)
   const rows = Array.isArray(provinceRows) ? provinceRows : []
   const featureContext = buildFeatureContext(data || {})
   const featureUnitsByName = buildFeatureUnitsByName(data || {}, rows, featureContext)
+  const config = { ...baseConfig, scoreNorms: calculateScoreNorms(featureUnitsByName.values(), baseConfig) }
+  const { partyMeta, partyList, coalitionPartners } = config
   const provinces = rows.map((row) => buildProvinceResult(data || {}, row, config, featureUnitsByName, featureContext))
   const regions = config.structure?.hasRegionTier
     ? addRegionControls(aggregateRegions(provinces, partyList), config.trends, config.partyNames, coalitionPartners)
@@ -706,6 +696,47 @@ export function simulateElection({ data, provinceRows = [], electionConfig = {} 
       ),
     },
   }
+}
+
+/**
+ * Each party's typical raw score per level across the world (population-
+ * weighted), which decisiveness sharpens against. Skipped when every level is
+ * proportional.
+ */
+export function calculateScoreNorms(featureUnits, config) {
+  const levels = config.decisiveness || {}
+  if (['county', 'province', 'national'].every((level) => num(levels[level], 1) === 1)) return null
+  const scoringOptions = { parties: config.partyDefs, voterBlocs: config.voterBlocs }
+  const totals = { county: {}, province: {} }
+  const weights = { county: 0, province: 0 }
+  const add = (level, scores, weight) => {
+    if (!(weight > 0)) return
+    weights[level] += weight
+    for (const [party, score] of Object.entries(scores)) totals[level][party] = (totals[level][party] || 0) + weight * Math.max(0, score)
+  }
+  for (const { province, counties } of featureUnits) {
+    add('province', calculateProvincePartyScores(province, scoringOptions), num(province.provincial_population))
+    for (const county of counties) add('county', calculateCountyPartyScores(county, province, scoringOptions), num(county.county_population))
+  }
+  // Two significant digits: a single county edit rarely moves a rounded norm,
+  // so the app can keep recomputing only the edited province.
+  const roundNorm = (value) => (value > 0 ? Number(value.toPrecision(2)) : 0)
+  const finish = (level) => (weights[level]
+    ? Object.fromEntries(Object.entries(totals[level]).map(([party, total]) => [party, roundNorm(total / weights[level])]))
+    : null)
+  return { county: finish('county'), province: finish('province') }
+}
+
+/** Whether two score-norm sets are the same (so results needn't recompute). */
+export function sameScoreNorms(a, b) {
+  if (a === b) return true
+  if (!a || !b) return false
+  return ['county', 'province'].every((level) => {
+    const x = a[level] || {}
+    const y = b[level] || {}
+    const keys = new Set([...Object.keys(x), ...Object.keys(y)])
+    return [...keys].every((key) => x[key] === y[key])
+  })
 }
 
 export function formatShare(value) {

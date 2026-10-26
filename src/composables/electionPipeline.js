@@ -6,6 +6,8 @@ import {
   buildFeatureContext,
   buildProvinceFeatureUnitFor,
   buildProvinceResultFor,
+  calculateScoreNorms,
+  sameScoreNorms,
   aggregateRegions,
   addRegionControls,
   calculateNational,
@@ -214,9 +216,27 @@ function buildPipeline() {
       }))
     }
 
-    const results = makeVariant(currentConfig)
-    const baselineResults = makeVariant(baselineConfig)
-    const previousElectionResults = makeVariant(previousConfig)
+    // Each party's typical score per level across the world, which vote
+    // decisiveness sharpens against. The engine rounds it, and the same object
+    // is returned while the rounded values hold, so an ordinary edit still
+    // recomputes only the edited province.
+    let lastScoreNorms = null
+    const scoreNorms = computed(() => {
+      const units = []
+      for (let i = 0; i < provinceCount.value; i++) {
+        const unit = ensureFeatureUnit(i).value
+        if (unit) units.push(unit)
+      }
+      const next = calculateScoreNorms(units, currentConfig.value)
+      if (sameScoreNorms(lastScoreNorms, next)) return lastScoreNorms
+      lastScoreNorms = next
+      return next
+    })
+    const withScoreNorms = (configRef) => computed(() => ({ ...configRef.value, scoreNorms: scoreNorms.value }))
+
+    const results = makeVariant(withScoreNorms(currentConfig))
+    const baselineResults = makeVariant(withScoreNorms(baselineConfig))
+    const previousElectionResults = makeVariant(withScoreNorms(previousConfig))
     const hasData = computed(() => provinceCount.value > 0)
 
     const provinceRows = computed(() => civStore.provinceRows)
